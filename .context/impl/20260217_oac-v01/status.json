@@ -1,0 +1,27 @@
+{
+  "feature": "OAC v0.1 Foundation",
+  "created": "2026-02-17",
+  "waves": {
+    "wave0": { "name": "Monorepo Scaffold", "status": "pending", "agent": "claude" },
+    "wave1": {
+      "name": "Core Packages (parallel)",
+      "status": "pending",
+      "tasks": {
+        "core": { "agent": "codex", "worktree": "impl/core" },
+        "repo": { "agent": "codex", "worktree": "impl/repo" },
+        "discovery": { "agent": "codex", "worktree": "impl/discovery" },
+        "budget": { "agent": "codex", "worktree": "impl/budget" },
+        "tracking": { "agent": "codex", "worktree": "impl/tracking" }
+      }
+    },
+    "wave2": {
+      "name": "Execution + Completion + CLI",
+      "status": "pending",
+      "tasks": {
+        "execution": { "agent": "codex", "worktree": "impl/execution" },
+        "completion": { "agent": "codex", "worktree": "impl/completion" },
+        "cli": { "agent": "codex", "worktree": "impl/cli" }
+      }
+    }
+  }
+}
