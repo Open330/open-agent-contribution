@@ -16,6 +16,9 @@ describe("createCliProgram", () => {
     expect(commandNames).toContain("scan");
     expect(commandNames).toContain("plan");
     expect(commandNames).toContain("run");
+    expect(commandNames).toContain("log");
+    expect(commandNames).toContain("leaderboard");
+    expect(commandNames).toContain("status");
   });
 
   it("has global options --config, --verbose, --json, --no-color", async () => {
@@ -39,8 +42,8 @@ describe("createCliProgram", () => {
     expect(typeof program.version()).toBe("string");
   });
 
-  it("has 5 subcommands", async () => {
+  it("has 8 subcommands", async () => {
     const program = await createCliProgram();
-    expect(program.commands).toHaveLength(5);
+    expect(program.commands).toHaveLength(8);
   });
 });

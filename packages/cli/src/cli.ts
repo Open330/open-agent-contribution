@@ -3,9 +3,12 @@ import { Command } from "commander";
 
 import { createDoctorCommand } from "./commands/doctor.js";
 import { createInitCommand } from "./commands/init.js";
+import { createLeaderboardCommand } from "./commands/leaderboard.js";
+import { createLogCommand } from "./commands/log.js";
 import { createPlanCommand } from "./commands/plan.js";
 import { createRunCommand } from "./commands/run.js";
 import { createScanCommand } from "./commands/scan.js";
+import { createStatusCommand } from "./commands/status.js";
 
 export interface GlobalCliOptions {
   config?: string;
@@ -36,6 +39,9 @@ function registerCommands(program: Command): void {
   program.addCommand(createScanCommand());
   program.addCommand(createPlanCommand());
   program.addCommand(createRunCommand());
+  program.addCommand(createLogCommand());
+  program.addCommand(createLeaderboardCommand());
+  program.addCommand(createStatusCommand());
 }
 
 export async function createCliProgram(): Promise<Command> {
