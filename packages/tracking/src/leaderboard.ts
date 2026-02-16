@@ -1,17 +1,13 @@
-import { randomUUID } from 'node:crypto';
-import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { randomUUID } from "node:crypto";
+import { mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
+import { join, resolve } from "node:path";
 
-import {
-  contributionLogSchema,
-  type ContributionLog,
-  type TaskSource,
-} from './log-schema.js';
+import { type ContributionLog, type TaskSource, contributionLogSchema } from "./log-schema.js";
 
-const OAC_DIRECTORY = '.oac';
-const CONTRIBUTIONS_DIRECTORY = 'contributions';
-const LEADERBOARD_FILENAME = 'leaderboard.json';
-const EMPTY_TIMESTAMP = '';
+const OAC_DIRECTORY = ".oac";
+const CONTRIBUTIONS_DIRECTORY = "contributions";
+const LEADERBOARD_FILENAME = "leaderboard.json";
+const EMPTY_TIMESTAMP = "";
 
 interface LeaderboardAccumulator {
   githubUsername: string;
@@ -72,31 +68,20 @@ export async function buildLeaderboard(repoPath: string): Promise<Leaderboard> {
 
   for (const log of logs) {
     const username = log.contributor.githubUsername;
-    const accumulator =
-      aggregates.get(username) ??
-      createAccumulator(username, log.timestamp);
+    const accumulator = aggregates.get(username) ?? createAccumulator(username, log.timestamp);
 
     accumulator.totalRuns += 1;
-    accumulator.totalTasksCompleted += log.tasks.filter(
-      (task) => task.status !== 'failed',
-    ).length;
+    accumulator.totalTasksCompleted += log.tasks.filter((task) => task.status !== "failed").length;
     accumulator.totalTokensDonated += log.budget.totalTokensUsed;
     accumulator.totalFilesChanged += log.metrics.totalFilesChanged;
-    accumulator.totalLinesChanged +=
-      log.metrics.totalLinesAdded + log.metrics.totalLinesRemoved;
-    accumulator.firstContribution = minIsoTimestamp(
-      accumulator.firstContribution,
-      log.timestamp,
-    );
-    accumulator.lastContribution = maxIsoTimestamp(
-      accumulator.lastContribution,
-      log.timestamp,
-    );
+    accumulator.totalLinesChanged += log.metrics.totalLinesAdded + log.metrics.totalLinesRemoved;
+    accumulator.firstContribution = minIsoTimestamp(accumulator.firstContribution, log.timestamp);
+    accumulator.lastContribution = maxIsoTimestamp(accumulator.lastContribution, log.timestamp);
 
     for (const task of log.tasks) {
       if (task.pr) {
         accumulator.totalPRsCreated += 1;
-        if (task.pr.status === 'merged') {
+        if (task.pr.status === "merged") {
           accumulator.totalPRsMerged += 1;
         }
       }
@@ -110,18 +95,10 @@ export async function buildLeaderboard(repoPath: string): Promise<Leaderboard> {
     aggregates.set(username, accumulator);
 
     repoStats.totalTokensUsed += log.budget.totalTokensUsed;
-    repoStats.firstContribution = minIsoTimestamp(
-      repoStats.firstContribution,
-      log.timestamp,
-    );
-    repoStats.lastContribution = maxIsoTimestamp(
-      repoStats.lastContribution,
-      log.timestamp,
-    );
+    repoStats.firstContribution = minIsoTimestamp(repoStats.firstContribution, log.timestamp);
+    repoStats.lastContribution = maxIsoTimestamp(repoStats.lastContribution, log.timestamp);
     repoStats.totalPRsCreated += log.tasks.filter((task) => Boolean(task.pr)).length;
-    repoStats.totalPRsMerged += log.tasks.filter(
-      (task) => task.pr?.status === 'merged',
-    ).length;
+    repoStats.totalPRsMerged += log.tasks.filter((task) => task.pr?.status === "merged").length;
   }
 
   const entries: LeaderboardEntry[] = Array.from(aggregates.values())
@@ -184,14 +161,12 @@ function createAccumulator(
   };
 }
 
-async function readContributionLogs(
-  contributionsPath: string,
-): Promise<ContributionLog[]> {
+async function readContributionLogs(contributionsPath: string): Promise<ContributionLog[]> {
   let fileNames: string[];
   try {
     const entries = await readdir(contributionsPath, { withFileTypes: true });
     fileNames = entries
-      .filter((entry) => entry.isFile() && entry.name.endsWith('.json'))
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
       .map((entry) => entry.name)
       .sort();
   } catch (error) {
@@ -206,24 +181,21 @@ async function readContributionLogs(
       const filePath = join(contributionsPath, fileName);
 
       try {
-        const fileContent = await readFile(filePath, 'utf8');
+        const fileContent = await readFile(filePath, "utf8");
         const parsedJson = JSON.parse(fileContent) as unknown;
         const parsedLog = contributionLogSchema.safeParse(parsedJson);
 
         if (!parsedLog.success) {
           console.warn(
-            `[tracking] Skipping invalid contribution log "${fileName}": ${parsedLog.error.issues[0]?.message ?? 'Schema validation failed.'}`,
+            `[tracking] Skipping invalid contribution log "${fileName}": ${parsedLog.error.issues[0]?.message ?? "Schema validation failed."}`,
           );
           return null;
         }
 
         return parsedLog.data;
       } catch (error) {
-        const message =
-          error instanceof Error ? error.message : 'Unknown read error';
-        console.warn(
-          `[tracking] Skipping unreadable contribution log "${fileName}": ${message}`,
-        );
+        const message = error instanceof Error ? error.message : "Unknown read error";
+        console.warn(`[tracking] Skipping unreadable contribution log "${fileName}": ${message}`);
         return null;
       }
     }),
@@ -234,10 +206,10 @@ async function readContributionLogs(
 
 function getFavoriteTaskSource(sourceCounts: Map<TaskSource, number>): TaskSource {
   if (sourceCounts.size === 0) {
-    return 'custom';
+    return "custom";
   }
 
-  let favorite: TaskSource = 'custom';
+  let favorite: TaskSource = "custom";
   let favoriteCount = -1;
 
   for (const [source, count] of sourceCounts.entries()) {
@@ -276,22 +248,19 @@ function maxIsoTimestamp(a: string, b: string): string {
 }
 
 function isFileNotFoundError(error: unknown): boolean {
-  if (typeof error !== 'object' || error === null) {
+  if (typeof error !== "object" || error === null) {
     return false;
   }
 
   const code = (error as { code?: unknown }).code;
-  return code === 'ENOENT';
+  return code === "ENOENT";
 }
 
-async function writeFileAtomically(
-  destinationPath: string,
-  content: string,
-): Promise<void> {
+async function writeFileAtomically(destinationPath: string, content: string): Promise<void> {
   const tempPath = `${destinationPath}.${process.pid}.${randomUUID()}.tmp`;
 
   try {
-    await writeFile(tempPath, content, { encoding: 'utf8', flag: 'wx' });
+    await writeFile(tempPath, content, { encoding: "utf8", flag: "wx" });
     await rename(tempPath, destinationPath);
   } finally {
     await rm(tempPath, { force: true });

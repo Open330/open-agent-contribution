@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as fsPromises from "node:fs/promises";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MetadataCache } from "../src/metadata-cache.js";
 import type { ResolvedRepo } from "../src/types.js";
 
@@ -238,10 +238,7 @@ describe("MetadataCache writes", () => {
     await cache.set("owner/repo", repo);
 
     expect(fsMockState.rename).toHaveBeenCalled();
-    const [tempPath, finalPath] = fsMockState.rename.mock.calls[0] as [
-      string,
-      string,
-    ];
+    const [tempPath, finalPath] = fsMockState.rename.mock.calls[0] as [string, string];
     expect(tempPath).toBe(`${cachePath}.tmp`);
     expect(finalPath).toBe(cachePath);
   });

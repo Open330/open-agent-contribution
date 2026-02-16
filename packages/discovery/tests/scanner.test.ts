@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Task } from "@oac/core";
-import type { ScanOptions, Scanner } from "../src/types.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CompositeScanner, createDefaultCompositeScanner } from "../src/scanner.js";
 import { LintScanner } from "../src/scanners/lint-scanner.js";
 import { TodoScanner } from "../src/scanners/todo-scanner.js";
+import type { ScanOptions, Scanner } from "../src/types.js";
 
 function makeTask(overrides: Partial<Task> = {}): Task {
   return {
@@ -81,14 +81,12 @@ describe("CompositeScanner", () => {
   });
 
   it("collects tasks from multiple scanners", async () => {
-    const scannerA = makeMockScanner(
-      "scanner-a",
-      [makeTask({ id: "a", title: "Task A", priority: 20 })],
-    );
-    const scannerB = makeMockScanner(
-      "scanner-b",
-      [makeTask({ id: "b", title: "Task B", priority: 80 })],
-    );
+    const scannerA = makeMockScanner("scanner-a", [
+      makeTask({ id: "a", title: "Task A", priority: 20 }),
+    ]);
+    const scannerB = makeMockScanner("scanner-b", [
+      makeTask({ id: "b", title: "Task B", priority: 80 }),
+    ]);
     const composite = new CompositeScanner([scannerA, scannerB]);
 
     const results = await composite.scan("/repo");
@@ -143,10 +141,9 @@ describe("CompositeScanner", () => {
       makeTask({ id: "p10", title: "P10", priority: 10 }),
       makeTask({ id: "p30", title: "P30", priority: 30 }),
     ]);
-    const scannerB = makeMockScanner(
-      "scanner-b",
-      [makeTask({ id: "p20", title: "P20", priority: 20 })],
-    );
+    const scannerB = makeMockScanner("scanner-b", [
+      makeTask({ id: "p20", title: "P20", priority: 20 }),
+    ]);
     const composite = new CompositeScanner([scannerA, scannerB]);
 
     const results = await composite.scan("/repo");
@@ -385,7 +382,9 @@ describe("CompositeScanner", () => {
       makeTask({ id: "a", title: "A", priority: 40 }),
       makeTask({ id: "c", title: "C", priority: 20 }),
     ]);
-    const scannerB = makeMockScanner("scanner-b", [makeTask({ id: "b", title: "B", priority: 30 })]);
+    const scannerB = makeMockScanner("scanner-b", [
+      makeTask({ id: "b", title: "B", priority: 30 }),
+    ]);
     const composite = new CompositeScanner([scannerA, scannerB]);
 
     const results = await composite.scan("/repo", { maxTasks: 2 });

@@ -1,23 +1,23 @@
-import { constants as fsConstants } from 'node:fs';
-import { access } from 'node:fs/promises';
-import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { constants as fsConstants } from "node:fs";
+import { access } from "node:fs/promises";
+import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
-import { loadConfig, type OacConfig } from '@oac/core';
+import { type OacConfig, loadConfig } from "@oac/core";
 import {
   CompositeScanner,
   LintScanner,
+  type Scanner,
   TodoScanner,
   rankTasks,
-  type Scanner,
-} from '@oac/discovery';
-import { cloneRepo, resolveRepo } from '@oac/repo';
-import chalk, { Chalk, type ChalkInstance } from 'chalk';
-import Table from 'cli-table3';
-import { Command } from 'commander';
-import ora, { type Ora } from 'ora';
+} from "@oac/discovery";
+import { cloneRepo, resolveRepo } from "@oac/repo";
+import chalk, { Chalk, type ChalkInstance } from "chalk";
+import Table from "cli-table3";
+import { Command } from "commander";
+import ora, { type Ora } from "ora";
 
-import type { GlobalCliOptions } from '../cli.js';
+import type { GlobalCliOptions } from "../cli.js";
 
 interface ScanCommandOptions {
   repo?: string;
@@ -26,29 +26,29 @@ interface ScanCommandOptions {
   format: string;
 }
 
-type OutputFormat = 'table' | 'json';
-type SupportedScanner = 'lint' | 'todo';
+type OutputFormat = "table" | "json";
+type SupportedScanner = "lint" | "todo";
 
-const SUPPORTED_SCANNERS: SupportedScanner[] = ['lint', 'todo'];
+const SUPPORTED_SCANNERS: SupportedScanner[] = ["lint", "todo"];
 
 export function createScanCommand(): Command {
-  const command = new Command('scan');
+  const command = new Command("scan");
 
   command
-    .description('Discover tasks in a repository')
-    .option('--repo <owner/repo>', 'Target repository (owner/repo or GitHub URL)')
-    .option('--scanners <names>', 'Comma-separated scanner filter (lint,todo)')
-    .option('--min-priority <number>', 'Minimum priority threshold (0-100)', parseInteger, 20)
-    .option('--format <format>', 'Output format: table|json', 'table')
+    .description("Discover tasks in a repository")
+    .option("--repo <owner/repo>", "Target repository (owner/repo or GitHub URL)")
+    .option("--scanners <names>", "Comma-separated scanner filter (lint,todo)")
+    .option("--min-priority <number>", "Minimum priority threshold (0-100)", parseInteger, 20)
+    .option("--format <format>", "Output format: table|json", "table")
     .action(async (options: ScanCommandOptions, cmd) => {
       const globalOptions = getGlobalOptions(cmd);
       const ui = createUi(globalOptions);
 
       const outputFormat = normalizeOutputFormat(options.format);
-      const outputJson = globalOptions.json || outputFormat === 'json';
+      const outputJson = globalOptions.json || outputFormat === "json";
 
       if (options.minPriority < 0 || options.minPriority > 100) {
-        throw new Error('--min-priority must be between 0 and 100.');
+        throw new Error("--min-priority must be between 0 and 100.");
       }
 
       const config = await loadOptionalConfig(globalOptions.config, globalOptions.verbose, ui);
@@ -58,22 +58,22 @@ export function createScanCommand(): Command {
       if (!outputJson && scannerSelection.unknown.length > 0) {
         console.log(
           ui.yellow(
-            `Ignoring unsupported scanner(s): ${scannerSelection.unknown.join(', ')}. Supported scanners: ${SUPPORTED_SCANNERS.join(', ')}.`,
+            `Ignoring unsupported scanner(s): ${scannerSelection.unknown.join(", ")}. Supported scanners: ${SUPPORTED_SCANNERS.join(", ")}.`,
           ),
         );
       }
 
-      const resolveSpinner = createSpinner(outputJson, 'Resolving repository...');
+      const resolveSpinner = createSpinner(outputJson, "Resolving repository...");
       const resolvedRepo = await resolveRepo(repoInput);
       resolveSpinner?.succeed(`Resolved ${resolvedRepo.fullName}`);
 
-      const cloneSpinner = createSpinner(outputJson, 'Preparing local clone...');
+      const cloneSpinner = createSpinner(outputJson, "Preparing local clone...");
       await cloneRepo(resolvedRepo);
       cloneSpinner?.succeed(`Repository ready at ${resolvedRepo.localPath}`);
 
       const scanSpinner = createSpinner(
         outputJson,
-        `Running scanners: ${scannerSelection.enabled.join(', ')}`,
+        `Running scanners: ${scannerSelection.enabled.join(", ")}`,
       );
 
       const scannedTasks = await scannerSelection.scanner.scan(resolvedRepo.localPath, {
@@ -106,12 +106,12 @@ export function createScanCommand(): Command {
       }
 
       if (rankedTasks.length === 0) {
-        console.log(ui.yellow('No tasks discovered for the selected criteria.'));
+        console.log(ui.yellow("No tasks discovered for the selected criteria."));
         return;
       }
 
       const table = new Table({
-        head: ['ID', 'Title', 'Source', 'Priority', 'Complexity'],
+        head: ["ID", "Title", "Source", "Priority", "Complexity"],
       });
 
       for (const task of rankedTasks) {
@@ -125,7 +125,7 @@ export function createScanCommand(): Command {
       }
 
       console.log(table.toString());
-      console.log('');
+      console.log("");
       console.log(
         ui.blue(
           `Found ${rankedTasks.length} task(s). Use \`oac plan --repo ${resolvedRepo.fullName} --tokens <n>\` to build an execution plan.`,
@@ -140,7 +140,7 @@ function getGlobalOptions(command: Command): Required<GlobalCliOptions> {
   const options = command.optsWithGlobals<GlobalCliOptions>();
 
   return {
-    config: options.config ?? 'oac.config.ts',
+    config: options.config ?? "oac.config.ts",
     verbose: options.verbose === true,
     json: options.json === true,
     color: options.color !== false,
@@ -148,7 +148,7 @@ function getGlobalOptions(command: Command): Required<GlobalCliOptions> {
 }
 
 function createUi(options: Required<GlobalCliOptions>): ChalkInstance {
-  const noColorEnv = Object.prototype.hasOwnProperty.call(process.env, 'NO_COLOR');
+  const noColorEnv = Object.prototype.hasOwnProperty.call(process.env, "NO_COLOR");
   const colorEnabled = options.color && !noColorEnv;
 
   return new Chalk({ level: colorEnabled ? chalk.level : 0 });
@@ -159,7 +159,7 @@ function createSpinner(enabled: boolean, text: string): Ora | null {
     return null;
   }
 
-  return ora({ text, color: 'blue' }).start();
+  return ora({ text, color: "blue" }).start();
 }
 
 function parseInteger(value: string): number {
@@ -173,7 +173,7 @@ function parseInteger(value: string): number {
 
 function normalizeOutputFormat(value: string): OutputFormat {
   const normalized = value.trim().toLowerCase();
-  if (normalized === 'table' || normalized === 'json') {
+  if (normalized === "table" || normalized === "json") {
     return normalized;
   }
 
@@ -211,20 +211,20 @@ function resolveRepoInput(repoOption: string | undefined, config: OacConfig | nu
   }
 
   const firstConfiguredRepo = config?.repos[0];
-  if (typeof firstConfiguredRepo === 'string') {
+  if (typeof firstConfiguredRepo === "string") {
     return firstConfiguredRepo;
   }
 
   if (
     firstConfiguredRepo &&
-    typeof firstConfiguredRepo === 'object' &&
-    'name' in firstConfiguredRepo &&
-    typeof firstConfiguredRepo.name === 'string'
+    typeof firstConfiguredRepo === "object" &&
+    "name" in firstConfiguredRepo &&
+    typeof firstConfiguredRepo.name === "string"
   ) {
     return firstConfiguredRepo.name;
   }
 
-  throw new Error('No repository specified. Use --repo or configure repos in oac.config.ts.');
+  throw new Error("No repository specified. Use --repo or configure repos in oac.config.ts.");
 }
 
 function selectScanners(
@@ -237,14 +237,14 @@ function selectScanners(
 } {
   const requested = scannerOption
     ? parseCsv(scannerOption)
-    : scannersFromConfig(config) ?? [...SUPPORTED_SCANNERS];
+    : (scannersFromConfig(config) ?? [...SUPPORTED_SCANNERS]);
 
   const enabled: SupportedScanner[] = [];
   const unknown: string[] = [];
 
   for (const scannerName of requested) {
     const normalized = scannerName.toLowerCase();
-    if (normalized === 'lint' || normalized === 'todo') {
+    if (normalized === "lint" || normalized === "todo") {
       enabled.push(normalized);
     } else {
       unknown.push(scannerName);
@@ -254,12 +254,12 @@ function selectScanners(
   const uniqueEnabled = [...new Set(enabled)];
   if (uniqueEnabled.length === 0) {
     throw new Error(
-      `No supported scanners selected. Supported scanners: ${SUPPORTED_SCANNERS.join(', ')}.`,
+      `No supported scanners selected. Supported scanners: ${SUPPORTED_SCANNERS.join(", ")}.`,
     );
   }
 
   const scannerInstances: Scanner[] = uniqueEnabled.map((name) =>
-    name === 'lint' ? new LintScanner() : new TodoScanner(),
+    name === "lint" ? new LintScanner() : new TodoScanner(),
   );
 
   return {
@@ -276,10 +276,10 @@ function scannersFromConfig(config: OacConfig | null): SupportedScanner[] | null
 
   const configured: SupportedScanner[] = [];
   if (config.discovery.scanners.lint) {
-    configured.push('lint');
+    configured.push("lint");
   }
   if (config.discovery.scanners.todo) {
-    configured.push('todo');
+    configured.push("todo");
   }
 
   if (configured.length === 0) {
@@ -291,7 +291,7 @@ function scannersFromConfig(config: OacConfig | null): SupportedScanner[] | null
 
 function parseCsv(value: string): string[] {
   return value
-    .split(',')
+    .split(",")
     .map((item) => item.trim())
     .filter((item) => item.length > 0);
 }

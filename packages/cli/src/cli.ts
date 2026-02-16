@@ -1,11 +1,11 @@
-import { readFile } from 'node:fs/promises';
-import { Command } from 'commander';
+import { readFile } from "node:fs/promises";
+import { Command } from "commander";
 
-import { createDoctorCommand } from './commands/doctor.js';
-import { createInitCommand } from './commands/init.js';
-import { createPlanCommand } from './commands/plan.js';
-import { createRunCommand } from './commands/run.js';
-import { createScanCommand } from './commands/scan.js';
+import { createDoctorCommand } from "./commands/doctor.js";
+import { createInitCommand } from "./commands/init.js";
+import { createPlanCommand } from "./commands/plan.js";
+import { createRunCommand } from "./commands/run.js";
+import { createScanCommand } from "./commands/scan.js";
 
 export interface GlobalCliOptions {
   config?: string;
@@ -16,18 +16,18 @@ export interface GlobalCliOptions {
 
 async function readCliVersion(): Promise<string> {
   try {
-    const packageJsonPath = new URL('../package.json', import.meta.url);
-    const packageJsonRaw = await readFile(packageJsonPath, 'utf8');
+    const packageJsonPath = new URL("../package.json", import.meta.url);
+    const packageJsonRaw = await readFile(packageJsonPath, "utf8");
     const packageJson = JSON.parse(packageJsonRaw) as { version?: unknown };
 
-    if (typeof packageJson.version === 'string' && packageJson.version.length > 0) {
+    if (typeof packageJson.version === "string" && packageJson.version.length > 0) {
       return packageJson.version;
     }
   } catch {
     // Fall back to a safe default when package metadata is unavailable.
   }
 
-  return '0.0.0';
+  return "0.0.0";
 }
 
 function registerCommands(program: Command): void {
@@ -43,13 +43,13 @@ export async function createCliProgram(): Promise<Command> {
 
   const program = new Command();
   program
-    .name('oac')
-    .description('Open Agent Contribution CLI')
+    .name("oac")
+    .description("Open Agent Contribution CLI")
     .version(version)
-    .option('--config <path>', 'Config file path', 'oac.config.ts')
-    .option('--verbose', 'Enable verbose logging', false)
-    .option('--json', 'Output machine-readable JSON', false)
-    .option('--no-color', 'Disable ANSI colors');
+    .option("--config <path>", "Config file path", "oac.config.ts")
+    .option("--verbose", "Enable verbose logging", false)
+    .option("--json", "Output machine-readable JSON", false)
+    .option("--no-color", "Disable ANSI colors");
 
   registerCommands(program);
 

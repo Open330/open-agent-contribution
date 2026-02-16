@@ -2,7 +2,7 @@ import { constants as fsConstants } from "node:fs";
 import { access, mkdir } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
-import { simpleGit, type SimpleGit } from "simple-git";
+import { type SimpleGit, simpleGit } from "simple-git";
 import type { ResolvedRepo } from "./types.js";
 
 const CLONE_RETRY_BACKOFF_MS = [1000, 4000, 16000] as const;
@@ -37,10 +37,7 @@ export async function cloneRepo(
   return localPath;
 }
 
-async function cloneNewRepository(
-  repo: ResolvedRepo,
-  localPath: string,
-): Promise<void> {
+async function cloneNewRepository(repo: ResolvedRepo, localPath: string): Promise<void> {
   const git = simpleGit();
   await retryGitOperation(
     () =>
@@ -54,10 +51,7 @@ async function cloneNewRepository(
   );
 }
 
-async function pullExistingClone(
-  repo: ResolvedRepo,
-  localPath: string,
-): Promise<void> {
+async function pullExistingClone(repo: ResolvedRepo, localPath: string): Promise<void> {
   const git = simpleGit(localPath);
   await ensureOriginRemote(git, repo.git.remoteUrl);
 
@@ -74,10 +68,7 @@ async function pullExistingClone(
   );
 }
 
-async function checkoutDefaultBranch(
-  git: SimpleGit,
-  branchName: string,
-): Promise<void> {
+async function checkoutDefaultBranch(git: SimpleGit, branchName: string): Promise<void> {
   try {
     await git.checkout(branchName);
   } catch {
@@ -129,9 +120,7 @@ async function retryGitOperation<T>(
   }
 
   throw new Error(
-    `Git operation failed after ${
-      CLONE_RETRY_BACKOFF_MS.length + 1
-    } attempts (${operationName}).`,
+    `Git operation failed after ${CLONE_RETRY_BACKOFF_MS.length + 1} attempts (${operationName}).`,
     { cause: lastError },
   );
 }

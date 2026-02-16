@@ -31,6 +31,13 @@
     "lineWidth": 100
   },
   "files": {
-    "ignore": ["**/dist/**", "**/node_modules/**", "**/coverage/**", "**/.oac/**"]
+    "ignore": [
+      "**/dist/**",
+      "**/node_modules/**",
+      "**/coverage/**",
+      "**/.oac/**",
+      "**/.turbo/**",
+      "**/.context/**"
+    ]
   }
 }

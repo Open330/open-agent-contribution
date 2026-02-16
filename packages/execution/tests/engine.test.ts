@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("p-queue", () => {
   class MockPQueue {
@@ -14,10 +14,7 @@ vi.mock("p-queue", () => {
       this.started = options.autoStart ?? true;
     }
 
-    add(
-      task: () => Promise<void>,
-      _options?: { priority?: number },
-    ): Promise<void> {
+    add(task: () => Promise<void>, _options?: { priority?: number }): Promise<void> {
       return new Promise((resolve, reject) => {
         const run = async (): Promise<void> => {
           this.running += 1;
@@ -99,13 +96,13 @@ vi.mock("../src/worker.js", () => ({
 }));
 
 import {
-  createEventBus,
-  executionError,
-  OacError,
   type ExecutionPlan,
   type ExecutionResult,
+  OacError,
   type Task,
   type TokenEstimate,
+  createEventBus,
+  executionError,
 } from "@oac/core";
 import type { AgentProvider } from "../src/agents/agent.interface.js";
 import { ExecutionEngine, isTransientError } from "../src/engine.js";
@@ -128,10 +125,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
   };
 }
 
-function makeEstimate(
-  taskId = "task-1",
-  overrides: Partial<TokenEstimate> = {},
-): TokenEstimate {
+function makeEstimate(taskId = "task-1", overrides: Partial<TokenEstimate> = {}): TokenEstimate {
   return {
     taskId,
     providerId: "claude-code",
@@ -166,9 +160,7 @@ function makePlan(tasks: Task[] = [makeTask()]): ExecutionPlan {
   };
 }
 
-function makeExecutionResult(
-  overrides: Partial<ExecutionResult> = {},
-): ExecutionResult {
+function makeExecutionResult(overrides: Partial<ExecutionResult> = {}): ExecutionResult {
   return {
     success: true,
     exitCode: 0,
@@ -191,9 +183,7 @@ function createMockAgent(id = "test-agent"): AgentProvider {
   return {
     id,
     name: "Test Agent",
-    checkAvailability: vi
-      .fn()
-      .mockResolvedValue({ available: true, version: "1.0.0" }),
+    checkAvailability: vi.fn().mockResolvedValue({ available: true, version: "1.0.0" }),
     execute: vi.fn().mockReturnValue({
       executionId: "execution-id",
       providerId: id,
@@ -233,14 +223,10 @@ describe("ExecutionEngine", () => {
   });
 
   it("constructor accepts config with defaults", () => {
-    const engine = new ExecutionEngine(
-      [createMockAgent()],
-      createEventBus(),
-      {
-        concurrency: 3,
-        repoPath: "/tmp/repo-under-test",
-      },
-    );
+    const engine = new ExecutionEngine([createMockAgent()], createEventBus(), {
+      concurrency: 3,
+      repoPath: "/tmp/repo-under-test",
+    });
 
     const internal = engine as unknown as {
       concurrency: number;
@@ -263,10 +249,7 @@ describe("ExecutionEngine", () => {
 
   it("enqueue() creates jobs from execution plan", () => {
     const engine = new ExecutionEngine([createMockAgent()], createEventBus());
-    const plan = makePlan([
-      makeTask({ id: "task-1" }),
-      makeTask({ id: "task-2" }),
-    ]);
+    const plan = makePlan([makeTask({ id: "task-1" }), makeTask({ id: "task-2" })]);
 
     const jobs = engine.enqueue(plan);
 
@@ -310,12 +293,7 @@ describe("ExecutionEngine", () => {
     const engine = new ExecutionEngine([createMockAgent()], createEventBus(), {
       maxAttempts: 1,
     });
-    engine.enqueue(
-      makePlan([
-        makeTask({ id: "task-success" }),
-        makeTask({ id: "task-failure" }),
-      ]),
-    );
+    engine.enqueue(makePlan([makeTask({ id: "task-success" }), makeTask({ id: "task-failure" })]));
 
     vi.mocked(executeTask)
       .mockResolvedValueOnce(makeExecutionResult())
@@ -371,10 +349,7 @@ describe("ExecutionEngine", () => {
     const agent = createMockAgent("agent-abort-queue");
     const engine = new ExecutionEngine([agent], eventBus, { concurrency: 1 });
     const jobs = engine.enqueue(
-      makePlan([
-        makeTask({ id: "task-running" }),
-        makeTask({ id: "task-queued" }),
-      ]),
+      makePlan([makeTask({ id: "task-running" }), makeTask({ id: "task-queued" })]),
     );
 
     let rejectExecution: ((reason?: unknown) => void) | undefined;
@@ -436,11 +411,7 @@ describe("ExecutionEngine", () => {
 
     const result = await engine.run();
 
-    expect(result.jobs.map((job) => job.workerId)).toEqual([
-      "agent-a",
-      "agent-b",
-      "agent-a",
-    ]);
+    expect(result.jobs.map((job) => job.workerId)).toEqual(["agent-a", "agent-b", "agent-a"]);
   });
 });
 

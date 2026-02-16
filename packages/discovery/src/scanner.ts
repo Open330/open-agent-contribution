@@ -1,8 +1,8 @@
-import { createHash } from 'node:crypto';
-import type { Task } from '@oac/core';
-import { LintScanner } from './scanners/lint-scanner.js';
-import { TodoScanner } from './scanners/todo-scanner.js';
-import type { ScanOptions, Scanner } from './types.js';
+import { createHash } from "node:crypto";
+import type { Task } from "@oac/core";
+import { LintScanner } from "./scanners/lint-scanner.js";
+import { TodoScanner } from "./scanners/todo-scanner.js";
+import type { ScanOptions, Scanner } from "./types.js";
 
 interface DeduplicatedTask {
   task: Task;
@@ -14,8 +14,8 @@ interface DeduplicatedTask {
  * Runs multiple scanners in parallel and returns a deduplicated task list.
  */
 export class CompositeScanner implements Scanner {
-  public readonly id = 'composite';
-  public readonly name = 'Composite Scanner';
+  public readonly id = "composite";
+  public readonly name = "Composite Scanner";
 
   private readonly scanners: Scanner[];
 
@@ -34,7 +34,7 @@ export class CompositeScanner implements Scanner {
     const collected: Array<{ scannerId: string; task: Task }> = [];
 
     for (const result of settled) {
-      if (result.status !== 'fulfilled') {
+      if (result.status !== "fulfilled") {
         continue;
       }
 
@@ -45,7 +45,7 @@ export class CompositeScanner implements Scanner {
     }
 
     const deduplicated = deduplicateTasks(collected);
-    if (typeof options.maxTasks === 'number' && options.maxTasks >= 0) {
+    if (typeof options.maxTasks === "number" && options.maxTasks >= 0) {
       return deduplicated.slice(0, options.maxTasks);
     }
 
@@ -77,7 +77,11 @@ function deduplicateTasks(candidates: Array<{ scannerId: string; task: Task }>):
     const winner = preferIncoming ? candidate.task : existing.task;
     const loser = preferIncoming ? existing.task : candidate.task;
 
-    const mergedSources = unique([...existing.mergedSources, candidate.scannerId, String(loser.source)]);
+    const mergedSources = unique([
+      ...existing.mergedSources,
+      candidate.scannerId,
+      String(loser.source),
+    ]);
     const duplicateTaskIds = unique([...existing.duplicateTaskIds, loser.id, winner.id]);
 
     const winnerMetadata = toRecord(winner.metadata);
@@ -111,12 +115,12 @@ function deduplicateTasks(candidates: Array<{ scannerId: string; task: Task }>):
 }
 
 function taskContentHash(task: Task): string {
-  const content = [task.source, [...task.targetFiles].sort().join(','), task.title].join('::');
-  return createHash('sha256').update(content).digest('hex').slice(0, 16);
+  const content = [task.source, [...task.targetFiles].sort().join(","), task.title].join("::");
+  return createHash("sha256").update(content).digest("hex").slice(0, 16);
 }
 
 function toRecord(value: unknown): Record<string, unknown> {
-  if (value && typeof value === 'object') {
+  if (value && typeof value === "object") {
     return value as Record<string, unknown>;
   }
   return {};

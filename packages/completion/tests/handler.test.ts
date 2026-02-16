@@ -1,11 +1,6 @@
-import {
-  createEventBus,
-  type ExecutionResult,
-  type ResolvedRepo,
-  type Task,
-} from "@oac/core";
+import { type ExecutionResult, type ResolvedRepo, type Task, createEventBus } from "@oac/core";
 import type { Octokit } from "@octokit/rest";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../src/diff-validator.js", () => ({
   validateDiff: vi.fn().mockResolvedValue({ valid: true, warnings: [], errors: [] }),
@@ -22,9 +17,9 @@ vi.mock("../src/issue-linker.js", () => ({
   linkIssueToePR: vi.fn().mockResolvedValue(undefined),
 }));
 
-import { CompletionHandler, type CompletionHandlerParams } from "../src/handler.js";
 import { validateDiff } from "../src/diff-validator.js";
 import { createPR, pushBranch } from "../src/github-pr.js";
+import { CompletionHandler, type CompletionHandlerParams } from "../src/handler.js";
 import { linkIssueToePR } from "../src/issue-linker.js";
 import type {
   CompletionResult,
@@ -101,9 +96,7 @@ function makeExecutionResult(overrides: Partial<ExecutionResult> = {}): Executio
   };
 }
 
-function makeParams(
-  overrides: Partial<CompletionHandlerParams> = {},
-): CompletionHandlerParams {
+function makeParams(overrides: Partial<CompletionHandlerParams> = {}): CompletionHandlerParams {
   return {
     jobId: "job-1",
     repo: makeRepo(),

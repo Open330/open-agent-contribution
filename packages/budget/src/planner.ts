@@ -1,10 +1,10 @@
-import type { AgentProviderId, Task, TokenEstimate } from './estimator.js';
+import type { AgentProviderId, Task, TokenEstimate } from "./estimator.js";
 
 const DEFAULT_RESERVE_PERCENT = 0.1;
 const MIN_CONFIDENCE_THRESHOLD = 0.5;
 const TOO_COMPLEX_BUDGET_SHARE = 0.6;
 
-type DeferredReason = 'budget_exceeded' | 'low_confidence' | 'too_complex';
+type DeferredReason = "budget_exceeded" | "low_confidence" | "too_complex";
 
 export interface ExecutionPlan {
   totalBudget: number;
@@ -38,7 +38,7 @@ function normalizeBudget(budget: number): number {
 function getFallbackEstimate(task: Task): TokenEstimate {
   return {
     taskId: task.id,
-    providerId: 'unknown' as AgentProviderId,
+    providerId: "unknown" as AgentProviderId,
     contextTokens: 0,
     promptTokens: 0,
     expectedOutputTokens: 0,
@@ -54,19 +54,19 @@ function classifyDeferredReason(
   effectiveBudget: number,
 ): DeferredReason | undefined {
   if (!estimate.feasible) {
-    return 'budget_exceeded';
+    return "budget_exceeded";
   }
 
   if (estimate.confidence < MIN_CONFIDENCE_THRESHOLD) {
-    return 'low_confidence';
+    return "low_confidence";
   }
 
   if (
-    task.complexity === 'complex' &&
+    task.complexity === "complex" &&
     effectiveBudget > 0 &&
     estimate.totalEstimatedTokens > effectiveBudget * TOO_COMPLEX_BUDGET_SHARE
   ) {
-    return 'too_complex';
+    return "too_complex";
   }
 
   return undefined;
@@ -89,7 +89,7 @@ export function buildExecutionPlan(
   const reserveTokens = Math.floor(totalBudget * DEFAULT_RESERVE_PERCENT);
   const effectiveBudget = Math.max(0, totalBudget - reserveTokens);
 
-  const deferredTasks: ExecutionPlan['deferredTasks'] = [];
+  const deferredTasks: ExecutionPlan["deferredTasks"] = [];
   const candidates: CandidateTask[] = [];
 
   for (const task of tasks) {
@@ -121,7 +121,7 @@ export function buildExecutionPlan(
     return left.estimate.totalEstimatedTokens - right.estimate.totalEstimatedTokens;
   });
 
-  const selectedTasks: ExecutionPlan['selectedTasks'] = [];
+  const selectedTasks: ExecutionPlan["selectedTasks"] = [];
   let budgetUsed = 0;
 
   for (const candidate of candidates) {
@@ -140,7 +140,7 @@ export function buildExecutionPlan(
     deferredTasks.push({
       task: candidate.task,
       estimate: candidate.estimate,
-      reason: 'budget_exceeded',
+      reason: "budget_exceeded",
     });
   }
 

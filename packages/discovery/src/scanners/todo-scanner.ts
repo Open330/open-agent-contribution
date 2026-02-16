@@ -1,18 +1,18 @@
-import { spawn } from 'node:child_process';
-import { createHash } from 'node:crypto';
-import { readFile, readdir } from 'node:fs/promises';
-import { relative, resolve, sep } from 'node:path';
-import type { Task, TaskComplexity } from '@oac/core';
-import type { ScanOptions, Scanner } from '../types.js';
+import { spawn } from "node:child_process";
+import { createHash } from "node:crypto";
+import { readFile, readdir } from "node:fs/promises";
+import { relative, resolve, sep } from "node:path";
+import type { Task, TaskComplexity } from "@oac/core";
+import type { ScanOptions, Scanner } from "../types.js";
 
 const DEFAULT_TIMEOUT_MS = 60_000;
 const TODO_GROUPING_WINDOW = 10;
-const TODO_RG_PATTERN = '\\b(TODO|FIXME|HACK|XXX)\\b';
+const TODO_RG_PATTERN = "\\b(TODO|FIXME|HACK|XXX)\\b";
 const TODO_KEYWORD_PATTERN = /\b(TODO|FIXME|HACK|XXX)\b/i;
 const TODO_TEXT_PATTERN = /\b(TODO|FIXME|HACK|XXX)\b[:\s-]?(.*)$/i;
 const COMMENT_CONTINUATION_PATTERN = /^\s*(?:\/\/|\/\*+|\*|#|--)/;
 const MAX_FUNCTION_LOOKBACK_LINES = 80;
-const DEFAULT_EXCLUDES = ['.git', 'node_modules', 'dist', 'build', 'coverage'];
+const DEFAULT_EXCLUDES = [".git", "node_modules", "dist", "build", "coverage"];
 
 const FUNCTION_PATTERNS = [
   /^\s*(?:export\s+)?(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(/,
@@ -52,8 +52,8 @@ interface CommandOptions {
  * Scanner that converts TODO-like markers into actionable tasks.
  */
 export class TodoScanner implements Scanner {
-  public readonly id = 'todo';
-  public readonly name = 'TODO Scanner';
+  public readonly id = "todo";
+  public readonly name = "TODO Scanner";
 
   public async scan(repoPath: string, options: ScanOptions = {}): Promise<Task[]> {
     const matches = await this.findTodoMatches(repoPath, options);
@@ -73,7 +73,7 @@ export class TodoScanner implements Scanner {
       tasks.push(task);
     }
 
-    if (typeof options.maxTasks === 'number' && options.maxTasks >= 0) {
+    if (typeof options.maxTasks === "number" && options.maxTasks >= 0) {
       return tasks.slice(0, options.maxTasks);
     }
 
@@ -92,20 +92,23 @@ export class TodoScanner implements Scanner {
   }
 }
 
-async function findTodoMatchesWithRipgrep(repoPath: string, options: ScanOptions): Promise<TodoMatch[]> {
-  const args = ['--json', '--line-number', '--column'];
+async function findTodoMatchesWithRipgrep(
+  repoPath: string,
+  options: ScanOptions,
+): Promise<TodoMatch[]> {
+  const args = ["--json", "--line-number", "--column"];
   if (options.includeHidden) {
-    args.push('--hidden');
+    args.push("--hidden");
   }
 
   const excludes = mergeExcludes(options.exclude);
   for (const pattern of excludes) {
-    args.push('--glob', toRgExclude(pattern));
+    args.push("--glob", toRgExclude(pattern));
   }
 
-  args.push('-e', TODO_RG_PATTERN, '.');
+  args.push("-e", TODO_RG_PATTERN, ".");
 
-  const result = await runCommand('rg', args, {
+  const result = await runCommand("rg", args, {
     cwd: repoPath,
     timeoutMs: options.timeoutMs ?? DEFAULT_TIMEOUT_MS,
     signal: options.signal,
@@ -142,7 +145,7 @@ function parseRipgrepJson(output: string): TodoMatch[] {
     }
 
     const record = toRecord(parsed);
-    if (record.type !== 'match') {
+    if (record.type !== "match") {
       continue;
     }
 
@@ -163,7 +166,7 @@ function parseRipgrepJson(output: string): TodoMatch[] {
       continue;
     }
 
-    const keyword = extractTodoKeyword(text) ?? 'TODO';
+    const keyword = extractTodoKeyword(text) ?? "TODO";
 
     matches.push({
       filePath,
@@ -177,28 +180,31 @@ function parseRipgrepJson(output: string): TodoMatch[] {
   return matches;
 }
 
-async function findTodoMatchesWithFsFallback(repoPath: string, options: ScanOptions): Promise<TodoMatch[]> {
+async function findTodoMatchesWithFsFallback(
+  repoPath: string,
+  options: ScanOptions,
+): Promise<TodoMatch[]> {
   const excludes = mergeExcludes(options.exclude);
   const files = await collectFiles(repoPath, excludes);
   const matches: TodoMatch[] = [];
 
   for (const filePath of files) {
     const absolutePath = resolve(repoPath, filePath);
-    let content = '';
+    let content = "";
     try {
-      content = await readFile(absolutePath, 'utf8');
+      content = await readFile(absolutePath, "utf8");
     } catch {
       continue;
     }
 
     const lines = content.split(/\r?\n/);
     for (let index = 0; index < lines.length; index += 1) {
-      const lineText = lines[index] ?? '';
+      const lineText = lines[index] ?? "";
       if (!TODO_KEYWORD_PATTERN.test(lineText)) {
         continue;
       }
 
-      const keyword = extractTodoKeyword(lineText) ?? 'TODO';
+      const keyword = extractTodoKeyword(lineText) ?? "TODO";
       const columnIndex = lineText.search(TODO_KEYWORD_PATTERN);
 
       matches.push({
@@ -258,7 +264,7 @@ async function getFileLines(
   }
 
   try {
-    const text = await readFile(resolve(repoPath, filePath), 'utf8');
+    const text = await readFile(resolve(repoPath, filePath), "utf8");
     const lines = text.split(/\r?\n/);
     cache.set(filePath, lines);
     return lines;
@@ -276,7 +282,7 @@ function buildTodoTask(cluster: TodoCluster, fileLines: string[], discoveredAt: 
   const functionName = first ? findNearestFunctionName(fileLines, first.line) : undefined;
   const isMultiLine = cluster.matches.some((match) => isMultiLineTodo(match, fileLines));
   const complexity: TaskComplexity =
-    cluster.matches.length > 1 || isMultiLine ? 'simple' : 'trivial';
+    cluster.matches.length > 1 || isMultiLine ? "simple" : "trivial";
 
   const title = first
     ? `Address TODO comments in ${cluster.filePath}:${first.line}`
@@ -284,16 +290,16 @@ function buildTodoTask(cluster: TodoCluster, fileLines: string[], discoveredAt: 
 
   const todoSummary = cluster.matches
     .map((match) => `- ${match.keyword} at line ${match.line}: ${truncate(match.text, 140)}`)
-    .join('\n');
+    .join("\n");
 
   const descriptionParts = [
     `Resolve TODO-style markers in \`${cluster.filePath}\`.`,
     functionName ? `Nearest function context: \`${functionName}\`.` : undefined,
-    'Markers discovered:',
+    "Markers discovered:",
     todoSummary,
   ].filter((part): part is string => Boolean(part));
 
-  const description = descriptionParts.join('\n\n');
+  const description = descriptionParts.join("\n\n");
   const uniqueKeywords = Array.from(
     new Set(cluster.matches.map((match) => match.keyword.toUpperCase())),
   );
@@ -301,21 +307,21 @@ function buildTodoTask(cluster: TodoCluster, fileLines: string[], discoveredAt: 
     cluster.filePath,
     String(first?.line ?? 0),
     String(last?.line ?? 0),
-    uniqueKeywords.join(','),
-    cluster.matches.map((match) => match.text).join('\n'),
-  ].join('::');
+    uniqueKeywords.join(","),
+    cluster.matches.map((match) => match.text).join("\n"),
+  ].join("::");
 
   const task: Task = {
-    id: createTaskId('todo', [cluster.filePath], title, stableHashInput),
-    source: 'todo',
+    id: createTaskId("todo", [cluster.filePath], title, stableHashInput),
+    source: "todo",
     title,
     description,
     targetFiles: [cluster.filePath],
     priority: 0,
     complexity,
-    executionMode: 'new-pr',
+    executionMode: "new-pr",
     metadata: {
-      scannerId: 'todo',
+      scannerId: "todo",
       filePath: cluster.filePath,
       startLine: first?.line ?? null,
       endLine: last?.line ?? null,
@@ -343,7 +349,7 @@ function findNearestFunctionName(fileLines: string[], lineNumber: number): strin
   const startIndex = Math.max(0, lineNumber - 1 - MAX_FUNCTION_LOOKBACK_LINES);
   for (let index = lineNumber - 1; index >= startIndex; index -= 1) {
     const candidate = fileLines[index]?.trim();
-    if (!candidate || candidate.startsWith('//')) {
+    if (!candidate || candidate.startsWith("//")) {
       continue;
     }
 
@@ -360,26 +366,18 @@ function findNearestFunctionName(fileLines: string[], lineNumber: number): strin
 
 function isMultiLineTodo(match: TodoMatch, fileLines: string[]): boolean {
   const baseIndex = match.line - 1;
-  for (let offset = 1; offset <= 4; offset += 1) {
-    const line = fileLines[baseIndex + offset];
-    if (line === undefined) {
-      break;
-    }
+  const line = fileLines[baseIndex + 1];
+  if (line === undefined) {
+    return false;
+  }
 
-    const trimmed = line.trim();
-    if (trimmed.length === 0) {
-      break;
-    }
+  const trimmed = line.trim();
+  if (trimmed.length === 0 || TODO_KEYWORD_PATTERN.test(trimmed)) {
+    return false;
+  }
 
-    if (TODO_KEYWORD_PATTERN.test(trimmed)) {
-      break;
-    }
-
-    if (COMMENT_CONTINUATION_PATTERN.test(trimmed)) {
-      return true;
-    }
-
-    break;
+  if (COMMENT_CONTINUATION_PATTERN.test(trimmed)) {
+    return true;
   }
 
   return false;
@@ -407,8 +405,8 @@ function createTaskId(
   title: string,
   suffix: string,
 ): string {
-  const base = [source, [...targetFiles].sort().join(','), title, suffix].join('::');
-  return createHash('sha256').update(base).digest('hex').slice(0, 16);
+  const base = [source, [...targetFiles].sort().join(","), title, suffix].join("::");
+  return createHash("sha256").update(base).digest("hex").slice(0, 16);
 }
 
 function mergeExcludes(exclude: string[] | undefined): string[] {
@@ -417,7 +415,7 @@ function mergeExcludes(exclude: string[] | undefined): string[] {
 
 function toRgExclude(pattern: string): string {
   const trimmed = pattern.trim();
-  if (trimmed.startsWith('!')) {
+  if (trimmed.startsWith("!")) {
     return trimmed;
   }
   return `!${trimmed}`;
@@ -429,7 +427,7 @@ async function collectFiles(rootDir: string, excludes: string[]): Promise<string
 
   async function walk(relativeDir: string): Promise<void> {
     const absoluteDir = resolve(rootDir, relativeDir);
-    let entries: import('node:fs').Dirent[];
+    let entries: import("node:fs").Dirent[];
     try {
       entries = await readdir(absoluteDir, { withFileTypes: true });
     } catch {
@@ -456,53 +454,53 @@ async function collectFiles(rootDir: string, excludes: string[]): Promise<string
     }
   }
 
-  await walk('');
+  await walk("");
   return files;
 }
 
 function compileGlobMatcher(pattern: string): (filePath: string) => boolean {
-  const normalized = normalizeRelativePath(pattern.replace(/^!+/, '').trim());
+  const normalized = normalizeRelativePath(pattern.replace(/^!+/, "").trim());
   if (!normalized) {
     return () => false;
   }
 
-  if (!normalized.includes('*')) {
-    const prefix = normalized.endsWith('/') ? normalized : `${normalized}/`;
+  if (!normalized.includes("*")) {
+    const prefix = normalized.endsWith("/") ? normalized : `${normalized}/`;
     return (filePath: string) =>
       filePath === normalized || filePath.startsWith(prefix) || filePath.endsWith(`/${normalized}`);
   }
 
   const escaped = normalized
-    .replace(/[.+^${}()|[\]\\]/g, '\\$&')
-    .replace(/\*\*/g, '__DOUBLE_STAR__')
-    .replace(/\*/g, '[^/]*')
-    .replace(/__DOUBLE_STAR__/g, '.*');
+    .replace(/[.+^${}()|[\]\\]/g, "\\$&")
+    .replace(/\*\*/g, "__DOUBLE_STAR__")
+    .replace(/\*/g, "[^/]*")
+    .replace(/__DOUBLE_STAR__/g, ".*");
 
   const regex = new RegExp(`^${escaped}$`);
   return (filePath: string) => regex.test(filePath);
 }
 
 function normalizeRelativePath(filePath: string): string {
-  return filePath.split(sep).join('/');
+  return filePath.split(sep).join("/");
 }
 
 function sanitizeLine(line: string): string {
-  return line.replace(/\r?\n/g, '').trim();
+  return line.replace(/\r?\n/g, "").trim();
 }
 
 function toRecord(value: unknown): Record<string, unknown> {
-  if (value && typeof value === 'object') {
+  if (value && typeof value === "object") {
     return value as Record<string, unknown>;
   }
   return {};
 }
 
 function asString(value: unknown): string | undefined {
-  return typeof value === 'string' ? value : undefined;
+  return typeof value === "string" ? value : undefined;
 }
 
 function asNumber(value: unknown): number | undefined {
-  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
 function asArray(value: unknown): unknown[] {
@@ -515,51 +513,50 @@ function isCommandNotFound(error: unknown): boolean {
   }
 
   const maybeNodeError = error as NodeJS.ErrnoException;
-  return maybeNodeError.code === 'ENOENT';
+  return maybeNodeError.code === "ENOENT";
 }
 
-function runCommand(command: string, args: string[], options: CommandOptions): Promise<CommandResult> {
+function runCommand(
+  command: string,
+  args: string[],
+  options: CommandOptions,
+): Promise<CommandResult> {
   return new Promise((resolvePromise, rejectPromise) => {
     const child = spawn(command, args, {
       cwd: options.cwd,
-      stdio: ['ignore', 'pipe', 'pipe'],
+      stdio: ["ignore", "pipe", "pipe"],
       signal: options.signal,
     });
 
-    let stdout = '';
-    let stderr = '';
+    let stdout = "";
+    let stderr = "";
     let timedOut = false;
-    let timeoutHandle: NodeJS.Timeout | undefined;
     let killHandle: NodeJS.Timeout | undefined;
 
-    child.stdout.on('data', (chunk: Buffer | string) => {
+    child.stdout.on("data", (chunk: Buffer | string) => {
       stdout += chunk.toString();
     });
 
-    child.stderr.on('data', (chunk: Buffer | string) => {
+    child.stderr.on("data", (chunk: Buffer | string) => {
       stderr += chunk.toString();
     });
 
-    timeoutHandle = setTimeout(() => {
+    const timeoutHandle = setTimeout(() => {
       timedOut = true;
-      child.kill('SIGTERM');
-      killHandle = setTimeout(() => child.kill('SIGKILL'), 2_000);
+      child.kill("SIGTERM");
+      killHandle = setTimeout(() => child.kill("SIGKILL"), 2_000);
     }, options.timeoutMs);
 
-    child.on('error', (error) => {
-      if (timeoutHandle) {
-        clearTimeout(timeoutHandle);
-      }
+    child.on("error", (error) => {
+      clearTimeout(timeoutHandle);
       if (killHandle) {
         clearTimeout(killHandle);
       }
       rejectPromise(error);
     });
 
-    child.on('close', (exitCode, signal) => {
-      if (timeoutHandle) {
-        clearTimeout(timeoutHandle);
-      }
+    child.on("close", (exitCode, signal) => {
+      clearTimeout(timeoutHandle);
       if (killHandle) {
         clearTimeout(killHandle);
       }

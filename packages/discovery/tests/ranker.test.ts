@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Task, TaskComplexity, TaskSource } from "@oac/core";
-import type { PriorityWeights } from "../src/types.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { rankTasks } from "../src/ranker.js";
+import type { PriorityWeights } from "../src/types.js";
 
 const FIXED_NOW = new Date("2026-02-16T00:00:00.000Z").getTime();
 const DAY_IN_MS = 24 * 60 * 60 * 1_000;
@@ -174,7 +174,10 @@ describe("rankTasks", () => {
       rankSingle({ source: "custom", targetFiles: ["a.ts", "b.ts", "c.ts"] }),
     );
     const heavyPenalty = getBreakdown(
-      rankSingle({ source: "custom", targetFiles: ["a.ts", "b.ts", "c.ts", "d.ts", "e.ts", "f.ts"] }),
+      rankSingle({
+        source: "custom",
+        targetFiles: ["a.ts", "b.ts", "c.ts", "d.ts", "e.ts", "f.ts"],
+      }),
     );
     const metadataPenalty = getBreakdown(
       rankSingle({
@@ -247,7 +250,13 @@ describe("rankTasks", () => {
   it("applies linked-issue signal base, label cap, and label bonuses", () => {
     const breakdown = getBreakdown(
       rankSingle({
-        linkedIssue: makeLinkedIssue(["GOOD-FIRST-ISSUE", "help-wanted", "bug", "enhancement", "triage"]),
+        linkedIssue: makeLinkedIssue([
+          "GOOD-FIRST-ISSUE",
+          "help-wanted",
+          "bug",
+          "enhancement",
+          "triage",
+        ]),
       }),
     );
 
@@ -276,7 +285,13 @@ describe("rankTasks", () => {
   it("clamps issue signals to 15", () => {
     const breakdown = getBreakdown(
       rankSingle({
-        linkedIssue: makeLinkedIssue(["good-first-issue", "help-wanted", "bug", "enhancement", "triage"]),
+        linkedIssue: makeLinkedIssue([
+          "good-first-issue",
+          "help-wanted",
+          "bug",
+          "enhancement",
+          "triage",
+        ]),
         metadata: {
           upvotes: 100,
           reactions: 100,
@@ -374,7 +389,13 @@ describe("rankTasks", () => {
         complexity: "complex",
         executionMode: "direct-commit",
         targetFiles: ["a", "b", "c", "d", "e", "f", "g"],
-        linkedIssue: makeLinkedIssue(["good-first-issue", "help-wanted", "bug", "enhancement", "triage"]),
+        linkedIssue: makeLinkedIssue([
+          "good-first-issue",
+          "help-wanted",
+          "bug",
+          "enhancement",
+          "triage",
+        ]),
         metadata: {
           issueCount: 10,
           daysSinceLastChange: -10,

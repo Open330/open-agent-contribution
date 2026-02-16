@@ -1,51 +1,41 @@
-export type OacErrorSeverity = 'fatal' | 'recoverable' | 'warning';
+export type OacErrorSeverity = "fatal" | "recoverable" | "warning";
 
 export const REPO_ERROR_CODES = [
-  'REPO_NOT_FOUND',
-  'REPO_ARCHIVED',
-  'REPO_NO_PERMISSION',
-  'REPO_CLONE_FAILED',
+  "REPO_NOT_FOUND",
+  "REPO_ARCHIVED",
+  "REPO_NO_PERMISSION",
+  "REPO_CLONE_FAILED",
 ] as const;
 
 export const DISCOVERY_ERROR_CODES = [
-  'SCANNER_FAILED',
-  'SCANNER_TIMEOUT',
-  'NO_TASKS_FOUND',
+  "SCANNER_FAILED",
+  "SCANNER_TIMEOUT",
+  "NO_TASKS_FOUND",
 ] as const;
 
-export const BUDGET_ERROR_CODES = [
-  'BUDGET_INSUFFICIENT',
-  'TOKENIZER_UNAVAILABLE',
-] as const;
+export const BUDGET_ERROR_CODES = ["BUDGET_INSUFFICIENT", "TOKENIZER_UNAVAILABLE"] as const;
 
 export const EXECUTION_ERROR_CODES = [
-  'AGENT_NOT_AVAILABLE',
-  'AGENT_EXECUTION_FAILED',
-  'AGENT_TIMEOUT',
-  'AGENT_OOM',
-  'AGENT_TOKEN_LIMIT',
-  'VALIDATION_LINT_FAILED',
-  'VALIDATION_TEST_FAILED',
-  'VALIDATION_DIFF_TOO_LARGE',
-  'VALIDATION_FORBIDDEN_PATTERN',
+  "AGENT_NOT_AVAILABLE",
+  "AGENT_EXECUTION_FAILED",
+  "AGENT_TIMEOUT",
+  "AGENT_OOM",
+  "AGENT_TOKEN_LIMIT",
+  "VALIDATION_LINT_FAILED",
+  "VALIDATION_TEST_FAILED",
+  "VALIDATION_DIFF_TOO_LARGE",
+  "VALIDATION_FORBIDDEN_PATTERN",
 ] as const;
 
 export const COMPLETION_ERROR_CODES = [
-  'PR_CREATION_FAILED',
-  'PR_PUSH_REJECTED',
-  'WEBHOOK_DELIVERY_FAILED',
+  "PR_CREATION_FAILED",
+  "PR_PUSH_REJECTED",
+  "WEBHOOK_DELIVERY_FAILED",
 ] as const;
 
-export const CONFIG_ERROR_CODES = [
-  'CONFIG_INVALID',
-  'CONFIG_SECRET_MISSING',
-] as const;
+export const CONFIG_ERROR_CODES = ["CONFIG_INVALID", "CONFIG_SECRET_MISSING"] as const;
 
-export const SYSTEM_ERROR_CODES = [
-  'NETWORK_ERROR',
-  'DISK_SPACE_LOW',
-  'GIT_LOCK_FAILED',
-] as const;
+export const SYSTEM_ERROR_CODES = ["NETWORK_ERROR", "DISK_SPACE_LOW", "GIT_LOCK_FAILED"] as const;
 
 export const OAC_ERROR_CODES = [
   ...REPO_ERROR_CODES,
@@ -86,7 +76,7 @@ export class OacError extends Error {
     cause?: unknown,
   ) {
     super(message);
-    this.name = 'OacError';
+    this.name = "OacError";
     this.code = code;
     this.severity = severity;
     this.context = context;
@@ -114,7 +104,7 @@ export function repoError(
   message: string,
   options: OacErrorOptions = {},
 ): OacError {
-  return createError(code, message, 'fatal', options);
+  return createError(code, message, "fatal", options);
 }
 
 export function discoveryError(
@@ -122,7 +112,7 @@ export function discoveryError(
   message: string,
   options: OacErrorOptions = {},
 ): OacError {
-  return createError(code, message, 'recoverable', options);
+  return createError(code, message, "recoverable", options);
 }
 
 export function budgetError(
@@ -130,7 +120,7 @@ export function budgetError(
   message: string,
   options: OacErrorOptions = {},
 ): OacError {
-  return createError(code, message, 'recoverable', options);
+  return createError(code, message, "recoverable", options);
 }
 
 export function executionError(
@@ -138,7 +128,7 @@ export function executionError(
   message: string,
   options: OacErrorOptions = {},
 ): OacError {
-  return createError(code, message, 'recoverable', options);
+  return createError(code, message, "recoverable", options);
 }
 
 export function completionError(
@@ -146,7 +136,7 @@ export function completionError(
   message: string,
   options: OacErrorOptions = {},
 ): OacError {
-  return createError(code, message, 'recoverable', options);
+  return createError(code, message, "recoverable", options);
 }
 
 export function configError(
@@ -154,5 +144,5 @@ export function configError(
   message: string,
   options: OacErrorOptions = {},
 ): OacError {
-  return createError(code, message, 'fatal', options);
+  return createError(code, message, "fatal", options);
 }

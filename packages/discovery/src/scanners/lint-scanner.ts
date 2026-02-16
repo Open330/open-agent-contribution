@@ -1,14 +1,14 @@
-import { spawn } from 'node:child_process';
-import { createHash } from 'node:crypto';
-import { access, readFile } from 'node:fs/promises';
-import { relative, resolve, sep } from 'node:path';
-import type { Task, TaskComplexity } from '@oac/core';
-import type { ScanOptions, Scanner } from '../types.js';
+import { spawn } from "node:child_process";
+import { createHash } from "node:crypto";
+import { access, readFile } from "node:fs/promises";
+import { relative, resolve, sep } from "node:path";
+import type { Task, TaskComplexity } from "@oac/core";
+import type { ScanOptions, Scanner } from "../types.js";
 
 const DEFAULT_TIMEOUT_MS = 60_000;
 
-type PackageManager = 'pnpm' | 'npm' | 'yarn' | 'bun';
-type LinterKind = 'eslint' | 'biome' | 'none';
+type PackageManager = "pnpm" | "npm" | "yarn" | "bun";
+type LinterKind = "eslint" | "biome" | "none";
 
 interface LinterDetection {
   kind: LinterKind;
@@ -43,18 +43,18 @@ interface CommandOptions {
  * Scanner that runs repo-native lint tooling and maps findings to tasks.
  */
 export class LintScanner implements Scanner {
-  public readonly id = 'lint';
-  public readonly name = 'Lint Scanner';
+  public readonly id = "lint";
+  public readonly name = "Lint Scanner";
 
   public async scan(repoPath: string, options: ScanOptions = {}): Promise<Task[]> {
     const detection = await detectLinter(repoPath);
-    if (detection.kind === 'none') {
+    if (detection.kind === "none") {
       return [];
     }
 
     const result = await runLinter(repoPath, detection, options);
     const findings =
-      detection.kind === 'eslint'
+      detection.kind === "eslint"
         ? parseEslintFindings(result.stdout, repoPath)
         : parseBiomeFindings(result.stdout, repoPath);
 
@@ -63,7 +63,7 @@ export class LintScanner implements Scanner {
     }
 
     const tasks = buildLintTasks(findings, detection.kind);
-    if (typeof options.maxTasks === 'number' && options.maxTasks >= 0) {
+    if (typeof options.maxTasks === "number" && options.maxTasks >= 0) {
       return tasks.slice(0, options.maxTasks);
     }
 
@@ -75,45 +75,45 @@ async function detectLinter(repoPath: string): Promise<LinterDetection> {
   const packageManager = await detectPackageManager(repoPath);
   const packageJson = await readPackageJson(repoPath);
 
-  const scriptLint = asString(toRecord(packageJson.scripts).lint)?.toLowerCase() ?? '';
+  const scriptLint = asString(toRecord(packageJson.scripts).lint)?.toLowerCase() ?? "";
   const dependencies = collectDependencyNames(packageJson);
 
-  if (scriptLint.includes('biome')) {
-    return { kind: 'biome', packageManager };
+  if (scriptLint.includes("biome")) {
+    return { kind: "biome", packageManager };
   }
-  if (scriptLint.includes('eslint')) {
-    return { kind: 'eslint', packageManager };
-  }
-
-  if (dependencies.has('eslint') || (await hasAnyFile(repoPath, ESLINT_CONFIG_FILES))) {
-    return { kind: 'eslint', packageManager };
-  }
-  if (dependencies.has('@biomejs/biome') || (await hasAnyFile(repoPath, BIOME_CONFIG_FILES))) {
-    return { kind: 'biome', packageManager };
+  if (scriptLint.includes("eslint")) {
+    return { kind: "eslint", packageManager };
   }
 
-  return { kind: 'none', packageManager };
+  if (dependencies.has("eslint") || (await hasAnyFile(repoPath, ESLINT_CONFIG_FILES))) {
+    return { kind: "eslint", packageManager };
+  }
+  if (dependencies.has("@biomejs/biome") || (await hasAnyFile(repoPath, BIOME_CONFIG_FILES))) {
+    return { kind: "biome", packageManager };
+  }
+
+  return { kind: "none", packageManager };
 }
 
 const ESLINT_CONFIG_FILES = [
-  '.eslintrc',
-  '.eslintrc.json',
-  '.eslintrc.cjs',
-  '.eslintrc.js',
-  'eslint.config.js',
-  'eslint.config.mjs',
-  'eslint.config.cjs',
+  ".eslintrc",
+  ".eslintrc.json",
+  ".eslintrc.cjs",
+  ".eslintrc.js",
+  "eslint.config.js",
+  "eslint.config.mjs",
+  "eslint.config.cjs",
 ] as const;
 
-const BIOME_CONFIG_FILES = ['biome.json', 'biome.jsonc'] as const;
+const BIOME_CONFIG_FILES = ["biome.json", "biome.jsonc"] as const;
 
 async function detectPackageManager(repoPath: string): Promise<PackageManager> {
   const checks: Array<{ file: string; manager: PackageManager }> = [
-    { file: 'pnpm-lock.yaml', manager: 'pnpm' },
-    { file: 'bun.lockb', manager: 'bun' },
-    { file: 'bun.lock', manager: 'bun' },
-    { file: 'yarn.lock', manager: 'yarn' },
-    { file: 'package-lock.json', manager: 'npm' },
+    { file: "pnpm-lock.yaml", manager: "pnpm" },
+    { file: "bun.lockb", manager: "bun" },
+    { file: "bun.lock", manager: "bun" },
+    { file: "yarn.lock", manager: "yarn" },
+    { file: "package-lock.json", manager: "npm" },
   ];
 
   for (const check of checks) {
@@ -122,7 +122,7 @@ async function detectPackageManager(repoPath: string): Promise<PackageManager> {
     }
   }
 
-  return 'npm';
+  return "npm";
 }
 
 async function runLinter(
@@ -163,15 +163,15 @@ function buildLintCommand(
 ): { command: string; args: string[] } {
   const excludes = options.exclude ?? [];
 
-  if (detection.kind === 'eslint') {
-    const eslintArgs = ['eslint', '.', '--format', 'json', '--no-error-on-unmatched-pattern'];
+  if (detection.kind === "eslint") {
+    const eslintArgs = ["eslint", ".", "--format", "json", "--no-error-on-unmatched-pattern"];
     for (const pattern of excludes) {
-      eslintArgs.push('--ignore-pattern', pattern);
+      eslintArgs.push("--ignore-pattern", pattern);
     }
     return withPackageManagerRunner(detection.packageManager, eslintArgs);
   }
 
-  const biomeArgs = ['biome', 'check', '.', '--reporter=json'];
+  const biomeArgs = ["biome", "check", ".", "--reporter=json"];
   return withPackageManagerRunner(detection.packageManager, biomeArgs);
 }
 
@@ -179,19 +179,19 @@ function withPackageManagerRunner(
   packageManager: PackageManager,
   commandArgs: string[],
 ): { command: string; args: string[] } {
-  if (packageManager === 'pnpm') {
-    return { command: 'pnpm', args: ['exec', ...commandArgs] };
+  if (packageManager === "pnpm") {
+    return { command: "pnpm", args: ["exec", ...commandArgs] };
   }
 
-  if (packageManager === 'yarn') {
-    return { command: 'yarn', args: commandArgs };
+  if (packageManager === "yarn") {
+    return { command: "yarn", args: commandArgs };
   }
 
-  if (packageManager === 'bun') {
-    return { command: 'bunx', args: commandArgs };
+  if (packageManager === "bun") {
+    return { command: "bunx", args: commandArgs };
   }
 
-  return { command: 'npx', args: ['--no-install', ...commandArgs] };
+  return { command: "npx", args: ["--no-install", ...commandArgs] };
 }
 
 function parseEslintFindings(output: string, repoPath: string): LintFinding[] {
@@ -212,7 +212,7 @@ function parseEslintFindings(output: string, repoPath: string): LintFinding[] {
     const messages = asArray(resultRecord.messages);
     for (const message of messages) {
       const messageRecord = toRecord(message);
-      const ruleId = asString(messageRecord.ruleId) ?? 'unknown';
+      const ruleId = asString(messageRecord.ruleId) ?? "unknown";
       const text = asString(messageRecord.message);
       if (!text) {
         continue;
@@ -257,7 +257,7 @@ function parseBiomeFindings(output: string, repoPath: string): LintFinding[] {
       continue;
     }
 
-    const category = asString(diagnostic.category) ?? 'unknown';
+    const category = asString(diagnostic.category) ?? "unknown";
     const position = extractBiomePosition(diagnostic);
     const tags = asArray(diagnostic.tags).map((value) => String(value).toLowerCase());
 
@@ -268,8 +268,8 @@ function parseBiomeFindings(output: string, repoPath: string): LintFinding[] {
       ruleId: category,
       message,
       fixable:
-        tags.includes('fixable') ||
-        tags.includes('quickfix') ||
+        tags.includes("fixable") ||
+        tags.includes("quickfix") ||
         diagnostic.suggestedFixes !== undefined,
       severity: normalizeBiomeSeverity(asString(diagnostic.severity)),
     });
@@ -295,7 +295,7 @@ function collectBiomeDiagnostics(value: unknown): Array<Record<string, unknown>>
       continue;
     }
 
-    if (typeof current !== 'object') {
+    if (typeof current !== "object") {
       continue;
     }
 
@@ -305,7 +305,7 @@ function collectBiomeDiagnostics(value: unknown): Array<Record<string, unknown>>
     }
 
     for (const value of Object.values(record)) {
-      if (Array.isArray(value) || (value && typeof value === 'object')) {
+      if (Array.isArray(value) || (value && typeof value === "object")) {
         queue.push(value);
       }
     }
@@ -318,7 +318,10 @@ function looksLikeBiomeDiagnostic(record: Record<string, unknown>): boolean {
   if (record.location !== undefined && record.category !== undefined) {
     return true;
   }
-  if (record.path !== undefined && (record.description !== undefined || record.message !== undefined)) {
+  if (
+    record.path !== undefined &&
+    (record.description !== undefined || record.message !== undefined)
+  ) {
     return true;
   }
   return false;
@@ -327,7 +330,7 @@ function looksLikeBiomeDiagnostic(record: Record<string, unknown>): boolean {
 function extractBiomePath(diagnostic: Record<string, unknown>): string | undefined {
   const location = toRecord(diagnostic.location);
   const pathValue = location.path;
-  if (typeof pathValue === 'string') {
+  if (typeof pathValue === "string") {
     return pathValue;
   }
 
@@ -367,16 +370,16 @@ function normalizeBiomeSeverity(severity: string | undefined): number | undefine
     return undefined;
   }
   const normalized = severity.toLowerCase();
-  if (normalized === 'error') {
+  if (normalized === "error") {
     return 2;
   }
-  if (normalized === 'warning' || normalized === 'warn') {
+  if (normalized === "warning" || normalized === "warn") {
     return 1;
   }
   return undefined;
 }
 
-function buildLintTasks(findings: LintFinding[], linter: 'eslint' | 'biome'): Task[] {
+function buildLintTasks(findings: LintFinding[], linter: "eslint" | "biome"): Task[] {
   const grouped = new Map<string, LintFinding[]>();
   for (const finding of findings) {
     const existing = grouped.get(finding.filePath);
@@ -394,29 +397,29 @@ function buildLintTasks(findings: LintFinding[], linter: 'eslint' | 'biome'): Ta
     const uniqueRules = Array.from(new Set(fileFindings.map((finding) => finding.ruleId)));
     const fixableCount = fileFindings.filter((finding) => finding.fixable).length;
     const complexity: TaskComplexity =
-      fileFindings.length === 1 && fixableCount === 1 ? 'trivial' : 'simple';
+      fileFindings.length === 1 && fixableCount === 1 ? "trivial" : "simple";
 
-    const headlineRules = uniqueRules.slice(0, 5).join(', ') || 'unknown';
+    const headlineRules = uniqueRules.slice(0, 5).join(", ") || "unknown";
     const title = `Fix lint findings in ${filePath}`;
     const description = [
       `Resolve ${fileFindings.length} lint finding(s) reported by ${linter} in \`${filePath}\`.`,
       `Primary rules: ${headlineRules}.`,
       fixableCount > 0
         ? `${fixableCount} finding(s) appear auto-fixable.`
-        : 'No auto-fixable findings were detected.',
-    ].join('\n\n');
+        : "No auto-fixable findings were detected.",
+    ].join("\n\n");
 
     const task: Task = {
-      id: createTaskId('lint', [filePath], title, `${linter}:${headlineRules}`),
-      source: 'lint',
+      id: createTaskId("lint", [filePath], title, `${linter}:${headlineRules}`),
+      source: "lint",
       title,
       description,
       targetFiles: [filePath],
       priority: 0,
       complexity,
-      executionMode: 'new-pr',
+      executionMode: "new-pr",
       metadata: {
-        scannerId: 'lint',
+        scannerId: "lint",
         linter,
         filePath,
         issueCount: fileFindings.length,
@@ -446,14 +449,14 @@ function createTaskId(
   title: string,
   suffix: string,
 ): string {
-  const content = [source, [...targetFiles].sort().join(','), title, suffix].join('::');
-  return createHash('sha256').update(content).digest('hex').slice(0, 16);
+  const content = [source, [...targetFiles].sort().join(","), title, suffix].join("::");
+  return createHash("sha256").update(content).digest("hex").slice(0, 16);
 }
 
 async function readPackageJson(repoPath: string): Promise<Record<string, unknown>> {
-  const packageJsonPath = resolve(repoPath, 'package.json');
+  const packageJsonPath = resolve(repoPath, "package.json");
   try {
-    const raw = await readFile(packageJsonPath, 'utf8');
+    const raw = await readFile(packageJsonPath, "utf8");
     const parsed = JSON.parse(raw);
     return toRecord(parsed);
   } catch {
@@ -501,17 +504,17 @@ function normalizeFilePath(filePath: string | undefined, repoPath: string): stri
     return undefined;
   }
 
-  if (filePath.startsWith('<')) {
+  if (filePath.startsWith("<")) {
     return undefined;
   }
 
   const absoluteCandidate = resolve(repoPath, filePath);
   const rel = relative(repoPath, absoluteCandidate);
-  if (!rel.startsWith('..')) {
-    return rel.split(sep).join('/');
+  if (!rel.startsWith("..")) {
+    return rel.split(sep).join("/");
   }
 
-  const direct = filePath.split(sep).join('/');
+  const direct = filePath.split(sep).join("/");
   return direct;
 }
 
@@ -527,8 +530,8 @@ function parseJson(text: string): unknown {
   try {
     return JSON.parse(text);
   } catch {
-    const jsonStart = text.indexOf('[');
-    const objectStart = text.indexOf('{');
+    const jsonStart = text.indexOf("[");
+    const objectStart = text.indexOf("{");
     const start =
       jsonStart === -1
         ? objectStart
@@ -550,66 +553,65 @@ function parseJson(text: string): unknown {
 }
 
 function toRecord(value: unknown): Record<string, unknown> {
-  if (value && typeof value === 'object') {
+  if (value && typeof value === "object") {
     return value as Record<string, unknown>;
   }
   return {};
 }
 
 function asString(value: unknown): string | undefined {
-  return typeof value === 'string' ? value : undefined;
+  return typeof value === "string" ? value : undefined;
 }
 
 function asNumber(value: unknown): number | undefined {
-  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
 function asArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
 }
 
-function runCommand(command: string, args: string[], options: CommandOptions): Promise<CommandResult> {
+function runCommand(
+  command: string,
+  args: string[],
+  options: CommandOptions,
+): Promise<CommandResult> {
   return new Promise((resolvePromise, rejectPromise) => {
     const child = spawn(command, args, {
       cwd: options.cwd,
-      stdio: ['ignore', 'pipe', 'pipe'],
+      stdio: ["ignore", "pipe", "pipe"],
       signal: options.signal,
     });
 
-    let stdout = '';
-    let stderr = '';
+    let stdout = "";
+    let stderr = "";
     let timedOut = false;
-    let timeoutHandle: NodeJS.Timeout | undefined;
     let killHandle: NodeJS.Timeout | undefined;
 
-    child.stdout.on('data', (chunk: Buffer | string) => {
+    child.stdout.on("data", (chunk: Buffer | string) => {
       stdout += chunk.toString();
     });
 
-    child.stderr.on('data', (chunk: Buffer | string) => {
+    child.stderr.on("data", (chunk: Buffer | string) => {
       stderr += chunk.toString();
     });
 
-    timeoutHandle = setTimeout(() => {
+    const timeoutHandle = setTimeout(() => {
       timedOut = true;
-      child.kill('SIGTERM');
-      killHandle = setTimeout(() => child.kill('SIGKILL'), 2_000);
+      child.kill("SIGTERM");
+      killHandle = setTimeout(() => child.kill("SIGKILL"), 2_000);
     }, options.timeoutMs);
 
-    child.on('error', (error) => {
-      if (timeoutHandle) {
-        clearTimeout(timeoutHandle);
-      }
+    child.on("error", (error) => {
+      clearTimeout(timeoutHandle);
       if (killHandle) {
         clearTimeout(killHandle);
       }
       rejectPromise(error);
     });
 
-    child.on('close', (exitCode, signal) => {
-      if (timeoutHandle) {
-        clearTimeout(timeoutHandle);
-      }
+    child.on("close", (exitCode, signal) => {
+      clearTimeout(timeoutHandle);
       if (killHandle) {
         clearTimeout(killHandle);
       }

@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import { EventEmitter } from "node:events";
 
 import { Command } from "commander";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createDoctorCommand } from "../src/commands/doctor.js";
 
@@ -131,7 +131,7 @@ beforeEach(() => {
   setNodeVersion(originalNodeVersion);
 
   if (originalGithubToken === undefined) {
-    delete process.env.GITHUB_TOKEN;
+    process.env.GITHUB_TOKEN = undefined;
   } else {
     process.env.GITHUB_TOKEN = originalGithubToken;
   }

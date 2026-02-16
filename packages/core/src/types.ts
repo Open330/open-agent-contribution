@@ -1,8 +1,4 @@
-export type AgentProviderId =
-  | 'claude-code'
-  | 'codex-cli'
-  | 'opencode'
-  | (string & {});
+export type AgentProviderId = "claude-code" | "codex-cli" | "opencode" | (string & {});
 
 export interface ResolvedRepo {
   fullName: string;
@@ -36,17 +32,11 @@ export interface ResolvedRepo {
   };
 }
 
-export type TaskSource =
-  | 'lint'
-  | 'todo'
-  | 'test-gap'
-  | 'dead-code'
-  | 'github-issue'
-  | 'custom';
+export type TaskSource = "lint" | "todo" | "test-gap" | "dead-code" | "github-issue" | "custom";
 
-export type TaskComplexity = 'trivial' | 'simple' | 'moderate' | 'complex';
+export type TaskComplexity = "trivial" | "simple" | "moderate" | "complex";
 
-export type ExecutionMode = 'new-pr' | 'update-pr' | 'direct-commit';
+export type ExecutionMode = "new-pr" | "update-pr" | "direct-commit";
 
 export interface Task {
   id: string;
@@ -88,7 +78,7 @@ export interface ExecutionPlan {
   deferredTasks: Array<{
     task: Task;
     estimate: TokenEstimate;
-    reason: 'budget_exceeded' | 'low_confidence' | 'too_complex';
+    reason: "budget_exceeded" | "low_confidence" | "too_complex";
   }>;
   reserveTokens: number;
   remainingTokens: number;
@@ -99,14 +89,14 @@ export interface ContributionTask {
   title: string;
   source: TaskSource;
   complexity: TaskComplexity;
-  status: 'success' | 'partial' | 'failed';
+  status: "success" | "partial" | "failed";
   tokensUsed: number;
   duration: number;
   filesChanged: string[];
   pr?: {
     number: number;
     url: string;
-    status: 'open' | 'merged' | 'closed';
+    status: "open" | "merged" | "closed";
   };
   linkedIssue?: {
     number: number;
@@ -116,7 +106,7 @@ export interface ContributionTask {
 }
 
 export interface ContributionLog {
-  version: '1.0';
+  version: "1.0";
   runId: string;
   timestamp: string;
   contributor: {

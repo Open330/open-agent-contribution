@@ -1,28 +1,28 @@
 import {
-  OacError,
-  completionError,
-  executionError,
   type OacConfig,
+  OacError,
   type OacEventBus,
   type ResolvedRepo,
   type Task,
-} from '@oac/core';
-import type { Octokit } from '@octokit/rest';
+  completionError,
+  executionError,
+} from "@oac/core";
+import type { Octokit } from "@octokit/rest";
 
 import {
-  validateDiff,
   type DiffValidationConfig,
   type ValidationResult,
-} from './diff-validator.js';
-import { createPR, pushBranch } from './github-pr.js';
-import { linkIssueToePR } from './issue-linker.js';
+  validateDiff,
+} from "./diff-validator.js";
+import { createPR, pushBranch } from "./github-pr.js";
+import { linkIssueToePR } from "./issue-linker.js";
 import type {
   CompletionResult,
   CreatedPR,
   ExternalTaskRef,
   PRCreationParams,
   ProjectManagementProvider,
-} from './types.js';
+} from "./types.js";
 
 export interface CompletionHandlerOptions {
   octokit: Octokit;
@@ -56,13 +56,10 @@ export class CompletionHandler {
 
   public async complete(params: CompletionHandlerParams): Promise<CompletionResult> {
     const warnings: string[] = [];
-    const externalTaskRef = this.resolveExternalTaskRef(
-      params.task,
-      params.externalTaskRef,
-    );
+    const externalTaskRef = this.resolveExternalTaskRef(params.task, params.externalTaskRef);
 
     try {
-      this.emitProgress(params.jobId, params.result.totalTokensUsed, 'completion:validateDiff');
+      this.emitProgress(params.jobId, params.result.totalTokensUsed, "completion:validateDiff");
       const validation = await validateDiff(
         resolveRepoPath(params.repo),
         params.diffValidationConfig ?? this.diffValidationConfig,
@@ -72,20 +69,20 @@ export class CompletionHandler {
 
       warnings.push(...(await this.notifyStarted(externalTaskRef)));
 
-      this.emitProgress(params.jobId, params.result.totalTokensUsed, 'completion:pushBranch');
+      this.emitProgress(params.jobId, params.result.totalTokensUsed, "completion:pushBranch");
       await pushBranch(params.repo, params.branchName);
 
-      this.emitProgress(params.jobId, params.result.totalTokensUsed, 'completion:createPR');
+      this.emitProgress(params.jobId, params.result.totalTokensUsed, "completion:createPR");
       const pr = await createPR(params, this.octokit);
-      this.eventBus.emit('pr:created', { jobId: params.jobId, prUrl: pr.url });
+      this.eventBus.emit("pr:created", { jobId: params.jobId, prUrl: pr.url });
 
-      this.emitProgress(params.jobId, params.result.totalTokensUsed, 'completion:linkIssue');
+      this.emitProgress(params.jobId, params.result.totalTokensUsed, "completion:linkIssue");
       const linkIssueWarning = await this.tryLinkIssue(params.repo, params.task, pr);
       if (linkIssueWarning) {
         warnings.push(linkIssueWarning);
       }
 
-      this.emitProgress(params.jobId, params.result.totalTokensUsed, 'completion:notifyWebhooks');
+      this.emitProgress(params.jobId, params.result.totalTokensUsed, "completion:notifyWebhooks");
       warnings.push(...(await this.notifyPRCreated(externalTaskRef, pr)));
 
       const completionResult = buildCompletionResult(params, pr, warnings);
@@ -94,7 +91,7 @@ export class CompletionHandler {
       return completionResult;
     } catch (error) {
       const normalizedError = this.normalizePipelineError(error, params);
-      this.eventBus.emit('execution:failed', {
+      this.eventBus.emit("execution:failed", {
         jobId: params.jobId,
         error: normalizedError,
       });
@@ -104,7 +101,7 @@ export class CompletionHandler {
   }
 
   private emitProgress(jobId: string, tokensUsed: number, stage: string): void {
-    this.eventBus.emit('execution:progress', {
+    this.eventBus.emit("execution:progress", {
       jobId,
       tokensUsed,
       stage,
@@ -117,13 +114,13 @@ export class CompletionHandler {
     }
 
     const hasForbiddenPattern = validation.errors.some((message) =>
-      message.toLowerCase().includes('forbidden pattern'),
+      message.toLowerCase().includes("forbidden pattern"),
     );
     const errorCode = hasForbiddenPattern
-      ? 'VALIDATION_FORBIDDEN_PATTERN'
-      : 'VALIDATION_DIFF_TOO_LARGE';
+      ? "VALIDATION_FORBIDDEN_PATTERN"
+      : "VALIDATION_DIFF_TOO_LARGE";
 
-    throw executionError(errorCode, 'Diff validation failed.', {
+    throw executionError(errorCode, "Diff validation failed.", {
       context: {
         errors: validation.errors,
         warnings: validation.warnings,
@@ -145,7 +142,7 @@ export class CompletionHandler {
   }
 
   private async notifyStarted(ref: ExternalTaskRef | undefined): Promise<string[]> {
-    return this.notifyProviders(ref, 'notifyStarted', (provider, taskRef) =>
+    return this.notifyProviders(ref, "notifyStarted", (provider, taskRef) =>
       provider.notifyStarted(taskRef),
     );
   }
@@ -154,7 +151,7 @@ export class CompletionHandler {
     ref: ExternalTaskRef | undefined,
     pr: CreatedPR,
   ): Promise<string[]> {
-    return this.notifyProviders(ref, 'notifyPRCreated', (provider, taskRef) =>
+    return this.notifyProviders(ref, "notifyPRCreated", (provider, taskRef) =>
       provider.notifyPRCreated(taskRef, pr.url),
     );
   }
@@ -163,13 +160,13 @@ export class CompletionHandler {
     ref: ExternalTaskRef | undefined,
     result: CompletionResult,
   ): Promise<string[]> {
-    return this.notifyProviders(ref, 'notifyCompleted', (provider, taskRef) =>
+    return this.notifyProviders(ref, "notifyCompleted", (provider, taskRef) =>
       provider.notifyCompleted(taskRef, result),
     );
   }
 
   private async notifyFailed(ref: ExternalTaskRef | undefined, message: string): Promise<void> {
-    await this.notifyProviders(ref, 'notifyFailed', (provider, taskRef) =>
+    await this.notifyProviders(ref, "notifyFailed", (provider, taskRef) =>
       provider.notifyFailed(taskRef, message),
     );
   }
@@ -177,18 +174,13 @@ export class CompletionHandler {
   private async notifyProviders(
     ref: ExternalTaskRef | undefined,
     operationName: string,
-    operation: (
-      provider: ProjectManagementProvider,
-      taskRef: ExternalTaskRef,
-    ) => Promise<void>,
+    operation: (provider: ProjectManagementProvider, taskRef: ExternalTaskRef) => Promise<void>,
   ): Promise<string[]> {
     if (!ref) {
       return [];
     }
 
-    const selectedProviders = this.providers.filter(
-      (provider) => provider.id === ref.provider,
-    );
+    const selectedProviders = this.providers.filter((provider) => provider.id === ref.provider);
     if (selectedProviders.length === 0) {
       return [];
     }
@@ -206,7 +198,7 @@ export class CompletionHandler {
     const warnings: string[] = [];
     for (let index = 0; index < results.length; index += 1) {
       const result = results[index];
-      if (result.status === 'fulfilled') {
+      if (result.status === "fulfilled") {
         continue;
       }
 
@@ -230,16 +222,16 @@ export class CompletionHandler {
 
     if (task.linkedIssue) {
       return {
-        provider: 'github',
+        provider: "github",
         externalId: `#${task.linkedIssue.number}`,
         url: task.linkedIssue.url,
       };
     }
 
     const metadata = task.metadata as Record<string, unknown>;
-    const provider = readMetadataString(metadata, 'externalProvider');
-    const externalId = readMetadataString(metadata, 'externalId');
-    const url = readMetadataString(metadata, 'externalUrl');
+    const provider = readMetadataString(metadata, "externalProvider");
+    const externalId = readMetadataString(metadata, "externalId");
+    const url = readMetadataString(metadata, "externalUrl");
 
     if (!provider || !externalId) {
       return undefined;
@@ -248,16 +240,13 @@ export class CompletionHandler {
     return { provider, externalId, url };
   }
 
-  private normalizePipelineError(
-    error: unknown,
-    params: CompletionHandlerParams,
-  ): OacError {
+  private normalizePipelineError(error: unknown, params: CompletionHandlerParams): OacError {
     if (error instanceof OacError) {
       return error;
     }
 
     return completionError(
-      'PR_CREATION_FAILED',
+      "PR_CREATION_FAILED",
       `Completion pipeline failed for task "${params.task.id}" in "${params.repo.fullName}": ${toErrorMessage(
         error,
       )}`,
@@ -280,8 +269,7 @@ function buildCompletionResult(
   warnings: string[],
 ): CompletionResult {
   const filesChanged = params.result.filesChanged.length;
-  const warningSuffix =
-    warnings.length > 0 ? ` Completed with ${warnings.length} warning(s).` : '';
+  const warningSuffix = warnings.length > 0 ? ` Completed with ${warnings.length} warning(s).` : "";
 
   return {
     prUrl: pr.url,
@@ -296,12 +284,9 @@ function resolveRepoPath(repo: ResolvedRepo): string {
   return repo.worktreePath.trim().length > 0 ? repo.worktreePath : repo.localPath;
 }
 
-function readMetadataString(
-  metadata: Record<string, unknown>,
-  key: string,
-): string | undefined {
+function readMetadataString(metadata: Record<string, unknown>, key: string): string | undefined {
   const value = metadata[key];
-  if (typeof value === 'string' && value.trim().length > 0) {
+  if (typeof value === "string" && value.trim().length > 0) {
     return value.trim();
   }
   return undefined;
@@ -311,5 +296,5 @@ function toErrorMessage(error: unknown): string {
   if (error instanceof Error && error.message.trim().length > 0) {
     return error.message.trim();
   }
-  return 'Unknown error';
+  return "Unknown error";
 }

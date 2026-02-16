@@ -1,27 +1,18 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const taskSourceValues = [
-  'lint',
-  'todo',
-  'test-gap',
-  'dead-code',
-  'github-issue',
-  'github-pr-review',
-  'custom',
+  "lint",
+  "todo",
+  "test-gap",
+  "dead-code",
+  "github-issue",
+  "github-pr-review",
+  "custom",
 ] as const;
 
-export const taskComplexityValues = [
-  'trivial',
-  'simple',
-  'moderate',
-  'complex',
-] as const;
+export const taskComplexityValues = ["trivial", "simple", "moderate", "complex"] as const;
 
-export const contributionTaskStatusValues = [
-  'success',
-  'partial',
-  'failed',
-] as const;
+export const contributionTaskStatusValues = ["success", "partial", "failed"] as const;
 
 export type TaskSource = (typeof taskSourceValues)[number];
 export type TaskComplexity = (typeof taskComplexityValues)[number];
@@ -32,7 +23,7 @@ const githubUsernameSchema = z
   .string()
   .min(1)
   .max(39)
-  .regex(/^(?!-)[A-Za-z0-9-]+(?<!-)$/, 'Invalid GitHub username.');
+  .regex(/^(?!-)[A-Za-z0-9-]+(?<!-)$/, "Invalid GitHub username.");
 
 export const contributionTaskSchema = z.object({
   taskId: z.string().min(1),
@@ -47,7 +38,7 @@ export const contributionTaskSchema = z.object({
     .object({
       number: z.number().int().positive(),
       url: z.string().url(),
-      status: z.enum(['open', 'merged', 'closed']),
+      status: z.enum(["open", "merged", "closed"]),
     })
     .optional(),
   linkedIssue: z
@@ -60,7 +51,7 @@ export const contributionTaskSchema = z.object({
 });
 
 export const contributionLogSchema = z.object({
-  version: z.literal('1.0'),
+  version: z.literal("1.0"),
   runId: z.string().min(1),
   timestamp: z.string().datetime({ offset: true }),
   contributor: z.object({
@@ -71,10 +62,8 @@ export const contributionLogSchema = z.object({
     fullName: z
       .string()
       .min(1)
-      .regex(/^[^\s/]+\/[^\s/]+$/, 'Expected repository in owner/repo format.'),
-    headSha: z
-      .string()
-      .regex(/^[A-Fa-f0-9]{7,40}$/, 'Expected git SHA (7-40 hex chars).'),
+      .regex(/^[^\s/]+\/[^\s/]+$/, "Expected repository in owner/repo format."),
+    headSha: z.string().regex(/^[A-Fa-f0-9]{7,40}$/, "Expected git SHA (7-40 hex chars)."),
     defaultBranch: z.string().min(1),
   }),
   budget: z.object({

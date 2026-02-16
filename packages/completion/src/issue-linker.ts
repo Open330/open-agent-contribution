@@ -1,7 +1,7 @@
-import { completionError, type ResolvedRepo, type Task } from '@oac/core';
-import type { Octokit } from '@octokit/rest';
+import { type ResolvedRepo, type Task, completionError } from "@oac/core";
+import type { Octokit } from "@octokit/rest";
 
-import type { CreatedPR } from './types.js';
+import type { CreatedPR } from "./types.js";
 
 export async function linkIssueToePR(
   repo: ResolvedRepo,
@@ -22,7 +22,7 @@ export async function linkIssueToePR(
       issue_number: issueNumber,
     });
 
-    if (issue.data.state === 'closed') {
+    if (issue.data.state === "closed") {
       return;
     }
 
@@ -38,7 +38,7 @@ export async function linkIssueToePR(
     }
 
     throw completionError(
-      'PR_CREATION_FAILED',
+      "PR_CREATION_FAILED",
       `Failed to link issue #${issueNumber} to PR #${pr.number}.`,
       {
         cause: error,
@@ -59,13 +59,9 @@ function isNonBlockingIssueError(error: unknown): boolean {
     return false;
   }
 
-  return (
-    error.status === 404 ||
-    error.status === 410 ||
-    error.status === 422
-  );
+  return error.status === 404 || error.status === 410 || error.status === 422;
 }
 
 function isStatusError(error: unknown): error is { status?: number } {
-  return typeof error === 'object' && error !== null && 'status' in error;
+  return typeof error === "object" && error !== null && "status" in error;
 }

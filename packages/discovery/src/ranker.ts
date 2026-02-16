@@ -1,12 +1,12 @@
-import type { Task, TaskComplexity, TaskSource } from '@oac/core';
-import type { PriorityWeights } from './types.js';
+import type { Task, TaskComplexity, TaskSource } from "@oac/core";
+import type { PriorityWeights } from "./types.js";
 
 const IMPACT_BY_SOURCE: Partial<Record<TaskSource, number>> = {
   lint: 22,
   todo: 10,
-  'test-gap': 24,
-  'dead-code': 14,
-  'github-issue': 20,
+  "test-gap": 24,
+  "dead-code": 14,
+  "github-issue": 20,
   custom: 12,
 };
 
@@ -85,8 +85,8 @@ function scoreTask(task: Task): PriorityWeights {
 function scoreImpact(task: Task, metadata: Record<string, unknown>): number {
   let score = IMPACT_BY_SOURCE[task.source] ?? 12;
 
-  const matchCount = readNumber(metadata, 'matchCount');
-  if (task.source === 'todo' && matchCount !== undefined) {
+  const matchCount = readNumber(metadata, "matchCount");
+  if (task.source === "todo" && matchCount !== undefined) {
     if (matchCount >= 4) {
       score += 4;
     } else if (matchCount >= 2) {
@@ -94,8 +94,8 @@ function scoreImpact(task: Task, metadata: Record<string, unknown>): number {
     }
   }
 
-  const issueCount = readNumber(metadata, 'issueCount');
-  if (task.source === 'lint' && issueCount !== undefined && issueCount >= 5) {
+  const issueCount = readNumber(metadata, "issueCount");
+  if (task.source === "lint" && issueCount !== undefined && issueCount >= 5) {
     score += 2;
   }
 
@@ -109,14 +109,14 @@ function scoreImpact(task: Task, metadata: Record<string, unknown>): number {
 function scoreFeasibility(task: Task, metadata: Record<string, unknown>): number {
   let score = FEASIBILITY_BY_COMPLEXITY[task.complexity];
 
-  const fileCount = Math.max(task.targetFiles.length, readNumber(metadata, 'targetFileCount') ?? 0);
+  const fileCount = Math.max(task.targetFiles.length, readNumber(metadata, "targetFileCount") ?? 0);
   if (fileCount >= 6) {
     score -= 8;
   } else if (fileCount >= 3) {
     score -= 4;
   }
 
-  if (task.executionMode === 'direct-commit') {
+  if (task.executionMode === "direct-commit") {
     score -= 2;
   }
 
@@ -125,9 +125,9 @@ function scoreFeasibility(task: Task, metadata: Record<string, unknown>): number
 
 function scoreFreshness(task: Task, metadata: Record<string, unknown>): number {
   const daysSinceChange =
-    readNumber(metadata, 'daysSinceLastChange') ??
-    readNumber(metadata, 'freshnessDays') ??
-    getAgeInDays(readString(metadata, 'lastModifiedAt'));
+    readNumber(metadata, "daysSinceLastChange") ??
+    readNumber(metadata, "freshnessDays") ??
+    getAgeInDays(readString(metadata, "lastModifiedAt"));
 
   if (daysSinceChange === undefined) {
     const discoveredAge = getAgeInDays(task.discoveredAt);
@@ -164,18 +164,18 @@ function scoreIssueSignals(task: Task, metadata: Record<string, unknown>): numbe
   }
 
   const labels = task.linkedIssue?.labels.map((label) => label.toLowerCase()) ?? [];
-  if (labels.includes('good-first-issue')) {
+  if (labels.includes("good-first-issue")) {
     score += 2;
   }
-  if (labels.includes('help-wanted')) {
+  if (labels.includes("help-wanted")) {
     score += 1;
   }
 
-  const upvotes = readNumber(metadata, 'upvotes') ?? readNumber(metadata, 'thumbsUp') ?? 0;
-  const reactions = readNumber(metadata, 'reactions') ?? 0;
+  const upvotes = readNumber(metadata, "upvotes") ?? readNumber(metadata, "thumbsUp") ?? 0;
+  const reactions = readNumber(metadata, "reactions") ?? 0;
   const maintainerComments =
-    readNumber(metadata, 'maintainerComments') ??
-    (readBoolean(metadata, 'hasMaintainerComment') ? 1 : 0);
+    readNumber(metadata, "maintainerComments") ??
+    (readBoolean(metadata, "hasMaintainerComment") ? 1 : 0);
 
   score += Math.min(4, Math.floor(upvotes / 2) + Math.floor(reactions / 3));
   score += Math.min(3, maintainerComments);
@@ -189,9 +189,9 @@ function scoreTokenEfficiency(
   impactScore: number,
 ): number {
   const estimatedTokens =
-    readNumber(metadata, 'estimatedTokens') ??
-    readNumber(metadata, 'totalEstimatedTokens') ??
-    readNestedNumber(metadata, 'tokenEstimate', 'totalEstimatedTokens');
+    readNumber(metadata, "estimatedTokens") ??
+    readNumber(metadata, "totalEstimatedTokens") ??
+    readNestedNumber(metadata, "tokenEstimate", "totalEstimatedTokens");
 
   let score = TOKEN_EFFICIENCY_BY_COMPLEXITY[task.complexity];
 
@@ -245,12 +245,12 @@ function readNestedNumber(
 
 function readNumber(metadata: Record<string, unknown>, key: string): number | undefined {
   const value = metadata[key];
-  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
 function readString(metadata: Record<string, unknown>, key: string): string | undefined {
   const value = metadata[key];
-  return typeof value === 'string' ? value : undefined;
+  return typeof value === "string" ? value : undefined;
 }
 
 function readBoolean(metadata: Record<string, unknown>, key: string): boolean {
@@ -258,7 +258,7 @@ function readBoolean(metadata: Record<string, unknown>, key: string): boolean {
 }
 
 function toRecord(value: unknown): Record<string, unknown> {
-  if (value && typeof value === 'object') {
+  if (value && typeof value === "object") {
     return value as Record<string, unknown>;
   }
   return {};

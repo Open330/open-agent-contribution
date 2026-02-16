@@ -1,15 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  createEventBus,
-  OacError,
-  type Task,
-} from "@oac/core";
-import type {
-  AgentEvent,
-  AgentProvider,
-  AgentResult,
-} from "../src/agents/agent.interface.js";
+import { OacError, type Task, createEventBus } from "@oac/core";
+import type { AgentEvent, AgentProvider, AgentResult } from "../src/agents/agent.interface.js";
 import type { SandboxContext } from "../src/sandbox.js";
 import { executeTask } from "../src/worker.js";
 
@@ -60,9 +52,7 @@ function createMockAgent(id = "test-agent"): AgentProvider {
   return {
     id,
     name: "Test Agent",
-    checkAvailability: vi
-      .fn()
-      .mockResolvedValue({ available: true, version: "1.0.0" }),
+    checkAvailability: vi.fn().mockResolvedValue({ available: true, version: "1.0.0" }),
     execute: vi.fn(),
     estimateTokens: vi.fn().mockResolvedValue({
       taskId: "task-1",
@@ -225,11 +215,7 @@ describe("executeTask", () => {
 
     expect(result.filesChanged).toHaveLength(3);
     expect(result.filesChanged).toEqual(
-      expect.arrayContaining([
-        "src/edited-a.ts",
-        "src/edited-b.ts",
-        "src/edited-c.ts",
-      ]),
+      expect.arrayContaining(["src/edited-a.ts", "src/edited-b.ts", "src/edited-c.ts"]),
     );
   });
 
@@ -293,16 +279,8 @@ describe("executeTask", () => {
       "tool:rg",
       "agent-warning",
     ]);
-    expect(progressEvents.map((event) => event.tokensUsed)).toEqual([
-      0,
-      70,
-      70,
-      70,
-      70,
-    ]);
-    expect(progressEvents.every((event) => event.jobId === "progress-1")).toBe(
-      true,
-    );
+    expect(progressEvents.map((event) => event.tokensUsed)).toEqual([0, 70, 70, 70, 70]);
+    expect(progressEvents.every((event) => event.jobId === "progress-1")).toBe(true);
   });
 
   it("normalizes timeout errors to AGENT_TIMEOUT", async () => {

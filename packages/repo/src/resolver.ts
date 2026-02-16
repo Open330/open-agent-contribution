@@ -4,8 +4,7 @@ import { Octokit } from "@octokit/rest";
 import { MetadataCache } from "./metadata-cache.js";
 import type { RepoPermissions, ResolvedRepo } from "./types.js";
 
-const OWNER_REPO_PATTERN =
-  /^(?<owner>[A-Za-z0-9_.-]+)\/(?<repo>[A-Za-z0-9_.-]+?)(?:\.git)?$/;
+const OWNER_REPO_PATTERN = /^(?<owner>[A-Za-z0-9_.-]+)\/(?<repo>[A-Za-z0-9_.-]+?)(?:\.git)?$/;
 const GITHUB_SSH_PATTERN =
   /^git@github\.com:(?<owner>[A-Za-z0-9_.-]+)\/(?<repo>[A-Za-z0-9_.-]+?)(?:\.git)?$/;
 
@@ -19,11 +18,7 @@ export type RepoResolutionErrorCode =
 export class RepoResolutionError extends Error {
   public readonly code: RepoResolutionErrorCode;
 
-  public constructor(
-    message: string,
-    code: RepoResolutionErrorCode,
-    cause?: unknown,
-  ) {
+  public constructor(message: string, code: RepoResolutionErrorCode, cause?: unknown) {
     super(message, { cause });
     this.name = "RepoResolutionError";
     this.code = code;
@@ -67,12 +62,7 @@ export async function resolveRepo(input: string): Promise<ResolvedRepo> {
 
   const [languages, headSha] = await Promise.all([
     fetchLanguages(octokit, repoData.owner.login, repoData.name),
-    fetchHeadSha(
-      octokit,
-      repoData.owner.login,
-      repoData.name,
-      repoData.default_branch,
-    ),
+    fetchHeadSha(octokit, repoData.owner.login, repoData.name, repoData.default_branch),
   ]);
 
   const localPath = defaultLocalPath(repoData.owner.login, repoData.name);
@@ -109,10 +99,7 @@ export async function resolveRepo(input: string): Promise<ResolvedRepo> {
 function parseRepoInput(input: string): ParsedRepoInput {
   const normalized = input.trim();
   if (!normalized) {
-    throw new RepoResolutionError(
-      "Repository input cannot be empty.",
-      "INVALID_INPUT",
-    );
+    throw new RepoResolutionError("Repository input cannot be empty.", "INVALID_INPUT");
   }
 
   const ownerRepoMatch = normalized.match(OWNER_REPO_PATTERN);
@@ -146,19 +133,13 @@ function parseRepoInput(input: string): ParsedRepoInput {
 
     const pathParts = url.pathname.split("/").filter(Boolean);
     if (pathParts.length < 2) {
-      throw new RepoResolutionError(
-        `Invalid GitHub repository URL "${input}".`,
-        "INVALID_INPUT",
-      );
+      throw new RepoResolutionError(`Invalid GitHub repository URL "${input}".`, "INVALID_INPUT");
     }
 
     const owner = pathParts[0];
     const name = stripGitSuffix(pathParts[1]);
     if (!owner || !name) {
-      throw new RepoResolutionError(
-        `Invalid GitHub repository URL "${input}".`,
-        "INVALID_INPUT",
-      );
+      throw new RepoResolutionError(`Invalid GitHub repository URL "${input}".`, "INVALID_INPUT");
     }
 
     return { owner, name };
@@ -214,11 +195,7 @@ async function fetchHeadSha(
   }
 }
 
-function toResolutionError(
-  owner: string,
-  repo: string,
-  error: unknown,
-): RepoResolutionError {
+function toResolutionError(owner: string, repo: string, error: unknown): RepoResolutionError {
   const fullName = `${owner}/${repo}`;
   const status = isApiError(error) ? error.status : undefined;
   const message =
@@ -259,9 +236,7 @@ function normalizePermissions(
       }
     | undefined,
 ): RepoPermissions {
-  const pull =
-    permissions?.pull ??
-    (isPrivateRepo ? false : true);
+  const pull = permissions?.pull ?? !isPrivateRepo;
 
   return {
     push: permissions?.push ?? false,

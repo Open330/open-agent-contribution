@@ -1,23 +1,17 @@
-import { readFile } from 'node:fs/promises';
-import { isAbsolute, resolve } from 'node:path';
+import { readFile } from "node:fs/promises";
+import { isAbsolute, resolve } from "node:path";
 
-import { analyzeTaskComplexity } from './complexity.js';
-import { ClaudeTokenCounter } from './providers/claude-counter.js';
-import { CodexTokenCounter } from './providers/codex-counter.js';
+import { analyzeTaskComplexity } from "./complexity.js";
+import { ClaudeTokenCounter } from "./providers/claude-counter.js";
+import { CodexTokenCounter } from "./providers/codex-counter.js";
 
-export type AgentProviderId = 'claude-code' | 'codex-cli' | 'opencode' | string;
+export type AgentProviderId = "claude-code" | "codex-cli" | "opencode" | string;
 
-export type TaskSource =
-  | 'lint'
-  | 'todo'
-  | 'test-gap'
-  | 'dead-code'
-  | 'github-issue'
-  | 'custom';
+export type TaskSource = "lint" | "todo" | "test-gap" | "dead-code" | "github-issue" | "custom";
 
-export type TaskComplexity = 'trivial' | 'simple' | 'moderate' | 'complex';
+export type TaskComplexity = "trivial" | "simple" | "moderate" | "complex";
 
-export type ExecutionMode = 'new-pr' | 'update-pr' | 'direct-commit';
+export type ExecutionMode = "new-pr" | "update-pr" | "direct-commit";
 
 export interface Task {
   id: string;
@@ -92,7 +86,7 @@ const claudeCounter = new ClaudeTokenCounter();
 const codexCounter = new CodexTokenCounter();
 
 function getTokenCounter(provider: AgentProviderId): TokenCounter {
-  if (provider === 'claude-code') {
+  if (provider === "claude-code") {
     return claudeCounter;
   }
 
@@ -149,9 +143,9 @@ function resolveTargetFilePath(targetFile: string): string {
 function safeStringify(value: unknown): string {
   try {
     const serialized = JSON.stringify(value);
-    return serialized ?? 'null';
+    return serialized ?? "null";
   } catch {
-    return '[unserializable]';
+    return "[unserializable]";
   }
 }
 
@@ -162,7 +156,7 @@ async function readContextFile(
   const resolvedPath = resolveTargetFilePath(targetFile);
 
   try {
-    const content = await readFile(resolvedPath, 'utf8');
+    const content = await readFile(resolvedPath, "utf8");
     const counted = countTokensWithFallback(content, counter);
 
     return {
@@ -189,7 +183,7 @@ export async function estimateTokens(
     uniqueTargetFiles.map((targetFile) => readContextFile(targetFile, counter)),
   );
 
-  const repoStructureSeed = uniqueTargetFiles.join('\n');
+  const repoStructureSeed = uniqueTargetFiles.join("\n");
   const repoStructureCount = countTokensWithFallback(repoStructureSeed, counter);
 
   const contextTokens =
@@ -201,9 +195,9 @@ export async function estimateTokens(
     `Source: ${task.source}`,
     `Priority: ${task.priority}`,
     `Description:\n${task.description}`,
-    `Target Files:\n${uniqueTargetFiles.join('\n') || '(none)'}`,
+    `Target Files:\n${uniqueTargetFiles.join("\n") || "(none)"}`,
     `Metadata: ${safeStringify(task.metadata)}`,
-  ].join('\n\n');
+  ].join("\n\n");
 
   const promptContentCount = countTokensWithFallback(promptSeed, counter);
   const promptTokens = counter.invocationOverhead + promptContentCount.tokens;

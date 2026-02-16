@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ResolvedRepo } from "../src/types.js";
 
 const octokitMocks = vi.hoisted(() => ({
@@ -35,9 +35,7 @@ vi.mock("../src/metadata-cache.js", () => ({
 
 import { RepoResolutionError, resolveRepo } from "../src/resolver.js";
 
-function makeRepoData(
-  overrides: Record<string, unknown> = {},
-): Record<string, unknown> {
+function makeRepoData(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     full_name: "owner/repo",
     owner: { login: "owner" },
@@ -135,7 +133,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  delete process.env.GITHUB_TOKEN;
+  process.env.GITHUB_TOKEN = undefined;
 });
 
 describe("RepoResolutionError", () => {

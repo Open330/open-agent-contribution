@@ -20,12 +20,7 @@ export interface MetadataCacheOptions {
   now?: () => number;
 }
 
-export const DEFAULT_METADATA_CACHE_PATH = join(
-  homedir(),
-  ".oac",
-  "cache",
-  "repos.json",
-);
+export const DEFAULT_METADATA_CACHE_PATH = join(homedir(), ".oac", "cache", "repos.json");
 
 export const DEFAULT_METADATA_CACHE_TTL_MS = 60 * 60 * 1000;
 
@@ -40,9 +35,7 @@ export class MetadataCache {
   private readonly now: () => number;
 
   public constructor(options: MetadataCacheOptions = {}) {
-    this.filePath = expandHomePath(
-      options.filePath ?? DEFAULT_METADATA_CACHE_PATH,
-    );
+    this.filePath = expandHomePath(options.filePath ?? DEFAULT_METADATA_CACHE_PATH);
     this.ttlMs = options.ttlMs ?? DEFAULT_METADATA_CACHE_TTL_MS;
     this.now = options.now ?? Date.now;
   }

@@ -1,8 +1,4 @@
-import type {
-  AgentProviderId,
-  ExecutionResult,
-  TokenEstimate,
-} from '@oac/core';
+import type { AgentProviderId, ExecutionResult, TokenEstimate } from "@oac/core";
 
 export interface AgentAvailability {
   available: boolean;
@@ -32,28 +28,28 @@ export interface TokenEstimateParams {
 
 export type AgentEvent =
   | {
-      type: 'output';
+      type: "output";
       content: string;
-      stream: 'stdout' | 'stderr';
+      stream: "stdout" | "stderr";
     }
   | {
-      type: 'tokens';
+      type: "tokens";
       inputTokens: number;
       outputTokens: number;
       cumulativeTokens: number;
     }
   | {
-      type: 'file_edit';
+      type: "file_edit";
       path: string;
-      action: 'create' | 'modify' | 'delete';
+      action: "create" | "modify" | "delete";
     }
   | {
-      type: 'tool_use';
+      type: "tool_use";
       tool: string;
       input: unknown;
     }
   | {
-      type: 'error';
+      type: "error";
       message: string;
       recoverable: boolean;
     };

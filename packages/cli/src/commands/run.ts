@@ -1,28 +1,28 @@
-import { randomUUID } from 'node:crypto';
-import { constants as fsConstants } from 'node:fs';
-import { access } from 'node:fs/promises';
-import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { randomUUID } from "node:crypto";
+import { constants as fsConstants } from "node:fs";
+import { access } from "node:fs/promises";
+import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
-import { buildExecutionPlan, estimateTokens } from '@oac/budget';
-import * as completionPackage from '@oac/completion';
-import { loadConfig, type OacConfig, type Task, type TokenEstimate } from '@oac/core';
+import { buildExecutionPlan, estimateTokens } from "@oac/budget";
+import * as completionPackage from "@oac/completion";
+import { type OacConfig, type Task, type TokenEstimate, loadConfig } from "@oac/core";
 import {
   CompositeScanner,
   LintScanner,
+  type Scanner,
   TodoScanner,
   rankTasks,
-  type Scanner,
-} from '@oac/discovery';
-import * as executionPackage from '@oac/execution';
-import { cloneRepo, resolveRepo } from '@oac/repo';
-import { writeContributionLog, type ContributionLog } from '@oac/tracking';
-import chalk, { Chalk, type ChalkInstance } from 'chalk';
-import Table from 'cli-table3';
-import { Command } from 'commander';
-import ora, { type Ora } from 'ora';
+} from "@oac/discovery";
+import * as executionPackage from "@oac/execution";
+import { cloneRepo, resolveRepo } from "@oac/repo";
+import { type ContributionLog, writeContributionLog } from "@oac/tracking";
+import chalk, { Chalk, type ChalkInstance } from "chalk";
+import Table from "cli-table3";
+import { Command } from "commander";
+import ora, { type Ora } from "ora";
 
-import type { GlobalCliOptions } from '../cli.js';
+import type { GlobalCliOptions } from "../cli.js";
 
 interface RunCommandOptions {
   repo?: string;
@@ -35,9 +35,9 @@ interface RunCommandOptions {
   timeout?: number;
 }
 
-type RunMode = 'new-pr' | 'update-pr' | 'direct-commit';
-type SupportedScanner = 'lint' | 'todo';
-type CompletionStatus = 'success' | 'partial' | 'failed';
+type RunMode = "new-pr" | "update-pr" | "direct-commit";
+type SupportedScanner = "lint" | "todo";
+type CompletionStatus = "success" | "partial" | "failed";
 
 type ExecutionHook = (input: {
   task: Task;
@@ -70,7 +70,7 @@ interface TaskRunResult {
   pr?: {
     number: number;
     url: string;
-    status: 'open' | 'merged' | 'closed';
+    status: "open" | "merged" | "closed";
   };
 }
 
@@ -93,18 +93,18 @@ const DEFAULT_TIMEOUT_SECONDS = 300;
 const DEFAULT_CONCURRENCY = 2;
 
 export function createRunCommand(): Command {
-  const command = new Command('run');
+  const command = new Command("run");
 
   command
-    .description('Run the full OAC pipeline')
-    .option('--repo <owner/repo>', 'Target repository (owner/repo or GitHub URL)')
-    .option('--tokens <number>', 'Token budget for execution', parseInteger)
-    .option('--provider <id>', 'Agent provider id')
-    .option('--concurrency <number>', 'Maximum parallel task executions', parseInteger)
-    .option('--dry-run', 'Show plan without executing tasks', false)
-    .option('--mode <mode>', 'Execution mode: new-pr|update-pr|direct-commit')
-    .option('--max-tasks <number>', 'Maximum number of discovered tasks to consider', parseInteger)
-    .option('--timeout <seconds>', 'Per-task timeout in seconds', parseInteger)
+    .description("Run the full OAC pipeline")
+    .option("--repo <owner/repo>", "Target repository (owner/repo or GitHub URL)")
+    .option("--tokens <number>", "Token budget for execution", parseInteger)
+    .option("--provider <id>", "Agent provider id")
+    .option("--concurrency <number>", "Maximum parallel task executions", parseInteger)
+    .option("--dry-run", "Show plan without executing tasks", false)
+    .option("--mode <mode>", "Execution mode: new-pr|update-pr|direct-commit")
+    .option("--max-tasks <number>", "Maximum number of discovered tasks to consider", parseInteger)
+    .option("--timeout <seconds>", "Per-task timeout in seconds", parseInteger)
     .action(async (options: RunCommandOptions, cmd) => {
       const globalOptions = getGlobalOptions(cmd);
       const ui = createUi(globalOptions);
@@ -134,17 +134,17 @@ export function createRunCommand(): Command {
         );
       }
 
-      const resolveSpinner = createSpinner(outputJson, 'Resolving repository...');
+      const resolveSpinner = createSpinner(outputJson, "Resolving repository...");
       const resolvedRepo = await resolveRepo(repoInput);
       resolveSpinner?.succeed(`Resolved ${resolvedRepo.fullName}`);
 
-      const cloneSpinner = createSpinner(outputJson, 'Preparing local clone...');
+      const cloneSpinner = createSpinner(outputJson, "Preparing local clone...");
       await cloneRepo(resolvedRepo);
       cloneSpinner?.succeed(`Repository ready at ${resolvedRepo.localPath}`);
 
       const scanSpinner = createSpinner(
         outputJson,
-        `Running scanners: ${scannerSelection.enabled.join(', ')}`,
+        `Running scanners: ${scannerSelection.enabled.join(", ")}`,
       );
       const scannedTasks = await scannerSelection.scanner.scan(resolvedRepo.localPath, {
         exclude: config?.discovery.exclude,
@@ -154,7 +154,7 @@ export function createRunCommand(): Command {
       scanSpinner?.succeed(`Discovered ${scannedTasks.length} raw task(s)`);
 
       let candidateTasks = rankTasks(scannedTasks).filter((task) => task.priority >= minPriority);
-      if (typeof maxTasks === 'number') {
+      if (typeof maxTasks === "number") {
         candidateTasks = candidateTasks.slice(0, maxTasks);
       }
 
@@ -176,7 +176,7 @@ export function createRunCommand(): Command {
         if (outputJson) {
           console.log(JSON.stringify({ summary: emptySummary, plan: null }, null, 2));
         } else {
-          console.log(ui.yellow('No tasks discovered for execution.'));
+          console.log(ui.yellow("No tasks discovered for execution."));
         }
         return;
       }
@@ -186,7 +186,7 @@ export function createRunCommand(): Command {
         `Estimating tokens for ${candidateTasks.length} task(s)...`,
       );
       const estimates = await estimateTaskMap(candidateTasks, providerId);
-      estimateSpinner?.succeed('Token estimation completed');
+      estimateSpinner?.succeed("Token estimation completed");
 
       const plan = buildExecutionPlan(candidateTasks, estimates, totalBudget);
 
@@ -218,8 +218,8 @@ export function createRunCommand(): Command {
           );
         } else {
           renderSelectedPlanTable(ui, plan, totalBudget);
-          console.log('');
-          console.log(ui.blue('Dry run complete. No tasks were executed.'));
+          console.log("");
+          console.log(ui.blue("Dry run complete. No tasks were executed."));
         }
 
         return;
@@ -231,12 +231,12 @@ export function createRunCommand(): Command {
       if (!outputJson && globalOptions.verbose) {
         if (!executionHook) {
           console.log(
-            ui.yellow('[oac] @oac/execution has no executeTask hook. Using fallback executor.'),
+            ui.yellow("[oac] @oac/execution has no executeTask hook. Using fallback executor."),
           );
         }
-        if (!completionHook && mode !== 'direct-commit') {
+        if (!completionHook && mode !== "direct-commit") {
           console.log(
-            ui.yellow('[oac] @oac/completion has no completeTask hook. PR creation is skipped.'),
+            ui.yellow("[oac] @oac/completion has no completeTask hook. PR creation is skipped."),
           );
         }
       }
@@ -273,14 +273,14 @@ export function createRunCommand(): Command {
         },
       );
 
-      executionSpinner?.succeed('Execution stage finished');
+      executionSpinner?.succeed("Execution stage finished");
 
-      const completionSpinner = createSpinner(outputJson, 'Completing task outputs...');
+      const completionSpinner = createSpinner(outputJson, "Completing task outputs...");
       const completedTasks = await runWithConcurrency(
         executedTasks,
         concurrency,
         async (result): Promise<TaskRunResult> => {
-          if (mode === 'direct-commit') {
+          if (mode === "direct-commit") {
             return result;
           }
 
@@ -306,7 +306,7 @@ export function createRunCommand(): Command {
           };
         },
       );
-      completionSpinner?.succeed('Completion stage finished');
+      completionSpinner?.succeed("Completion stage finished");
 
       const tasksCompleted = completedTasks.filter((task) => task.execution.success).length;
       const tasksFailed = completedTasks.length - tasksCompleted;
@@ -330,13 +330,13 @@ export function createRunCommand(): Command {
         taskResults: completedTasks,
       });
 
-      const trackingSpinner = createSpinner(outputJson, 'Writing contribution log...');
+      const trackingSpinner = createSpinner(outputJson, "Writing contribution log...");
       let logPath: string | undefined;
       try {
         logPath = await writeContributionLog(contributionLog, resolvedRepo.localPath);
         trackingSpinner?.succeed(`Contribution log written: ${logPath}`);
       } catch (error) {
-        trackingSpinner?.fail('Failed to write contribution log');
+        trackingSpinner?.fail("Failed to write contribution log");
         if (globalOptions.verbose && !outputJson) {
           const message = error instanceof Error ? error.message : String(error);
           console.warn(ui.yellow(`[oac] Tracking failed: ${message}`));
@@ -374,8 +374,8 @@ export function createRunCommand(): Command {
       }
 
       renderTaskResults(ui, completedTasks);
-      console.log('');
-      console.log(ui.bold('Run Summary'));
+      console.log("");
+      console.log(ui.bold("Run Summary"));
       console.log(`  Tasks completed: ${tasksCompleted}/${completedTasks.length}`);
       console.log(`  Tasks failed:    ${tasksFailed}`);
       console.log(`  PRs created:     ${prsCreated}`);
@@ -395,7 +395,7 @@ function getGlobalOptions(command: Command): Required<GlobalCliOptions> {
   const options = command.optsWithGlobals<GlobalCliOptions>();
 
   return {
-    config: options.config ?? 'oac.config.ts',
+    config: options.config ?? "oac.config.ts",
     verbose: options.verbose === true,
     json: options.json === true,
     color: options.color !== false,
@@ -403,7 +403,7 @@ function getGlobalOptions(command: Command): Required<GlobalCliOptions> {
 }
 
 function createUi(options: Required<GlobalCliOptions>): ChalkInstance {
-  const noColorEnv = Object.prototype.hasOwnProperty.call(process.env, 'NO_COLOR');
+  const noColorEnv = Object.prototype.hasOwnProperty.call(process.env, "NO_COLOR");
   const colorEnabled = options.color && !noColorEnv;
 
   return new Chalk({ level: colorEnabled ? chalk.level : 0 });
@@ -414,7 +414,7 @@ function createSpinner(enabled: boolean, text: string): Ora | null {
     return null;
   }
 
-  return ora({ text, color: 'blue' }).start();
+  return ora({ text, color: "blue" }).start();
 }
 
 function parseInteger(value: string): number {
@@ -427,16 +427,16 @@ function parseInteger(value: string): number {
 }
 
 function validateRunOptions(options: RunCommandOptions): void {
-  if (typeof options.concurrency === 'number' && options.concurrency <= 0) {
-    throw new Error('--concurrency must be greater than zero.');
+  if (typeof options.concurrency === "number" && options.concurrency <= 0) {
+    throw new Error("--concurrency must be greater than zero.");
   }
 
-  if (typeof options.timeout === 'number' && options.timeout <= 0) {
-    throw new Error('--timeout must be greater than zero.');
+  if (typeof options.timeout === "number" && options.timeout <= 0) {
+    throw new Error("--timeout must be greater than zero.");
   }
 
-  if (typeof options.maxTasks === 'number' && options.maxTasks <= 0) {
-    throw new Error('--max-tasks must be greater than zero when provided.');
+  if (typeof options.maxTasks === "number" && options.maxTasks <= 0) {
+    throw new Error("--max-tasks must be greater than zero when provided.");
   }
 }
 
@@ -471,20 +471,20 @@ function resolveRepoInput(repoOption: string | undefined, config: OacConfig | nu
   }
 
   const firstConfiguredRepo = config?.repos[0];
-  if (typeof firstConfiguredRepo === 'string') {
+  if (typeof firstConfiguredRepo === "string") {
     return firstConfiguredRepo;
   }
 
   if (
     firstConfiguredRepo &&
-    typeof firstConfiguredRepo === 'object' &&
-    'name' in firstConfiguredRepo &&
-    typeof firstConfiguredRepo.name === 'string'
+    typeof firstConfiguredRepo === "object" &&
+    "name" in firstConfiguredRepo &&
+    typeof firstConfiguredRepo.name === "string"
   ) {
     return firstConfiguredRepo.name;
   }
 
-  throw new Error('No repository specified. Use --repo or configure repos in oac.config.ts.');
+  throw new Error("No repository specified. Use --repo or configure repos in oac.config.ts.");
 }
 
 function resolveProviderId(providerOption: string | undefined, config: OacConfig | null): string {
@@ -493,21 +493,21 @@ function resolveProviderId(providerOption: string | undefined, config: OacConfig
     return fromFlag;
   }
 
-  return config?.provider.id ?? 'claude-code';
+  return config?.provider.id ?? "claude-code";
 }
 
 function resolveBudget(tokensOption: number | undefined, config: OacConfig | null): number {
   const budget = tokensOption ?? config?.budget.totalTokens ?? 100_000;
   if (!Number.isFinite(budget) || budget <= 0) {
-    throw new Error('Token budget must be a positive number.');
+    throw new Error("Token budget must be a positive number.");
   }
 
   return Math.floor(budget);
 }
 
 function resolveMode(modeOption: string | undefined, config: OacConfig | null): RunMode {
-  const candidate = (modeOption ?? config?.execution.mode ?? 'new-pr').trim();
-  if (candidate === 'new-pr' || candidate === 'update-pr' || candidate === 'direct-commit') {
+  const candidate = (modeOption ?? config?.execution.mode ?? "new-pr").trim();
+  if (candidate === "new-pr" || candidate === "update-pr" || candidate === "direct-commit") {
     return candidate;
   }
 
@@ -519,12 +519,12 @@ function resolveConcurrency(
   config: OacConfig | null,
 ): number {
   const configuredConcurrency =
-    typeof concurrencyOption === 'number'
+    typeof concurrencyOption === "number"
       ? concurrencyOption
       : (config?.execution.concurrency ?? DEFAULT_CONCURRENCY);
 
   if (!Number.isFinite(configuredConcurrency) || configuredConcurrency <= 0) {
-    throw new Error('Concurrency must be a positive integer.');
+    throw new Error("Concurrency must be a positive integer.");
   }
 
   return Math.floor(configuredConcurrency);
@@ -532,12 +532,12 @@ function resolveConcurrency(
 
 function resolveTimeout(timeoutOption: number | undefined, config: OacConfig | null): number {
   const configuredTimeout =
-    typeof timeoutOption === 'number'
+    typeof timeoutOption === "number"
       ? timeoutOption
       : (config?.execution.taskTimeout ?? DEFAULT_TIMEOUT_SECONDS);
 
   if (!Number.isFinite(configuredTimeout) || configuredTimeout <= 0) {
-    throw new Error('Timeout must be a positive integer.');
+    throw new Error("Timeout must be a positive integer.");
   }
 
   return Math.floor(configuredTimeout);
@@ -550,19 +550,19 @@ function selectScannersFromConfig(config: OacConfig | null): {
   const enabled: SupportedScanner[] = [];
 
   if (config?.discovery.scanners.lint !== false) {
-    enabled.push('lint');
+    enabled.push("lint");
   }
   if (config?.discovery.scanners.todo !== false) {
-    enabled.push('todo');
+    enabled.push("todo");
   }
 
   if (enabled.length === 0) {
-    enabled.push('lint', 'todo');
+    enabled.push("lint", "todo");
   }
 
   const uniqueEnabled = [...new Set(enabled)];
   const scannerInstances: Scanner[] = uniqueEnabled.map((scannerName) =>
-    scannerName === 'lint' ? new LintScanner() : new TodoScanner(),
+    scannerName === "lint" ? new LintScanner() : new TodoScanner(),
   );
 
   return {
@@ -587,12 +587,12 @@ async function estimateTaskMap(
 
 function readExecutionHook(): ExecutionHook | null {
   const candidate = (executionPackage as { executeTask?: unknown }).executeTask;
-  return typeof candidate === 'function' ? (candidate as ExecutionHook) : null;
+  return typeof candidate === "function" ? (candidate as ExecutionHook) : null;
 }
 
 function readCompletionHook(): CompletionHook | null {
   const candidate = (completionPackage as { completeTask?: unknown }).completeTask;
-  return typeof candidate === 'function' ? (candidate as CompletionHook) : null;
+  return typeof candidate === "function" ? (candidate as CompletionHook) : null;
 }
 
 async function executeTask(input: {
@@ -633,10 +633,7 @@ async function executeTask(input: {
   }
 }
 
-async function simulateExecution(
-  task: Task,
-  estimate: TokenEstimate,
-): Promise<ExecutionOutcome> {
+async function simulateExecution(task: Task, estimate: TokenEstimate): Promise<ExecutionOutcome> {
   const start = Date.now();
   const delayMs = Math.min(1_500, Math.max(150, Math.round(estimate.totalEstimatedTokens / 40)));
   await sleep(delayMs);
@@ -658,7 +655,7 @@ function normalizeExecutionOutcome(
   estimate: TokenEstimate,
   startedAt: number,
 ): ExecutionOutcome {
-  if (!value || typeof value !== 'object') {
+  if (!value || typeof value !== "object") {
     return {
       success: true,
       exitCode: 0,
@@ -672,18 +669,18 @@ function normalizeExecutionOutcome(
   const success = record.success !== false;
 
   const filesChanged = Array.isArray(record.filesChanged)
-    ? record.filesChanged.filter((file): file is string => typeof file === 'string')
+    ? record.filesChanged.filter((file): file is string => typeof file === "string")
     : [];
 
   const totalTokensUsed =
-    typeof record.totalTokensUsed === 'number' && Number.isFinite(record.totalTokensUsed)
+    typeof record.totalTokensUsed === "number" && Number.isFinite(record.totalTokensUsed)
       ? Math.max(0, Math.floor(record.totalTokensUsed))
       : Math.max(1, Math.round(estimate.totalEstimatedTokens * 0.9));
 
   return {
     success,
     exitCode:
-      typeof record.exitCode === 'number' && Number.isFinite(record.exitCode)
+      typeof record.exitCode === "number" && Number.isFinite(record.exitCode)
         ? Math.floor(record.exitCode)
         : success
           ? 0
@@ -691,10 +688,10 @@ function normalizeExecutionOutcome(
     totalTokensUsed,
     filesChanged,
     duration:
-      typeof record.duration === 'number' && Number.isFinite(record.duration)
+      typeof record.duration === "number" && Number.isFinite(record.duration)
         ? Math.max(0, record.duration)
         : (Date.now() - startedAt) / 1_000,
-    error: typeof record.error === 'string' ? record.error : undefined,
+    error: typeof record.error === "string" ? record.error : undefined,
   };
 }
 
@@ -708,7 +705,7 @@ async function completeTask(input: {
   | {
       number: number;
       url: string;
-      status: 'open' | 'merged' | 'closed';
+      status: "open" | "merged" | "closed";
     }
   | undefined
 > {
@@ -730,22 +727,20 @@ async function completeTask(input: {
   }
 }
 
-function normalizePr(
-  value: unknown,
-):
+function normalizePr(value: unknown):
   | {
       number: number;
       url: string;
-      status: 'open' | 'merged' | 'closed';
+      status: "open" | "merged" | "closed";
     }
   | undefined {
-  if (!value || typeof value !== 'object') {
+  if (!value || typeof value !== "object") {
     return undefined;
   }
 
   const record = value as { pr?: unknown };
   const candidate =
-    record.pr && typeof record.pr === 'object'
+    record.pr && typeof record.pr === "object"
       ? (record.pr as {
           number?: unknown;
           url?: unknown;
@@ -762,17 +757,15 @@ function normalizePr(
   }
 
   if (
-    typeof candidate.number !== 'number' ||
+    typeof candidate.number !== "number" ||
     !Number.isFinite(candidate.number) ||
-    typeof candidate.url !== 'string'
+    typeof candidate.url !== "string"
   ) {
     return undefined;
   }
 
   const status =
-    candidate.status === 'merged' || candidate.status === 'closed'
-      ? candidate.status
-      : 'open';
+    candidate.status === "merged" || candidate.status === "closed" ? candidate.status : "open";
 
   return {
     number: Math.floor(candidate.number),
@@ -815,7 +808,7 @@ function buildContributionLog(input: {
     error: result.execution.error,
   }));
 
-  const tasksSucceeded = contributionTasks.filter((task) => task.status !== 'failed').length;
+  const tasksSucceeded = contributionTasks.filter((task) => task.status !== "failed").length;
   const tasksFailed = contributionTasks.length - tasksSucceeded;
   const totalTokensUsed = contributionTasks.reduce((sum, task) => sum + task.tokensUsed, 0);
   const totalFilesChanged = contributionTasks.reduce(
@@ -824,7 +817,7 @@ function buildContributionLog(input: {
   );
 
   return {
-    version: '1.0',
+    version: "1.0",
     runId: input.runId,
     timestamp,
     contributor: {
@@ -857,14 +850,14 @@ function buildContributionLog(input: {
 
 function deriveTaskStatus(execution: ExecutionOutcome): CompletionStatus {
   if (execution.success) {
-    return 'success';
+    return "success";
   }
 
   if (execution.filesChanged.length > 0) {
-    return 'partial';
+    return "partial";
   }
 
-  return 'failed';
+  return "failed";
 }
 
 function resolveGithubUsername(fallback: string): string {
@@ -874,17 +867,17 @@ function resolveGithubUsername(fallback: string): string {
     process.env.USER,
     process.env.LOGNAME,
     fallback,
-    'oac-user',
+    "oac-user",
   ];
 
   for (const candidate of candidates) {
-    const normalized = sanitizeGithubUsername(candidate ?? '');
+    const normalized = sanitizeGithubUsername(candidate ?? "");
     if (normalized) {
       return normalized;
     }
   }
 
-  return 'oac-user';
+  return "oac-user";
 }
 
 function sanitizeGithubUsername(value: string): string | null {
@@ -894,9 +887,9 @@ function sanitizeGithubUsername(value: string): string | null {
   }
 
   const cleaned = trimmed
-    .replace(/[^A-Za-z0-9-]/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
+    .replace(/[^A-Za-z0-9-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 
   if (cleaned.length === 0 || cleaned.length > 39) {
     return null;
@@ -915,7 +908,7 @@ function renderSelectedPlanTable(
   budget: number,
 ): void {
   const table = new Table({
-    head: ['#', 'Task', 'Est. Tokens', 'Cumulative', 'Confidence'],
+    head: ["#", "Task", "Est. Tokens", "Cumulative", "Confidence"],
   });
 
   for (let index = 0; index < plan.selectedTasks.length; index += 1) {
@@ -932,10 +925,10 @@ function renderSelectedPlanTable(
   if (plan.selectedTasks.length > 0) {
     console.log(table.toString());
   } else {
-    console.log(ui.yellow('No tasks selected for execution.'));
+    console.log(ui.yellow("No tasks selected for execution."));
   }
 
-  console.log('');
+  console.log("");
   console.log(
     `Budget used: ${formatInteger(
       plan.selectedTasks[plan.selectedTasks.length - 1]?.cumulativeBudgetUsed ?? 0,
@@ -945,13 +938,13 @@ function renderSelectedPlanTable(
   console.log(`Remaining:   ${formatInteger(plan.remainingTokens)}`);
 
   if (plan.deferredTasks.length > 0) {
-    console.log('');
+    console.log("");
     console.log(ui.yellow(`Deferred (${plan.deferredTasks.length}):`));
     for (const deferred of plan.deferredTasks) {
       console.log(
         `  - ${truncate(deferred.task.title, 72)} (${formatInteger(
           deferred.estimate.totalEstimatedTokens,
-        )} tokens, ${deferred.reason.replaceAll('_', ' ')})`,
+        )} tokens, ${deferred.reason.replaceAll("_", " ")})`,
       );
     }
   }
@@ -960,8 +953,8 @@ function renderSelectedPlanTable(
 function renderTaskResults(ui: ChalkInstance, taskResults: TaskRunResult[]): void {
   for (let index = 0; index < taskResults.length; index += 1) {
     const result = taskResults[index];
-    const icon = result.execution.success ? ui.green('[OK]') : ui.red('[X]');
-    const status = result.execution.success ? ui.green('SUCCESS') : ui.red('FAILED');
+    const icon = result.execution.success ? ui.green("[OK]") : ui.red("[X]");
+    const status = result.execution.success ? ui.green("SUCCESS") : ui.red("FAILED");
 
     console.log(`${icon} [${index + 1}/${taskResults.length}] ${result.task.title}`);
     console.log(
@@ -1034,12 +1027,12 @@ function sleep(ms: number): Promise<void> {
 }
 
 function formatInteger(value: number): string {
-  return new Intl.NumberFormat('en-US').format(value);
+  return new Intl.NumberFormat("en-US").format(value);
 }
 
 function formatDuration(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds < 0) {
-    return '0s';
+    return "0s";
   }
 
   if (seconds < 60) {

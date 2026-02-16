@@ -1,6 +1,6 @@
-import { get_encoding, type Tiktoken } from 'tiktoken';
+import { type Tiktoken, get_encoding } from "tiktoken";
 
-const CLAUDE_ENCODING = 'cl100k_base';
+const CLAUDE_ENCODING = "cl100k_base";
 const CLAUDE_INVOCATION_OVERHEAD = 1_500;
 const CLAUDE_MAX_CONTEXT_TOKENS = 200_000;
 

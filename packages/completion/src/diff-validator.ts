@@ -1,7 +1,7 @@
-import { basename } from 'node:path';
+import { basename } from "node:path";
 
-import type { OacConfig } from '@oac/core';
-import { simpleGit, type SimpleGit } from 'simple-git';
+import type { OacConfig } from "@oac/core";
+import { type SimpleGit, simpleGit } from "simple-git";
 
 const DEFAULT_MAX_DIFF_LINES = 500;
 const DEFAULT_FORBIDDEN_PATTERNS: RegExp[] = [
@@ -11,7 +11,7 @@ const DEFAULT_FORBIDDEN_PATTERNS: RegExp[] = [
   /\bexecSync\s*\(/,
   /\bspawnSync\s*\(/,
 ];
-const DEFAULT_PROTECTED_FILES = ['.env*', '*.pem', '*.key'];
+const DEFAULT_PROTECTED_FILES = [".env*", "*.pem", "*.key"];
 
 interface ResolvedValidationConfig {
   maxDiffLines: number;
@@ -58,22 +58,17 @@ export async function validateDiff(
   }
 
   if (totalLinesChanged === 0) {
-    warnings.push('No changed lines detected in the current diff.');
+    warnings.push("No changed lines detected in the current diff.");
   }
 
   const protectedFileHits = changedFiles.filter((path) =>
     settings.protectedFiles.some((pattern) => matchesGlob(path, pattern)),
   );
   if (protectedFileHits.length > 0) {
-    errors.push(
-      `Protected files were modified: ${protectedFileHits.join(', ')}.`,
-    );
+    errors.push(`Protected files were modified: ${protectedFileHits.join(", ")}.`);
   }
 
-  const forbiddenHits = findForbiddenPatternHits(
-    patch,
-    settings.forbiddenPatterns,
-  );
+  const forbiddenHits = findForbiddenPatternHits(patch, settings.forbiddenPatterns);
   errors.push(...forbiddenHits);
 
   return {
@@ -85,34 +80,31 @@ export async function validateDiff(
 
 async function readDiffSummary(git: SimpleGit) {
   try {
-    return await git.diffSummary(['HEAD']);
+    return await git.diffSummary(["HEAD"]);
   } catch {
     return git.diffSummary();
   }
 }
 
 async function readChangedFiles(git: SimpleGit): Promise<string[]> {
-  const withHead = await tryGitDiff(git, ['--name-only', 'HEAD']);
-  const output = withHead ?? (await git.diff(['--name-only']));
+  const withHead = await tryGitDiff(git, ["--name-only", "HEAD"]);
+  const output = withHead ?? (await git.diff(["--name-only"]));
 
   return output
-    .split('\n')
+    .split("\n")
     .map((line) => line.trim())
     .filter((line) => line.length > 0);
 }
 
 async function readPatch(git: SimpleGit): Promise<string> {
-  const withHead = await tryGitDiff(git, ['--no-color', '--unified=0', 'HEAD']);
+  const withHead = await tryGitDiff(git, ["--no-color", "--unified=0", "HEAD"]);
   if (withHead !== undefined) {
     return withHead;
   }
-  return git.diff(['--no-color', '--unified=0']);
+  return git.diff(["--no-color", "--unified=0"]);
 }
 
-async function tryGitDiff(
-  git: SimpleGit,
-  args: string[],
-): Promise<string | undefined> {
+async function tryGitDiff(git: SimpleGit, args: string[]): Promise<string | undefined> {
   try {
     return await git.diff(args);
   } catch {
@@ -130,17 +122,15 @@ function resolveValidationConfig(
 
   return {
     maxDiffLines:
-      typeof maxDiffLines === 'number' && maxDiffLines > 0
+      typeof maxDiffLines === "number" && maxDiffLines > 0
         ? Math.floor(maxDiffLines)
         : DEFAULT_MAX_DIFF_LINES,
     forbiddenPatterns:
-      Array.isArray(diffConfig?.forbiddenPatterns) &&
-      diffConfig.forbiddenPatterns.length > 0
+      Array.isArray(diffConfig?.forbiddenPatterns) && diffConfig.forbiddenPatterns.length > 0
         ? diffConfig.forbiddenPatterns
         : DEFAULT_FORBIDDEN_PATTERNS,
     protectedFiles:
-      Array.isArray(diffConfig?.protectedFiles) &&
-      diffConfig.protectedFiles.length > 0
+      Array.isArray(diffConfig?.protectedFiles) && diffConfig.protectedFiles.length > 0
         ? diffConfig.protectedFiles
         : DEFAULT_PROTECTED_FILES,
   };
@@ -148,24 +138,24 @@ function resolveValidationConfig(
 
 function isOacConfig(value: DiffValidationConfig | OacConfig | undefined): value is OacConfig {
   return (
-    typeof value === 'object' &&
+    typeof value === "object" &&
     value !== null &&
-    'execution' in value &&
-    typeof (value as { execution?: unknown }).execution === 'object'
+    "execution" in value &&
+    typeof (value as { execution?: unknown }).execution === "object"
   );
 }
 
 function findForbiddenPatternHits(diffPatch: string, patterns: RegExp[]): string[] {
   const hits = new Set<string>();
-  let currentFile = '(unknown)';
+  let currentFile = "(unknown)";
 
-  for (const line of diffPatch.split('\n')) {
-    if (line.startsWith('+++ b/')) {
-      currentFile = line.slice('+++ b/'.length).trim();
+  for (const line of diffPatch.split("\n")) {
+    if (line.startsWith("+++ b/")) {
+      currentFile = line.slice("+++ b/".length).trim();
       continue;
     }
 
-    if (!line.startsWith('+') || line.startsWith('+++')) {
+    if (!line.startsWith("+") || line.startsWith("+++")) {
       continue;
     }
 
@@ -173,9 +163,7 @@ function findForbiddenPatternHits(diffPatch: string, patterns: RegExp[]): string
     for (const pattern of patterns) {
       if (patternMatches(pattern, addedLine)) {
         const preview = truncate(addedLine.trim(), 120);
-        hits.add(
-          `Forbidden pattern "${pattern}" found in ${currentFile}: "${preview}".`,
-        );
+        hits.add(`Forbidden pattern "${pattern}" found in ${currentFile}: "${preview}".`);
       }
     }
   }
@@ -184,7 +172,7 @@ function findForbiddenPatternHits(diffPatch: string, patterns: RegExp[]): string
 }
 
 function patternMatches(pattern: RegExp, input: string): boolean {
-  const normalizedFlags = pattern.flags.replaceAll('g', '');
+  const normalizedFlags = pattern.flags.replaceAll("g", "");
   const matcher = new RegExp(pattern.source, normalizedFlags);
   return matcher.test(input);
 }
@@ -196,9 +184,7 @@ function matchesGlob(path: string, pattern: string): boolean {
 }
 
 function globToRegex(glob: string): RegExp {
-  const escaped = glob
-    .replaceAll(/[-/\\^$+?.()|[\]{}]/g, '\\$&')
-    .replaceAll('*', '.*');
+  const escaped = glob.replaceAll(/[-/\\^$+?.()|[\]{}]/g, "\\$&").replaceAll("*", ".*");
   return new RegExp(`^${escaped}$`);
 }
 

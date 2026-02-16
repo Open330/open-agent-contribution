@@ -1,24 +1,24 @@
-import { constants as fsConstants } from 'node:fs';
-import { access } from 'node:fs/promises';
-import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { constants as fsConstants } from "node:fs";
+import { access } from "node:fs/promises";
+import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
-import { loadConfig, type OacConfig, type Task } from '@oac/core';
+import { buildExecutionPlan, estimateTokens } from "@oac/budget";
+import { type OacConfig, type Task, loadConfig } from "@oac/core";
 import {
   CompositeScanner,
   LintScanner,
+  type Scanner,
   TodoScanner,
   rankTasks,
-  type Scanner,
-} from '@oac/discovery';
-import { cloneRepo, resolveRepo } from '@oac/repo';
-import { buildExecutionPlan, estimateTokens } from '@oac/budget';
-import chalk, { Chalk, type ChalkInstance } from 'chalk';
-import Table from 'cli-table3';
-import { Command } from 'commander';
-import ora, { type Ora } from 'ora';
+} from "@oac/discovery";
+import { cloneRepo, resolveRepo } from "@oac/repo";
+import chalk, { Chalk, type ChalkInstance } from "chalk";
+import Table from "cli-table3";
+import { Command } from "commander";
+import ora, { type Ora } from "ora";
 
-import type { GlobalCliOptions } from '../cli.js';
+import type { GlobalCliOptions } from "../cli.js";
 
 interface PlanCommandOptions {
   repo?: string;
@@ -26,16 +26,16 @@ interface PlanCommandOptions {
   provider?: string;
 }
 
-type SupportedScanner = 'lint' | 'todo';
+type SupportedScanner = "lint" | "todo";
 
 export function createPlanCommand(): Command {
-  const command = new Command('plan');
+  const command = new Command("plan");
 
   command
-    .description('Build an execution plan from discovered tasks')
-    .option('--repo <owner/repo>', 'Target repository (owner/repo or GitHub URL)')
-    .option('--tokens <number>', 'Token budget for planning', parseInteger)
-    .option('--provider <id>', 'Agent provider id')
+    .description("Build an execution plan from discovered tasks")
+    .option("--repo <owner/repo>", "Target repository (owner/repo or GitHub URL)")
+    .option("--tokens <number>", "Token budget for planning", parseInteger)
+    .option("--provider <id>", "Agent provider id")
     .action(async (options: PlanCommandOptions, cmd) => {
       const globalOptions = getGlobalOptions(cmd);
       const ui = createUi(globalOptions);
@@ -49,17 +49,17 @@ export function createPlanCommand(): Command {
 
       const scannerSelection = selectScannersFromConfig(config);
 
-      const resolveSpinner = createSpinner(outputJson, 'Resolving repository...');
+      const resolveSpinner = createSpinner(outputJson, "Resolving repository...");
       const resolvedRepo = await resolveRepo(repoInput);
       resolveSpinner?.succeed(`Resolved ${resolvedRepo.fullName}`);
 
-      const cloneSpinner = createSpinner(outputJson, 'Preparing local clone...');
+      const cloneSpinner = createSpinner(outputJson, "Preparing local clone...");
       await cloneRepo(resolvedRepo);
       cloneSpinner?.succeed(`Repository ready at ${resolvedRepo.localPath}`);
 
       const scanSpinner = createSpinner(
         outputJson,
-        `Running scanners: ${scannerSelection.enabled.join(', ')}`,
+        `Running scanners: ${scannerSelection.enabled.join(", ")}`,
       );
       const scannedTasks = await scannerSelection.scanner.scan(resolvedRepo.localPath, {
         exclude: config?.discovery.exclude,
@@ -75,7 +75,7 @@ export function createPlanCommand(): Command {
         `Estimating tokens for ${rankedTasks.length} task(s)...`,
       );
       const estimates = await estimateTaskMap(rankedTasks, providerId);
-      estimateSpinner?.succeed('Token estimation completed');
+      estimateSpinner?.succeed("Token estimation completed");
 
       const plan = buildExecutionPlan(rankedTasks, estimates, totalBudget);
 
@@ -111,7 +111,7 @@ function getGlobalOptions(command: Command): Required<GlobalCliOptions> {
   const options = command.optsWithGlobals<GlobalCliOptions>();
 
   return {
-    config: options.config ?? 'oac.config.ts',
+    config: options.config ?? "oac.config.ts",
     verbose: options.verbose === true,
     json: options.json === true,
     color: options.color !== false,
@@ -119,7 +119,7 @@ function getGlobalOptions(command: Command): Required<GlobalCliOptions> {
 }
 
 function createUi(options: Required<GlobalCliOptions>): ChalkInstance {
-  const noColorEnv = Object.prototype.hasOwnProperty.call(process.env, 'NO_COLOR');
+  const noColorEnv = Object.prototype.hasOwnProperty.call(process.env, "NO_COLOR");
   const colorEnabled = options.color && !noColorEnv;
 
   return new Chalk({ level: colorEnabled ? chalk.level : 0 });
@@ -130,7 +130,7 @@ function createSpinner(enabled: boolean, text: string): Ora | null {
     return null;
   }
 
-  return ora({ text, color: 'blue' }).start();
+  return ora({ text, color: "blue" }).start();
 }
 
 function parseInteger(value: string): number {
@@ -173,20 +173,20 @@ function resolveRepoInput(repoOption: string | undefined, config: OacConfig | nu
   }
 
   const firstConfiguredRepo = config?.repos[0];
-  if (typeof firstConfiguredRepo === 'string') {
+  if (typeof firstConfiguredRepo === "string") {
     return firstConfiguredRepo;
   }
 
   if (
     firstConfiguredRepo &&
-    typeof firstConfiguredRepo === 'object' &&
-    'name' in firstConfiguredRepo &&
-    typeof firstConfiguredRepo.name === 'string'
+    typeof firstConfiguredRepo === "object" &&
+    "name" in firstConfiguredRepo &&
+    typeof firstConfiguredRepo.name === "string"
   ) {
     return firstConfiguredRepo.name;
   }
 
-  throw new Error('No repository specified. Use --repo or configure repos in oac.config.ts.');
+  throw new Error("No repository specified. Use --repo or configure repos in oac.config.ts.");
 }
 
 function resolveProviderId(providerOption: string | undefined, config: OacConfig | null): string {
@@ -195,13 +195,13 @@ function resolveProviderId(providerOption: string | undefined, config: OacConfig
     return fromFlag;
   }
 
-  return config?.provider.id ?? 'claude-code';
+  return config?.provider.id ?? "claude-code";
 }
 
 function resolveBudget(tokensOption: number | undefined, config: OacConfig | null): number {
   const budget = tokensOption ?? config?.budget.totalTokens ?? 100_000;
   if (!Number.isFinite(budget) || budget <= 0) {
-    throw new Error('Token budget must be a positive number.');
+    throw new Error("Token budget must be a positive number.");
   }
 
   return Math.floor(budget);
@@ -214,20 +214,20 @@ function selectScannersFromConfig(config: OacConfig | null): {
   const enabled: SupportedScanner[] = [];
 
   if (config?.discovery.scanners.lint !== false) {
-    enabled.push('lint');
+    enabled.push("lint");
   }
 
   if (config?.discovery.scanners.todo !== false) {
-    enabled.push('todo');
+    enabled.push("todo");
   }
 
   if (enabled.length === 0) {
-    enabled.push('lint', 'todo');
+    enabled.push("lint", "todo");
   }
 
   const uniqueEnabled = [...new Set(enabled)];
   const scannerInstances: Scanner[] = uniqueEnabled.map((scannerName) =>
-    scannerName === 'lint' ? new LintScanner() : new TodoScanner(),
+    scannerName === "lint" ? new LintScanner() : new TodoScanner(),
   );
 
   return {
@@ -260,7 +260,7 @@ function renderPlan(
   },
 ): void {
   const table = new Table({
-    head: ['#', 'Task', 'Est. Tokens', 'Cumulative', 'Confidence'],
+    head: ["#", "Task", "Est. Tokens", "Cumulative", "Confidence"],
   });
 
   for (let index = 0; index < data.plan.selectedTasks.length; index += 1) {
@@ -276,29 +276,31 @@ function renderPlan(
 
   console.log(ui.bold(`Execution Plan for ${data.repo}`));
   console.log(`Provider: ${data.provider}`);
-  console.log('');
+  console.log("");
 
   if (data.plan.selectedTasks.length > 0) {
     console.log(table.toString());
-    console.log('');
+    console.log("");
   } else {
-    console.log(ui.yellow('No tasks selected for execution.'));
-    console.log('');
+    console.log(ui.yellow("No tasks selected for execution."));
+    console.log("");
   }
 
   const effectiveBudget = data.plan.totalBudget - data.plan.reserveTokens;
   const budgetUsed =
     data.plan.selectedTasks[data.plan.selectedTasks.length - 1]?.cumulativeBudgetUsed ?? 0;
 
-  console.log(`Budget used: ${formatInteger(budgetUsed)} / ${formatInteger(effectiveBudget)} (effective)`);
+  console.log(
+    `Budget used: ${formatInteger(budgetUsed)} / ${formatInteger(effectiveBudget)} (effective)`,
+  );
   console.log(`Reserve:     ${formatInteger(data.plan.reserveTokens)} (10%)`);
   console.log(`Remaining:   ${formatInteger(data.plan.remainingTokens)}`);
 
   if (data.plan.deferredTasks.length > 0) {
-    console.log('');
+    console.log("");
     console.log(ui.yellow(`Deferred (${data.plan.deferredTasks.length}):`));
     for (const deferred of data.plan.deferredTasks) {
-      const reason = deferred.reason.replaceAll('_', ' ');
+      const reason = deferred.reason.replaceAll("_", " ");
       console.log(
         `  - ${truncate(deferred.task.title, 72)} (${formatInteger(
           deferred.estimate.totalEstimatedTokens,
@@ -309,7 +311,7 @@ function renderPlan(
 }
 
 function formatInteger(value: number): string {
-  return new Intl.NumberFormat('en-US').format(value);
+  return new Intl.NumberFormat("en-US").format(value);
 }
 
 function truncate(value: string, maxLength: number): string {

@@ -1,9 +1,9 @@
-import { get_encoding, type Tiktoken } from 'tiktoken';
+import { type Tiktoken, get_encoding } from "tiktoken";
 
 const CODEX_INVOCATION_OVERHEAD = 1_000;
 const CODEX_MAX_CONTEXT_TOKENS = 200_000;
-const PRIMARY_ENCODING = 'o200k_base';
-const FALLBACK_ENCODING = 'cl100k_base';
+const PRIMARY_ENCODING = "o200k_base";
+const FALLBACK_ENCODING = "cl100k_base";
 
 type SupportedCodexEncoding = typeof PRIMARY_ENCODING | typeof FALLBACK_ENCODING;
 

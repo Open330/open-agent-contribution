@@ -1,15 +1,15 @@
-import { randomUUID } from 'node:crypto';
+import { randomUUID } from "node:crypto";
 
 import {
-  OacError,
-  executionError,
   type ExecutionResult,
+  OacError,
   type OacEventBus,
   type Task,
-} from '@oac/core';
+  executionError,
+} from "@oac/core";
 
-import type { AgentEvent, AgentProvider, AgentResult } from './agents/agent.interface.js';
-import type { SandboxContext } from './sandbox.js';
+import type { AgentEvent, AgentProvider, AgentResult } from "./agents/agent.interface.js";
+import type { SandboxContext } from "./sandbox.js";
 
 const DEFAULT_TOKEN_BUDGET = 50_000;
 const DEFAULT_TIMEOUT_MS = 300_000;
@@ -22,7 +22,7 @@ export interface ExecuteTaskOptions {
 }
 
 function readPositiveNumber(value: unknown): number | undefined {
-  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
     return undefined;
   }
 
@@ -34,39 +34,38 @@ function readMetadataNumber(task: Task, key: string): number | undefined {
 }
 
 function buildTaskPrompt(task: Task): string {
-  const fileList =
-    task.targetFiles.length > 0 ? task.targetFiles.join('\n') : '(none provided)';
+  const fileList = task.targetFiles.length > 0 ? task.targetFiles.join("\n") : "(none provided)";
 
   return [
-    'You are implementing a scoped repository contribution task.',
+    "You are implementing a scoped repository contribution task.",
     `Task ID: ${task.id}`,
     `Title: ${task.title}`,
     `Source: ${task.source}`,
     `Priority: ${task.priority}`,
     `Complexity: ${task.complexity}`,
     `Execution mode: ${task.executionMode}`,
-    'Description:',
+    "Description:",
     task.description,
-    'Target files:',
+    "Target files:",
     fileList,
-    'Apply minimal, safe changes and ensure the repository remains buildable.',
-  ].join('\n');
+    "Apply minimal, safe changes and ensure the repository remains buildable.",
+  ].join("\n");
 }
 
 function stageFromEvent(event: AgentEvent): string {
   switch (event.type) {
-    case 'output':
+    case "output":
       return event.stream;
-    case 'tokens':
-      return 'tokens';
-    case 'file_edit':
+    case "tokens":
+      return "tokens";
+    case "file_edit":
       return `file:${event.action}`;
-    case 'tool_use':
+    case "tool_use":
       return `tool:${event.tool}`;
-    case 'error':
-      return event.recoverable ? 'agent-warning' : 'agent-error';
+    case "error":
+      return event.recoverable ? "agent-warning" : "agent-error";
     default:
-      return 'running';
+      return "running";
   }
 }
 
@@ -85,49 +84,36 @@ function mergeExecutionResult(
     exitCode: result.exitCode,
     totalTokensUsed: Math.max(result.totalTokensUsed, observedTokens),
     filesChanged: [...observedFiles],
-    duration:
-      result.duration > 0 ? result.duration : Date.now() - startedAt,
+    duration: result.duration > 0 ? result.duration : Date.now() - startedAt,
     error: result.error,
   };
 }
 
-function normalizeExecutionError(
-  error: unknown,
-  task: Task,
-  executionId: string,
-): OacError {
+function normalizeExecutionError(error: unknown, task: Task, executionId: string): OacError {
   if (error instanceof OacError) {
     return error;
   }
 
   const message = error instanceof Error ? error.message : String(error);
   if (/timed out|timeout/i.test(message)) {
-    return executionError(
-      'AGENT_TIMEOUT',
-      `Task ${task.id} timed out during execution.`,
-      {
-        context: {
-          taskId: task.id,
-          executionId,
-          message,
-        },
-        cause: error,
-      },
-    );
-  }
-
-  return executionError(
-    'AGENT_EXECUTION_FAILED',
-    `Task ${task.id} failed during execution.`,
-    {
+    return executionError("AGENT_TIMEOUT", `Task ${task.id} timed out during execution.`, {
       context: {
         taskId: task.id,
         executionId,
         message,
       },
       cause: error,
+    });
+  }
+
+  return executionError("AGENT_EXECUTION_FAILED", `Task ${task.id} failed during execution.`, {
+    context: {
+      taskId: task.id,
+      executionId,
+      message,
     },
-  );
+    cause: error,
+  });
 }
 
 export async function executeTask(
@@ -139,13 +125,9 @@ export async function executeTask(
 ): Promise<ExecutionResult> {
   const executionId = options.executionId ?? randomUUID();
   const tokenBudget =
-    options.tokenBudget ??
-    readMetadataNumber(task, 'tokenBudget') ??
-    DEFAULT_TOKEN_BUDGET;
+    options.tokenBudget ?? readMetadataNumber(task, "tokenBudget") ?? DEFAULT_TOKEN_BUDGET;
   const timeoutMs =
-    options.timeoutMs ??
-    readMetadataNumber(task, 'timeoutMs') ??
-    DEFAULT_TIMEOUT_MS;
+    options.timeoutMs ?? readMetadataNumber(task, "timeoutMs") ?? DEFAULT_TIMEOUT_MS;
   const allowCommits = options.allowCommits ?? true;
 
   const startedAt = Date.now();
@@ -164,15 +146,15 @@ export async function executeTask(
 
   const streamPromise = (async (): Promise<void> => {
     for await (const event of execution.events) {
-      if (event.type === 'tokens') {
+      if (event.type === "tokens") {
         observedTokens = Math.max(observedTokens, event.cumulativeTokens);
       }
 
-      if (event.type === 'file_edit') {
+      if (event.type === "file_edit") {
         observedFiles.add(event.path);
       }
 
-      eventBus.emit('execution:progress', {
+      eventBus.emit("execution:progress", {
         jobId: executionId,
         tokensUsed: observedTokens,
         stage: stageFromEvent(event),

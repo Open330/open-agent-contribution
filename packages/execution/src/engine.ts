@@ -1,33 +1,27 @@
-import { randomUUID } from 'node:crypto';
-import { setTimeout as delay } from 'node:timers/promises';
+import { randomUUID } from "node:crypto";
+import { setTimeout as delay } from "node:timers/promises";
 
 import {
-  OacError,
-  executionError,
   type ExecutionPlan,
   type ExecutionResult,
+  OacError,
   type OacEventBus,
   type Task,
   type TokenEstimate,
-} from '@oac/core';
-import PQueue from 'p-queue';
+  executionError,
+} from "@oac/core";
+import PQueue from "p-queue";
 
-import type { AgentProvider } from './agents/agent.interface.js';
-import { createSandbox } from './sandbox.js';
-import { executeTask } from './worker.js';
+import type { AgentProvider } from "./agents/agent.interface.js";
+import { createSandbox } from "./sandbox.js";
+import { executeTask } from "./worker.js";
 
 const DEFAULT_CONCURRENCY = 2;
 const DEFAULT_MAX_ATTEMPTS = 2;
 const DEFAULT_TIMEOUT_MS = 300_000;
 const DEFAULT_TOKEN_BUDGET = 50_000;
 
-export type JobStatus =
-  | 'queued'
-  | 'running'
-  | 'completed'
-  | 'failed'
-  | 'retrying'
-  | 'aborted';
+export type JobStatus = "queued" | "running" | "completed" | "failed" | "retrying" | "aborted";
 
 export interface Job {
   id: string;
@@ -67,7 +61,7 @@ interface ActiveJobState {
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
+  return typeof value === "object" && value !== null;
 }
 
 function toErrorMessage(error: unknown): string {
@@ -80,18 +74,18 @@ function toErrorMessage(error: unknown): string {
 function sanitizeBranchSegment(value: string): string {
   const sanitized = value
     .toLowerCase()
-    .replace(/[^a-z0-9/_-]+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^[-/]+|[-/]+$/g, '');
-  return sanitized || 'task';
+    .replace(/[^a-z0-9/_-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^[-/]+|[-/]+$/g, "");
+  return sanitized || "task";
 }
 
 export function isTransientError(error: OacError): boolean {
   return (
-    error.code === 'AGENT_TIMEOUT' ||
-    error.code === 'AGENT_OOM' ||
-    error.code === 'NETWORK_ERROR' ||
-    error.code === 'GIT_LOCK_FAILED'
+    error.code === "AGENT_TIMEOUT" ||
+    error.code === "AGENT_OOM" ||
+    error.code === "NETWORK_ERROR" ||
+    error.code === "GIT_LOCK_FAILED"
   );
 }
 
@@ -117,21 +111,18 @@ export class ExecutionEngine {
   ) {
     if (agents.length === 0) {
       throw executionError(
-        'AGENT_NOT_AVAILABLE',
-        'ExecutionEngine requires at least one agent provider',
+        "AGENT_NOT_AVAILABLE",
+        "ExecutionEngine requires at least one agent provider",
       );
     }
 
     this.concurrency = Math.max(1, config.concurrency ?? DEFAULT_CONCURRENCY);
     this.maxAttempts = Math.max(1, config.maxAttempts ?? DEFAULT_MAX_ATTEMPTS);
     this.repoPath = config.repoPath ?? process.cwd();
-    this.baseBranch = config.baseBranch ?? 'main';
-    this.branchPrefix = config.branchPrefix ?? 'oac';
+    this.baseBranch = config.baseBranch ?? "main";
+    this.branchPrefix = config.branchPrefix ?? "oac";
     this.taskTimeoutMs = Math.max(1, config.taskTimeoutMs ?? DEFAULT_TIMEOUT_MS);
-    this.defaultTokenBudget = Math.max(
-      1,
-      config.defaultTokenBudget ?? DEFAULT_TOKEN_BUDGET,
-    );
+    this.defaultTokenBudget = Math.max(1, config.defaultTokenBudget ?? DEFAULT_TOKEN_BUDGET);
 
     this.queue = new PQueue({
       concurrency: this.concurrency,
@@ -147,7 +138,7 @@ export class ExecutionEngine {
         id: randomUUID(),
         task,
         estimate,
-        status: 'queued',
+        status: "queued",
         attempts: 0,
         maxAttempts: this.maxAttempts,
         createdAt: Date.now(),
@@ -173,14 +164,11 @@ export class ExecutionEngine {
     this.queue.pause();
     this.queue.clear();
 
-    const abortError = executionError(
-      'AGENT_EXECUTION_FAILED',
-      'Execution aborted by user.',
-    );
+    const abortError = executionError("AGENT_EXECUTION_FAILED", "Execution aborted by user.");
 
     for (const job of this.jobs.values()) {
-      if (job.status === 'queued' || job.status === 'retrying') {
-        job.status = 'aborted';
+      if (job.status === "queued" || job.status === "retrying") {
+        job.status = "aborted";
         job.completedAt = Date.now();
         job.error = abortError;
       }
@@ -188,10 +176,10 @@ export class ExecutionEngine {
 
     await Promise.all(
       [...this.activeJobs.values()].map(async ({ job, agent }) => {
-        job.status = 'aborted';
+        job.status = "aborted";
         job.completedAt = Date.now();
         job.error = abortError;
-        this.eventBus.emit('execution:failed', {
+        this.eventBus.emit("execution:failed", {
           jobId: job.id,
           error: abortError,
         });
@@ -218,10 +206,10 @@ export class ExecutionEngine {
       )
       .catch((error: unknown) => {
         const normalized = this.normalizeError(error, job);
-        job.status = 'failed';
+        job.status = "failed";
         job.completedAt = Date.now();
         job.error = normalized;
-        this.eventBus.emit('execution:failed', {
+        this.eventBus.emit("execution:failed", {
           jobId: job.id,
           error: normalized,
         });
@@ -229,19 +217,19 @@ export class ExecutionEngine {
   }
 
   private async runJob(job: Job): Promise<void> {
-    if (this.aborted || job.status === 'aborted') {
+    if (this.aborted || job.status === "aborted") {
       return;
     }
 
     job.attempts += 1;
-    job.status = 'running';
+    job.status = "running";
     job.startedAt ??= Date.now();
 
     const agent = this.selectAgent();
     job.workerId = agent.id;
     this.activeJobs.set(job.id, { job, agent });
 
-    this.eventBus.emit('execution:started', {
+    this.eventBus.emit("execution:started", {
       jobId: job.id,
       task: job.task,
       agent: agent.id,
@@ -251,11 +239,7 @@ export class ExecutionEngine {
 
     try {
       const branchName = this.createBranchName(job);
-      const sandbox = await createSandbox(
-        this.repoPath,
-        branchName,
-        this.baseBranch,
-      );
+      const sandbox = await createSandbox(this.repoPath, branchName, this.baseBranch);
       sandboxCleanup = sandbox.cleanup;
 
       const result = await executeTask(agent, job.task, sandbox, this.eventBus, {
@@ -272,8 +256,8 @@ export class ExecutionEngine {
       job.completedAt = Date.now();
 
       if (result.success) {
-        job.status = 'completed';
-        this.eventBus.emit('execution:completed', {
+        job.status = "completed";
+        this.eventBus.emit("execution:completed", {
           jobId: job.id,
           result,
         });
@@ -281,9 +265,8 @@ export class ExecutionEngine {
       }
 
       const failure = executionError(
-        'AGENT_EXECUTION_FAILED',
-        result.error ??
-          `Task ${job.task.id} exited with code ${result.exitCode}.`,
+        "AGENT_EXECUTION_FAILED",
+        result.error ?? `Task ${job.task.id} exited with code ${result.exitCode}.`,
         {
           context: {
             taskId: job.task.id,
@@ -306,7 +289,7 @@ export class ExecutionEngine {
         } catch (cleanupError) {
           const cleanupMessage = toErrorMessage(cleanupError);
           job.error ??= executionError(
-            'AGENT_EXECUTION_FAILED',
+            "AGENT_EXECUTION_FAILED",
             `Sandbox cleanup failed for job ${job.id}`,
             {
               context: {
@@ -324,22 +307,22 @@ export class ExecutionEngine {
   private async handleFailure(job: Job, error: OacError): Promise<void> {
     job.error = error;
 
-    if (this.aborted || job.status === 'aborted') {
-      job.status = 'aborted';
+    if (this.aborted || job.status === "aborted") {
+      job.status = "aborted";
       job.completedAt = Date.now();
       return;
     }
 
     if (job.attempts < job.maxAttempts && isTransientError(error)) {
-      job.status = 'retrying';
+      job.status = "retrying";
       const retryDelay = Math.min(5_000, job.attempts * 1_000);
       this.schedule(job, retryDelay);
       return;
     }
 
-    job.status = 'failed';
+    job.status = "failed";
     job.completedAt = Date.now();
-    this.eventBus.emit('execution:failed', {
+    this.eventBus.emit("execution:failed", {
       jobId: job.id,
       error,
     });
@@ -347,13 +330,12 @@ export class ExecutionEngine {
 
   private selectAgent(): AgentProvider {
     const agent = this.agents[this.nextAgentIndex % this.agents.length];
-    this.nextAgentIndex =
-      (this.nextAgentIndex + 1) % this.agents.length;
+    this.nextAgentIndex = (this.nextAgentIndex + 1) % this.agents.length;
     return agent;
   }
 
   private createBranchName(job: Job): string {
-    const dateSegment = new Date().toISOString().slice(0, 10).replaceAll('-', '');
+    const dateSegment = new Date().toISOString().slice(0, 10).replaceAll("-", "");
     const taskSegment = sanitizeBranchSegment(job.task.id);
     return `${this.branchPrefix}/${dateSegment}/${taskSegment}-${job.id.slice(0, 8)}-a${job.attempts}`;
   }
@@ -365,7 +347,7 @@ export class ExecutionEngine {
 
     const message = toErrorMessage(error);
     if (/timed out|timeout/i.test(message)) {
-      return executionError('AGENT_TIMEOUT', `Job ${job.id} timed out.`, {
+      return executionError("AGENT_TIMEOUT", `Job ${job.id} timed out.`, {
         context: {
           jobId: job.id,
           taskId: job.task.id,
@@ -377,7 +359,7 @@ export class ExecutionEngine {
     }
 
     if (/out of memory|ENOMEM|heap/i.test(message)) {
-      return executionError('AGENT_OOM', `Job ${job.id} ran out of memory.`, {
+      return executionError("AGENT_OOM", `Job ${job.id} ran out of memory.`, {
         context: {
           jobId: job.id,
           taskId: job.task.id,
@@ -391,8 +373,8 @@ export class ExecutionEngine {
     if (/network|ECONN|ENOTFOUND|EAI_AGAIN/i.test(message)) {
       return new OacError(
         `Job ${job.id} failed due to a network error.`,
-        'NETWORK_ERROR',
-        'recoverable',
+        "NETWORK_ERROR",
+        "recoverable",
         {
           jobId: job.id,
           taskId: job.task.id,
@@ -403,15 +385,11 @@ export class ExecutionEngine {
       );
     }
 
-    if (
-      /index\.lock|cannot lock ref|Unable to create '.+?\.git\/index\.lock'/i.test(
-        message,
-      )
-    ) {
+    if (/index\.lock|cannot lock ref|Unable to create '.+?\.git\/index\.lock'/i.test(message)) {
       return new OacError(
         `Job ${job.id} failed due to a git lock conflict.`,
-        'GIT_LOCK_FAILED',
-        'recoverable',
+        "GIT_LOCK_FAILED",
+        "recoverable",
         {
           jobId: job.id,
           taskId: job.task.id,
@@ -422,8 +400,8 @@ export class ExecutionEngine {
       );
     }
 
-    if (isRecord(error) && error.name === 'AbortError') {
-      return executionError('AGENT_EXECUTION_FAILED', `Job ${job.id} was aborted.`, {
+    if (isRecord(error) && error.name === "AbortError") {
+      return executionError("AGENT_EXECUTION_FAILED", `Job ${job.id} was aborted.`, {
         context: {
           jobId: job.id,
           taskId: job.task.id,
@@ -433,19 +411,15 @@ export class ExecutionEngine {
       });
     }
 
-    return executionError(
-      'AGENT_EXECUTION_FAILED',
-      `Job ${job.id} failed unexpectedly.`,
-      {
-        context: {
-          jobId: job.id,
-          taskId: job.task.id,
-          message,
-          attempt: job.attempts,
-        },
-        cause: error,
+    return executionError("AGENT_EXECUTION_FAILED", `Job ${job.id} failed unexpectedly.`, {
+      context: {
+        jobId: job.id,
+        taskId: job.task.id,
+        message,
+        attempt: job.attempts,
       },
-    );
+      cause: error,
+    });
   }
 
   private buildRunResult(): RunResult {
@@ -453,9 +427,9 @@ export class ExecutionEngine {
 
     return {
       jobs,
-      completed: jobs.filter((job) => job.status === 'completed'),
-      failed: jobs.filter((job) => job.status === 'failed'),
-      aborted: jobs.filter((job) => job.status === 'aborted'),
+      completed: jobs.filter((job) => job.status === "completed"),
+      failed: jobs.filter((job) => job.status === "failed"),
+      aborted: jobs.filter((job) => job.status === "aborted"),
     };
   }
 }

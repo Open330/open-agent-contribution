@@ -1,6 +1,6 @@
 import type { OacConfig } from "@oac/core";
 import { simpleGit } from "simple-git";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { validateDiff } from "../src/diff-validator.js";
 
@@ -84,9 +84,7 @@ describe("validateDiff", () => {
     const result = await validateDiff("/tmp/repo");
 
     expect(result.valid).toBe(true);
-    expect(result.warnings).toContain(
-      "Diff is near the maximum size (401/500 changed lines).",
-    );
+    expect(result.warnings).toContain("Diff is near the maximum size (401/500 changed lines).");
   });
 
   it("returns a warning when no lines were changed", async () => {
@@ -98,9 +96,7 @@ describe("validateDiff", () => {
     const result = await validateDiff("/tmp/repo");
 
     expect(result.valid).toBe(true);
-    expect(result.warnings).toContain(
-      "No changed lines detected in the current diff.",
-    );
+    expect(result.warnings).toContain("No changed lines detected in the current diff.");
   });
 
   it("returns an error when a protected .env file is modified", async () => {
@@ -113,9 +109,7 @@ describe("validateDiff", () => {
     const result = await validateDiff("/tmp/repo");
 
     expect(result.valid).toBe(false);
-    expect(result.errors).toContain(
-      "Protected files were modified: .env.",
-    );
+    expect(result.errors).toContain("Protected files were modified: .env.");
   });
 
   it("returns an error when a protected *.pem file is modified", async () => {
@@ -128,9 +122,7 @@ describe("validateDiff", () => {
     const result = await validateDiff("/tmp/repo");
 
     expect(result.valid).toBe(false);
-    expect(result.errors).toContain(
-      "Protected files were modified: certs/production.pem.",
-    );
+    expect(result.errors).toContain("Protected files were modified: certs/production.pem.");
   });
 
   it("returns an error when added lines contain eval(", async () => {
@@ -151,8 +143,7 @@ describe("validateDiff", () => {
     expect(result.valid).toBe(false);
     expect(
       result.errors.some(
-        (message) =>
-          message.includes("Forbidden pattern") && message.includes("eval"),
+        (message) => message.includes("Forbidden pattern") && message.includes("eval"),
       ),
     ).toBe(true);
   });
@@ -175,9 +166,7 @@ describe("validateDiff", () => {
     expect(result.valid).toBe(false);
     expect(
       result.errors.some(
-        (message) =>
-          message.includes("Forbidden pattern") &&
-          message.includes("child_process"),
+        (message) => message.includes("Forbidden pattern") && message.includes("child_process"),
       ),
     ).toBe(true);
   });
@@ -287,17 +276,12 @@ describe("validateDiff", () => {
     const result = await validateDiff("/tmp/repo");
 
     expect(result.valid).toBe(false);
+    expect(result.errors.some((message) => message.includes("Diff too large"))).toBe(true);
+    expect(result.errors.some((message) => message.includes("Protected files were modified"))).toBe(
+      true,
+    );
     expect(
-      result.errors.some((message) => message.includes("Diff too large")),
-    ).toBe(true);
-    expect(
-      result.errors.some((message) =>
-        message.includes("Protected files were modified"),
-      ),
-    ).toBe(true);
-    expect(
-      result.errors.filter((message) => message.includes("Forbidden pattern"))
-        .length,
+      result.errors.filter((message) => message.includes("Forbidden pattern")).length,
     ).toBeGreaterThanOrEqual(2);
   });
 });

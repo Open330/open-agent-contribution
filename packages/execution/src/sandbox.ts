@@ -1,7 +1,7 @@
-import { mkdir } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { mkdir } from "node:fs/promises";
+import { join, resolve } from "node:path";
 
-import { simpleGit } from 'simple-git';
+import { simpleGit } from "simple-git";
 
 export interface SandboxContext {
   path: string;
@@ -10,7 +10,7 @@ export interface SandboxContext {
 }
 
 function getWorktreePath(repoPath: string, branchName: string): string {
-  return resolve(join(repoPath, '..', '.oac-worktrees', branchName));
+  return resolve(join(repoPath, "..", ".oac-worktrees", branchName));
 }
 
 export async function createSandbox(
@@ -19,18 +19,11 @@ export async function createSandbox(
   baseBranch: string,
 ): Promise<SandboxContext> {
   const worktreePath = getWorktreePath(repoPath, branchName);
-  const worktreeRoot = resolve(join(repoPath, '..', '.oac-worktrees'));
+  const worktreeRoot = resolve(join(repoPath, "..", ".oac-worktrees"));
   const git = simpleGit(repoPath);
 
   await mkdir(worktreeRoot, { recursive: true });
-  await git.raw([
-    'worktree',
-    'add',
-    worktreePath,
-    '-b',
-    branchName,
-    `origin/${baseBranch}`,
-  ]);
+  await git.raw(["worktree", "add", worktreePath, "-b", branchName, `origin/${baseBranch}`]);
 
   let cleanedUp = false;
 
@@ -45,10 +38,10 @@ export async function createSandbox(
       cleanedUp = true;
 
       try {
-        await git.raw(['worktree', 'remove', worktreePath, '--force']);
+        await git.raw(["worktree", "remove", worktreePath, "--force"]);
       } finally {
         try {
-          await git.raw(['worktree', 'prune']);
+          await git.raw(["worktree", "prune"]);
         } catch {
           // Ignore cleanup pruning errors.
         }

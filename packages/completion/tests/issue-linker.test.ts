@@ -1,6 +1,6 @@
 import type { ResolvedRepo, Task } from "@oac/core";
 import type { Octokit } from "@octokit/rest";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { linkIssueToePR } from "../src/issue-linker.js";
 import type { CreatedPR } from "../src/types.js";
