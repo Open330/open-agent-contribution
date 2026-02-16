@@ -17,7 +17,7 @@ import {
 import * as executionPackage from '@oac/execution';
 import { cloneRepo, resolveRepo } from '@oac/repo';
 import { writeContributionLog, type ContributionLog } from '@oac/tracking';
-import chalk, { Chalk } from 'chalk';
+import chalk, { Chalk, type ChalkInstance } from 'chalk';
 import Table from 'cli-table3';
 import { Command } from 'commander';
 import ora, { type Ora } from 'ora';
@@ -402,7 +402,7 @@ function getGlobalOptions(command: Command): Required<GlobalCliOptions> {
   };
 }
 
-function createUi(options: Required<GlobalCliOptions>): Chalk {
+function createUi(options: Required<GlobalCliOptions>): ChalkInstance {
   const noColorEnv = Object.prototype.hasOwnProperty.call(process.env, 'NO_COLOR');
   const colorEnabled = options.color && !noColorEnv;
 
@@ -443,7 +443,7 @@ function validateRunOptions(options: RunCommandOptions): void {
 async function loadOptionalConfig(
   configPath: string,
   verbose: boolean,
-  ui: Chalk,
+  ui: ChalkInstance,
 ): Promise<OacConfig | null> {
   const absolutePath = resolve(process.cwd(), configPath);
   if (!(await pathExists(absolutePath))) {
@@ -910,7 +910,7 @@ function sanitizeGithubUsername(value: string): string | null {
 }
 
 function renderSelectedPlanTable(
-  ui: Chalk,
+  ui: ChalkInstance,
   plan: ReturnType<typeof buildExecutionPlan>,
   budget: number,
 ): void {
@@ -957,7 +957,7 @@ function renderSelectedPlanTable(
   }
 }
 
-function renderTaskResults(ui: Chalk, taskResults: TaskRunResult[]): void {
+function renderTaskResults(ui: ChalkInstance, taskResults: TaskRunResult[]): void {
   for (let index = 0; index < taskResults.length; index += 1) {
     const result = taskResults[index];
     const icon = result.execution.success ? ui.green('[OK]') : ui.red('[X]');

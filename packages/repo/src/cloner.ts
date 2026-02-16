@@ -2,7 +2,7 @@ import { constants as fsConstants } from "node:fs";
 import { access, mkdir } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
-import simpleGit, { type SimpleGit } from "simple-git";
+import { simpleGit, type SimpleGit } from "simple-git";
 import type { ResolvedRepo } from "./types.js";
 
 const CLONE_RETRY_BACKOFF_MS = [1000, 4000, 16000] as const;

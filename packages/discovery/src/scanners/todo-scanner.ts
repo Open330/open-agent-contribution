@@ -150,9 +150,11 @@ function parseRipgrepJson(output: string): TodoMatch[] {
     const pathRecord = toRecord(data.path);
     const linesRecord = toRecord(data.lines);
 
-    const filePath = normalizeRelativePath(asString(pathRecord.text));
+    const rawFilePath = asString(pathRecord.text);
+    const rawText = asString(linesRecord.text);
+    const filePath = rawFilePath ? normalizeRelativePath(rawFilePath) : undefined;
     const lineNumber = asNumber(data.line_number);
-    const text = sanitizeLine(asString(linesRecord.text));
+    const text = rawText ? sanitizeLine(rawText) : undefined;
     const submatches = asArray(data.submatches);
     const firstSubmatch = toRecord(submatches.at(0));
     const column = (asNumber(firstSubmatch.start) ?? 0) + 1;
@@ -427,7 +429,7 @@ async function collectFiles(rootDir: string, excludes: string[]): Promise<string
 
   async function walk(relativeDir: string): Promise<void> {
     const absoluteDir = resolve(rootDir, relativeDir);
-    let entries: Awaited<ReturnType<typeof readdir>>;
+    let entries: import('node:fs').Dirent[];
     try {
       entries = await readdir(absoluteDir, { withFileTypes: true });
     } catch {
@@ -435,8 +437,9 @@ async function collectFiles(rootDir: string, excludes: string[]): Promise<string
     }
 
     for (const entry of entries) {
+      const entryName = String(entry.name);
       const relPath = normalizeRelativePath(
-        relativeDir ? `${relativeDir}/${entry.name}` : entry.name,
+        relativeDir ? `${relativeDir}/${entryName}` : entryName,
       );
       if (compiledExcludes.some((matches) => matches(relPath))) {
         continue;

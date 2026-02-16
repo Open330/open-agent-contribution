@@ -3,7 +3,7 @@ import { access, mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 import { checkbox, confirm, input } from '@inquirer/prompts';
-import chalk, { Chalk } from 'chalk';
+import chalk, { Chalk, type ChalkInstance } from 'chalk';
 import { Command } from 'commander';
 
 import type { GlobalCliOptions } from '../cli.js';
@@ -153,7 +153,7 @@ function getGlobalOptions(command: Command): Required<GlobalCliOptions> {
   };
 }
 
-function createUi(options: Required<GlobalCliOptions>): Chalk {
+function createUi(options: Required<GlobalCliOptions>): ChalkInstance {
   const noColorEnv = Object.prototype.hasOwnProperty.call(process.env, 'NO_COLOR');
   const colorEnabled = options.color && !noColorEnv;
 

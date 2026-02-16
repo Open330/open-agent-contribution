@@ -13,7 +13,6 @@ export type TaskSource =
   | 'test-gap'
   | 'dead-code'
   | 'github-issue'
-  | 'github-pr-review'
   | 'custom';
 
 export type TaskComplexity = 'trivial' | 'simple' | 'moderate' | 'complex';

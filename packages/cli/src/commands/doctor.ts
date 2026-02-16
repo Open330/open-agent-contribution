@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
 
-import chalk, { Chalk } from 'chalk';
+import chalk, { Chalk, type ChalkInstance } from 'chalk';
 import { Command } from 'commander';
 
 import type { GlobalCliOptions } from '../cli.js';
@@ -25,7 +25,7 @@ interface CommandResult {
   errorMessage?: string;
 }
 
-const MINIMUM_NODE_VERSION = '22.0.0';
+const MINIMUM_NODE_VERSION = '24.0.0';
 
 export function createDoctorCommand(): Command {
   const command = new Command('doctor');
@@ -157,14 +157,14 @@ function getGlobalOptions(command: Command): Required<GlobalCliOptions> {
   };
 }
 
-function createUi(options: Required<GlobalCliOptions>): Chalk {
+function createUi(options: Required<GlobalCliOptions>): ChalkInstance {
   const noColorEnv = Object.prototype.hasOwnProperty.call(process.env, 'NO_COLOR');
   const colorEnabled = options.color && !noColorEnv;
 
   return new Chalk({ level: colorEnabled ? chalk.level : 0 });
 }
 
-function renderDoctorOutput(ui: Chalk, checks: DoctorCheck[], allPassed: boolean): void {
+function renderDoctorOutput(ui: ChalkInstance, checks: DoctorCheck[], allPassed: boolean): void {
   console.log('Checking environment...');
   console.log('');
 

@@ -12,7 +12,7 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "composite": true,
+
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
     "outDir": "dist",

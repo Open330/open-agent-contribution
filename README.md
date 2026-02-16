@@ -13,7 +13,7 @@
 **Put your spare AI tokens to work. Contribute to open source — automatically.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D22-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D24-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-3178C6?logo=typescript&logoColor=white)](https://typescriptlang.org/)
 [![pnpm](https://img.shields.io/badge/pnpm-9.15+-F69220?logo=pnpm&logoColor=white)](https://pnpm.io/)
 
@@ -82,7 +82,7 @@ oac run --repo facebook/react --tokens 50000
 
 ### Prerequisites
 
-- **Node.js** >= 22
+- **Node.js** >= 24
 - **pnpm** >= 9.15
 - **git** installed
 - At least one AI agent CLI: [Claude Code](https://claude.ai/code), [Codex](https://github.com/openai/codex), or [OpenCode](https://github.com/opencode-ai/opencode)
@@ -135,7 +135,7 @@ oac doctor
 ```
   Environment Check
   ─────────────────
-  [✔] Node.js     v22.11.0
+  [✔] Node.js     v24.0.0
   [✔] git         v2.43.0
   [✔] GitHub Auth  gh authenticated as @jiun
   [✔] Claude CLI   v1.0.16
@@ -284,7 +284,7 @@ packages/
 
 | Layer | Technology |
 |-------|-----------|
-| Runtime | Node.js 22+, TypeScript 5.7+, ESM |
+| Runtime | Node.js 24+, TypeScript 5.7+, ESM |
 | Build | pnpm workspaces, Turborepo, tsup |
 | CLI | Commander.js, chalk, ora, cli-table3 |
 | Git | simple-git, git worktrees for isolation |

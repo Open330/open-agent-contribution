@@ -1,7 +1,7 @@
 import { mkdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 
-import simpleGit from 'simple-git';
+import { simpleGit } from 'simple-git';
 
 export interface SandboxContext {
   path: string;

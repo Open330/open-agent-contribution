@@ -6,7 +6,6 @@ const SOURCE_LOC_BASELINE: Record<TaskSource, number> = {
   'test-gap': 48,
   'dead-code': 36,
   'github-issue': 88,
-  'github-pr-review': 56,
   custom: 40,
 };
 
@@ -16,7 +15,6 @@ const SOURCE_COMPLEXITY_SCORE: Record<TaskSource, number> = {
   'test-gap': 1,
   'dead-code': 1,
   'github-issue': 2,
-  'github-pr-review': 2,
   custom: 1,
 };
 

@@ -13,7 +13,7 @@ import {
 } from '@oac/discovery';
 import { cloneRepo, resolveRepo } from '@oac/repo';
 import { buildExecutionPlan, estimateTokens } from '@oac/budget';
-import chalk, { Chalk } from 'chalk';
+import chalk, { Chalk, type ChalkInstance } from 'chalk';
 import Table from 'cli-table3';
 import { Command } from 'commander';
 import ora, { type Ora } from 'ora';
@@ -118,7 +118,7 @@ function getGlobalOptions(command: Command): Required<GlobalCliOptions> {
   };
 }
 
-function createUi(options: Required<GlobalCliOptions>): Chalk {
+function createUi(options: Required<GlobalCliOptions>): ChalkInstance {
   const noColorEnv = Object.prototype.hasOwnProperty.call(process.env, 'NO_COLOR');
   const colorEnabled = options.color && !noColorEnv;
 
@@ -145,7 +145,7 @@ function parseInteger(value: string): number {
 async function loadOptionalConfig(
   configPath: string,
   verbose: boolean,
-  ui: Chalk,
+  ui: ChalkInstance,
 ): Promise<OacConfig | null> {
   const absolutePath = resolve(process.cwd(), configPath);
   if (!(await pathExists(absolutePath))) {
@@ -251,7 +251,7 @@ async function estimateTaskMap(
 }
 
 function renderPlan(
-  ui: Chalk,
+  ui: ChalkInstance,
   data: {
     repo: string;
     provider: string;

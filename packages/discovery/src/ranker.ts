@@ -7,7 +7,6 @@ const IMPACT_BY_SOURCE: Partial<Record<TaskSource, number>> = {
   'test-gap': 24,
   'dead-code': 14,
   'github-issue': 20,
-  'github-pr-review': 21,
   custom: 12,
 };
 

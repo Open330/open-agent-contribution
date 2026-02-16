@@ -1,7 +1,7 @@
 import { basename } from 'node:path';
 
 import type { OacConfig } from '@oac/core';
-import simpleGit, { type SimpleGit } from 'simple-git';
+import { simpleGit, type SimpleGit } from 'simple-git';
 
 const DEFAULT_MAX_DIFF_LINES = 500;
 const DEFAULT_FORBIDDEN_PATTERNS: RegExp[] = [
