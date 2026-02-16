@@ -18,7 +18,8 @@
   "dependencies": {
     "@oac/core": "workspace:*",
     "execa": "^9.5.2",
-    "p-queue": "^8.1.0"
+    "p-queue": "^8.1.0",
+    "simple-git": "^3.27.0"
   },
   "devDependencies": {
     "tsup": "^8.3.6",
