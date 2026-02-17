@@ -56,15 +56,15 @@ async function pullExistingClone(repo: ResolvedRepo, localPath: string): Promise
   await ensureOriginRemote(git, repo.git.remoteUrl);
 
   await retryGitOperation(
-    () => git.fetch("origin", repo.meta.defaultBranch, ["--depth=1"]),
+    () => git.fetch("origin", repo.meta.defaultBranch, ["--depth=1", "--prune"]),
     `fetch ${repo.fullName}`,
   );
 
   await checkoutDefaultBranch(git, repo.meta.defaultBranch);
 
   await retryGitOperation(
-    () => git.pull("origin", repo.meta.defaultBranch, ["--ff-only"]),
-    `pull ${repo.fullName}`,
+    () => hardSyncDefaultBranch(git, repo.meta.defaultBranch),
+    `sync ${repo.fullName}`,
   );
 }
 
@@ -74,6 +74,12 @@ async function checkoutDefaultBranch(git: SimpleGit, branchName: string): Promis
   } catch {
     await git.raw(["checkout", "-B", branchName, `origin/${branchName}`]);
   }
+}
+
+async function hardSyncDefaultBranch(git: SimpleGit, branchName: string): Promise<void> {
+  // The cache clone is disposable, so force-align it with origin to avoid stale divergence.
+  await git.raw(["reset", "--hard", `origin/${branchName}`]);
+  await git.raw(["clean", "-fd"]);
 }
 
 async function ensureOriginRemote(git: SimpleGit, remoteUrl: string): Promise<void> {
