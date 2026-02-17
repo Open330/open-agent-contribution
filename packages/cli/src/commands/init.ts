@@ -167,9 +167,7 @@ function buildConfigFile(input: {
 }): string {
   const enabledProviders = input.providers.map((provider) => `'${provider}'`).join(", ");
 
-  return `import { defineConfig } from '@open330/oac-core';
-
-export default defineConfig({
+  return `export default {
   repos: ['${input.repo}'],
   provider: {
     id: '${input.provider}',
@@ -180,7 +178,7 @@ export default defineConfig({
   budget: {
     totalTokens: ${input.budgetTokens},
   },
-});
+};
 `;
 }
 

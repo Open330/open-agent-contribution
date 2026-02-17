@@ -1,0 +1,104 @@
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+import { afterEach, describe, expect, it } from "vitest";
+
+import { loadOptionalConfigFile } from "../src/config-loader.js";
+
+const createdTempDirs: string[] = [];
+
+async function createTempDir(): Promise<string> {
+  const dir = await mkdtemp(join(tmpdir(), "oac-config-loader-"));
+  createdTempDirs.push(dir);
+  return dir;
+}
+
+async function writeConfig(dir: string, source: string): Promise<void> {
+  await writeFile(join(dir, "oac.config.ts"), source, "utf8");
+}
+
+afterEach(async () => {
+  const dirs = createdTempDirs.splice(0);
+  await Promise.all(dirs.map((dir) => rm(dir, { recursive: true, force: true })));
+});
+
+describe("loadOptionalConfigFile", () => {
+  it("returns null when config file does not exist", async () => {
+    const tempDir = await createTempDir();
+
+    const config = await loadOptionalConfigFile("oac.config.ts", { cwd: tempDir });
+
+    expect(config).toBeNull();
+  });
+
+  it("loads plain object config modules", async () => {
+    const tempDir = await createTempDir();
+    await writeConfig(
+      tempDir,
+      `export default {
+  repos: ["Open330/BurstPick"],
+  budget: {
+    totalTokens: 2345,
+  },
+};
+`,
+    );
+
+    const config = await loadOptionalConfigFile("oac.config.ts", { cwd: tempDir });
+
+    expect(config).not.toBeNull();
+    expect(config?.repos[0]).toBe("Open330/BurstPick");
+    expect(config?.budget.totalTokens).toBe(2345);
+  });
+
+  it("loads legacy defineConfig format without requiring runtime package imports", async () => {
+    const tempDir = await createTempDir();
+    await writeConfig(
+      tempDir,
+      `import { defineConfig } from "@oac/core";
+
+export default defineConfig({
+  repos: ["owner/repo"],
+  provider: {
+    id: "codex-cli",
+    options: {},
+  },
+  budget: {
+    totalTokens: 7777,
+  },
+});
+`,
+    );
+
+    const config = await loadOptionalConfigFile("oac.config.ts", { cwd: tempDir });
+
+    expect(config).not.toBeNull();
+    expect(config?.repos[0]).toBe("owner/repo");
+    expect(config?.provider.id).toBe("codex-cli");
+    expect(config?.budget.totalTokens).toBe(7777);
+  });
+
+  it("returns null and reports warning when config validation fails", async () => {
+    const tempDir = await createTempDir();
+    await writeConfig(
+      tempDir,
+      `export default {
+  repos: [123],
+};
+`,
+    );
+
+    const warnings: string[] = [];
+    const config = await loadOptionalConfigFile("oac.config.ts", {
+      cwd: tempDir,
+      onWarning: (message) => {
+        warnings.push(message);
+      },
+    });
+
+    expect(config).toBeNull();
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]).toContain("Failed to load config at oac.config.ts");
+  });
+});

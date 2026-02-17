@@ -1,10 +1,5 @@
-import { constants as fsConstants } from "node:fs";
-import { access } from "node:fs/promises";
-import { resolve } from "node:path";
-import { pathToFileURL } from "node:url";
-
 import { buildExecutionPlan, estimateTokens } from "@open330/oac-budget";
-import { type OacConfig, type Task, loadConfig } from "@open330/oac-core";
+import type { OacConfig, Task } from "@open330/oac-core";
 import {
   CompositeScanner,
   LintScanner,
@@ -19,6 +14,7 @@ import { Command } from "commander";
 import ora, { type Ora } from "ora";
 
 import type { GlobalCliOptions } from "../cli.js";
+import { loadOptionalConfigFile } from "../config-loader.js";
 
 interface PlanCommandOptions {
   repo?: string;
@@ -147,23 +143,13 @@ async function loadOptionalConfig(
   verbose: boolean,
   ui: ChalkInstance,
 ): Promise<OacConfig | null> {
-  const absolutePath = resolve(process.cwd(), configPath);
-  if (!(await pathExists(absolutePath))) {
-    return null;
-  }
-
-  try {
-    const imported = await import(`${pathToFileURL(absolutePath).href}?t=${Date.now()}`);
-    const candidate = imported.default ?? imported.config ?? imported;
-    return loadConfig(candidate);
-  } catch (error) {
-    if (verbose) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.warn(ui.yellow(`[oac] Failed to load config at ${configPath}: ${message}`));
-    }
-
-    return null;
-  }
+  return loadOptionalConfigFile(configPath, {
+    onWarning: verbose
+      ? (message) => {
+          console.warn(ui.yellow(`[oac] ${message}`));
+        }
+      : undefined,
+  });
 }
 
 function resolveRepoInput(repoOption: string | undefined, config: OacConfig | null): string {
@@ -320,13 +306,4 @@ function truncate(value: string, maxLength: number): string {
   }
 
   return `${value.slice(0, Math.max(0, maxLength - 3))}...`;
-}
-
-async function pathExists(path: string): Promise<boolean> {
-  try {
-    await access(path, fsConstants.F_OK);
-    return true;
-  } catch {
-    return false;
-  }
 }
