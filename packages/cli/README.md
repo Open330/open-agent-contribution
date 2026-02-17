@@ -194,7 +194,7 @@ oac scan --repo owner/repo --format table
 │ ID      │ Title                            │ Source │ Priority │ Complexity │
 ├─────────┼──────────────────────────────────┼────────┼──────────┼────────────┤
 │ a1b2c3  │ Fix unused import in utils.ts    │ lint   │ 85       │ trivial    │
-│ d4e5f6  │ TODO: Add input validation       │ todo   │ 72       │ simple     │
+│ d4e5f6  │ Add input validation             │ todo   │ 72       │ simple     │
 │ g7h8i9  │ Missing tests for Parser class   │ test   │ 68       │ moderate   │
 │ j0k1l2  │ Remove dead code in legacy/      │ dead   │ 45       │ simple     │
 │ #142    │ Fix date formatting bug          │ issue  │ 91       │ moderate   │
