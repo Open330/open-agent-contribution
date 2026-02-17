@@ -1,3 +1,4 @@
+import type { Epic } from "../core/types.js";
 import type { AgentProviderId, Task, TokenEstimate } from "./estimator.js";
 
 const DEFAULT_RESERVE_PERCENT = 0.1;
@@ -148,6 +149,70 @@ export function buildExecutionPlan(
     totalBudget,
     selectedTasks,
     deferredTasks,
+    reserveTokens,
+    remainingTokens: Math.max(0, effectiveBudget - budgetUsed),
+  };
+}
+
+// ── Epic execution plan ─────────────────────────────────────
+
+export interface EpicExecutionPlan {
+  totalBudget: number;
+  selectedEpics: Array<{
+    epic: Epic;
+    estimatedTokens: number;
+    cumulativeBudgetUsed: number;
+  }>;
+  deferredEpics: Array<{
+    epic: Epic;
+    estimatedTokens: number;
+    reason: "budget_exceeded";
+  }>;
+  reserveTokens: number;
+  remainingTokens: number;
+}
+
+/**
+ * Build an execution plan for epics. Unlike task-level planning, epics are
+ * sorted purely by priority (not priority/tokens ratio) since they are
+ * already coherent units of work.
+ */
+export function buildEpicExecutionPlan(epics: Epic[], budget: number): EpicExecutionPlan {
+  const totalBudget = normalizeBudget(budget);
+  const reserveTokens = Math.floor(totalBudget * DEFAULT_RESERVE_PERCENT);
+  const effectiveBudget = Math.max(0, totalBudget - reserveTokens);
+
+  // Sort by priority descending (highest priority first)
+  const sorted = [...epics].sort((a, b) => b.priority - a.priority);
+
+  const selectedEpics: EpicExecutionPlan["selectedEpics"] = [];
+  const deferredEpics: EpicExecutionPlan["deferredEpics"] = [];
+  let budgetUsed = 0;
+
+  for (const epic of sorted) {
+    const tokens = epic.estimatedTokens;
+    const nextBudgetUsed = budgetUsed + tokens;
+
+    if (nextBudgetUsed <= effectiveBudget) {
+      budgetUsed = nextBudgetUsed;
+      selectedEpics.push({
+        epic,
+        estimatedTokens: tokens,
+        cumulativeBudgetUsed: budgetUsed,
+      });
+    } else {
+      deferredEpics.push({
+        epic,
+        estimatedTokens: tokens,
+        reason: "budget_exceeded",
+      });
+    }
+  }
+
+  return {
+    totalBudget,
+    selectedEpics,
+    deferredEpics,
     reserveTokens,
     remainingTokens: Math.max(0, effectiveBudget - budgetUsed),
   };

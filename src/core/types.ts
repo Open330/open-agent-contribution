@@ -60,6 +60,33 @@ export interface Task {
   };
   metadata: Record<string, unknown>;
   discoveredAt: string;
+  /** When this task belongs to an epic, the parent epic's id. */
+  parentEpicId?: string;
+}
+
+// ── Epics ─────────────────────────────────────────────────────
+
+export type EpicStatus = "pending" | "in-progress" | "completed" | "skipped";
+
+/**
+ * An Epic groups related tasks that should be executed together in a single
+ * agent session, producing one PR with coherent multi-file changes.
+ */
+export interface Epic {
+  id: string;
+  title: string;
+  description: string;
+  /** Module scope, e.g. "budget", "discovery", or "root" */
+  scope: string;
+  subtasks: Task[];
+  /** Broader file set the agent should read for context */
+  contextFiles: string[];
+  status: EpicStatus;
+  priority: number;
+  estimatedTokens: number;
+  createdAt: string;
+  completedAt?: string;
+  metadata: Record<string, unknown>;
 }
 
 export interface TokenEstimate {

@@ -5,8 +5,14 @@ import Table from "cli-table3";
 import { Command } from "commander";
 import { execa } from "execa";
 import ora, { type Ora } from "ora";
-import { buildExecutionPlan, estimateTokens } from "../../budget/index.js";
 import {
+  buildEpicExecutionPlan,
+  buildExecutionPlan,
+  estimateEpicTokens,
+  estimateTokens,
+} from "../../budget/index.js";
+import {
+  type Epic,
   type OacConfig,
   type Task,
   type TokenEstimate,
@@ -20,13 +26,24 @@ import {
   type Scanner,
   TestGapScanner,
   TodoScanner,
+  analyzeCodebase,
+  createBacklog,
+  getPendingEpics,
+  groupFindingsIntoEpics,
+  isContextStale,
+  loadBacklog,
+  loadContext,
+  persistBacklog,
+  persistContext,
   rankTasks,
+  updateBacklog,
 } from "../../discovery/index.js";
 import {
   type AgentProvider,
   ClaudeCodeAdapter,
   CodexAdapter,
   createSandbox,
+  epicAsTask,
   executeTask as workerExecuteTask,
 } from "../../execution/index.js";
 import { cloneRepo, resolveRepo } from "../../repo/index.js";
@@ -155,8 +172,49 @@ async function runPipeline(
   printGitHubAuthWarnings(ctx, ghToken);
   printRunHeader(ctx, totalBudget, concurrency);
 
-  const resolvedRepo = await discoverRepo(ctx, options, config, ghToken);
-  const { candidateTasks, plan } = resolvedRepo;
+  const repoInput = resolveRepoInput(options.repo, config);
+
+  const resolveSpinner = createSpinner(ctx.outputJson, "Resolving repository...");
+  const resolvedRepo = await resolveRepo(repoInput);
+  resolveSpinner?.succeed(`Resolved ${resolvedRepo.fullName}`);
+
+  const cloneSpinner = createSpinner(ctx.outputJson, "Preparing local clone...");
+  await cloneRepo(resolvedRepo);
+  cloneSpinner?.succeed(`Repository ready at ${resolvedRepo.localPath}`);
+
+  // ── Try epic-based execution (auto-analyze if needed) ────
+  const autoAnalyze = config?.analyze?.autoAnalyze ?? true;
+  const contextDir = config?.analyze?.contextDir ?? ".oac/context";
+  const staleAfterMs = config?.analyze?.staleAfterMs ?? 86_400_000;
+
+  const epics = await tryLoadOrAnalyzeEpics(ctx, {
+    resolvedRepo,
+    config,
+    ghToken,
+    autoAnalyze,
+    contextDir,
+    staleAfterMs,
+  });
+
+  if (epics && epics.length > 0) {
+    // ── Epic-based execution path ──
+    await runEpicPipeline(ctx, {
+      epics,
+      resolvedRepo,
+      config,
+      providerId,
+      totalBudget,
+      concurrency,
+      timeoutSeconds,
+      mode,
+      ghToken,
+      contextDir,
+    });
+    return;
+  }
+
+  // ── Fallback: task-based execution (existing behavior) ──
+  const { candidateTasks, plan } = await discoverTasks(ctx, options, config, ghToken, resolvedRepo);
 
   if (candidateTasks.length === 0) {
     printEmptySummary(ctx, resolvedRepo.fullName, providerId, totalBudget);
@@ -227,24 +285,371 @@ function printRunHeader(ctx: PipelineContext, totalBudget: number, concurrency: 
   );
 }
 
-async function discoverRepo(
+// ── Epic-based execution ────────────────────────────────────
+
+async function tryLoadOrAnalyzeEpics(
+  ctx: PipelineContext,
+  params: {
+    resolvedRepo: Awaited<ReturnType<typeof resolveRepo>>;
+    config: OacConfig | null;
+    ghToken: string | undefined;
+    autoAnalyze: boolean;
+    contextDir: string;
+    staleAfterMs: number;
+  },
+): Promise<Epic[] | null> {
+  const { resolvedRepo, config, ghToken, contextDir, staleAfterMs } = params;
+
+  // Try loading existing backlog first
+  const existingBacklog = await loadBacklog(resolvedRepo.localPath, contextDir);
+  if (existingBacklog) {
+    const pending = getPendingEpics(existingBacklog);
+    if (pending.length > 0) {
+      // Verify context is not stale
+      const context = await loadContext(resolvedRepo.localPath, contextDir);
+      if (context && !isContextStale(context.codebaseMap, staleAfterMs)) {
+        if (!ctx.outputJson) {
+          console.log(ctx.ui.blue(`[oac] Loaded ${pending.length} pending epic(s) from backlog.`));
+        }
+        return pending;
+      }
+    }
+  }
+
+  // No fresh backlog — auto-analyze if enabled
+  if (!params.autoAnalyze) {
+    return null;
+  }
+
+  const analyzeSpinner = createSpinner(ctx.outputJson, "Auto-analyzing codebase...");
+
+  const scanners = buildScannerList(config, Boolean(ghToken));
+  const { codebaseMap, qualityReport } = await analyzeCodebase(resolvedRepo.localPath, {
+    scanners,
+    repoFullName: resolvedRepo.fullName,
+    headSha: resolvedRepo.git.headSha,
+    exclude: config?.discovery.exclude,
+  });
+
+  analyzeSpinner?.succeed(
+    `Analyzed ${codebaseMap.modules.length} modules, ${codebaseMap.totalFiles} files, ${qualityReport.findings.length} findings`,
+  );
+
+  if (qualityReport.findings.length === 0) {
+    return null;
+  }
+
+  const groupSpinner = createSpinner(ctx.outputJson, "Grouping findings into epics...");
+  const epics = groupFindingsIntoEpics(qualityReport.findings, { codebaseMap });
+  groupSpinner?.succeed(`Created ${epics.length} epic(s)`);
+
+  // Persist context and backlog
+  const persistSpinner = createSpinner(ctx.outputJson, "Persisting context...");
+  await persistContext(resolvedRepo.localPath, codebaseMap, qualityReport, contextDir);
+  const backlog = createBacklog(resolvedRepo.fullName, resolvedRepo.git.headSha, epics);
+  await persistBacklog(resolvedRepo.localPath, backlog, contextDir);
+  persistSpinner?.succeed(`Context persisted to ${contextDir}/`);
+
+  return getPendingEpics(backlog);
+}
+
+function buildScannerList(config: OacConfig | null, hasGitHubAuth: boolean): Scanner[] {
+  const scanners: Scanner[] = [];
+  if (config?.discovery.scanners.lint !== false) scanners.push(new LintScanner());
+  if (config?.discovery.scanners.todo !== false) scanners.push(new TodoScanner());
+  scanners.push(new TestGapScanner());
+  if (hasGitHubAuth) scanners.push(new GitHubIssuesScanner());
+  return scanners;
+}
+
+function makeStubEstimate(taskId: string, providerId: string, tokens: number): TokenEstimate {
+  return {
+    taskId,
+    providerId,
+    contextTokens: 0,
+    promptTokens: 0,
+    expectedOutputTokens: 0,
+    totalEstimatedTokens: tokens,
+    confidence: 0.7,
+    feasible: true,
+  };
+}
+
+async function executeEpicEntry(
+  entry: { epic: Epic; estimatedTokens: number },
+  params: {
+    adapter: AgentProvider | null;
+    useRealExecution: boolean;
+    resolvedRepo: Awaited<ReturnType<typeof resolveRepo>>;
+    providerId: string;
+    timeoutSeconds: number;
+    mode: RunMode;
+    ghToken?: string;
+  },
+): Promise<TaskRunResult> {
+  const { adapter, useRealExecution, resolvedRepo, providerId, timeoutSeconds, mode, ghToken } =
+    params;
+  const task = epicAsTask(entry.epic);
+  const estimate = makeStubEstimate(task.id, providerId, entry.estimatedTokens);
+
+  let execution: ExecutionOutcome;
+  let sandbox: SandboxInfo | undefined;
+
+  if (useRealExecution && adapter) {
+    const result = await executeWithAgent({
+      task,
+      estimate,
+      adapter,
+      repoPath: resolvedRepo.localPath,
+      baseBranch: resolvedRepo.meta.defaultBranch,
+      timeoutSeconds,
+    });
+    execution = result.execution;
+    sandbox = result.sandbox;
+  } else {
+    execution = await simulateExecution(task, estimate);
+  }
+
+  let pr: TaskRunResult["pr"];
+  if (mode !== "direct-commit" && execution.success && sandbox) {
+    pr =
+      (await createPullRequest({
+        task,
+        execution,
+        sandbox,
+        repoFullName: resolvedRepo.fullName,
+        baseBranch: resolvedRepo.meta.defaultBranch,
+        ghToken,
+      })) ?? undefined;
+  }
+
+  return { task, estimate, execution, sandbox, pr };
+}
+
+async function runEpicPipeline(
+  ctx: PipelineContext,
+  params: {
+    epics: Epic[];
+    resolvedRepo: Awaited<ReturnType<typeof resolveRepo>>;
+    config: OacConfig | null;
+    providerId: string;
+    totalBudget: number;
+    concurrency: number;
+    timeoutSeconds: number;
+    mode: RunMode;
+    ghToken?: string;
+    contextDir: string;
+  },
+): Promise<void> {
+  const {
+    epics,
+    resolvedRepo,
+    providerId,
+    totalBudget,
+    timeoutSeconds,
+    mode,
+    ghToken,
+    contextDir,
+  } = params;
+
+  // Estimate tokens for each epic
+  const estimateSpinner = createSpinner(
+    ctx.outputJson,
+    `Estimating tokens for ${epics.length} epic(s)...`,
+  );
+  for (const epic of epics) {
+    if (epic.estimatedTokens === 0) {
+      epic.estimatedTokens = await estimateEpicTokens(epic, providerId);
+    }
+  }
+  estimateSpinner?.succeed("Epic token estimation completed");
+
+  const epicPlan = buildEpicExecutionPlan(epics, totalBudget);
+
+  if (!ctx.outputJson) {
+    console.log(
+      ctx.ui.blue(
+        `[oac] Selected ${epicPlan.selectedEpics.length} epic(s) for execution, ${epicPlan.deferredEpics.length} deferred.`,
+      ),
+    );
+  }
+
+  if (ctx.options.dryRun) {
+    printEpicDryRun(ctx, epicPlan, totalBudget);
+    return;
+  }
+
+  // Execute each selected epic
+  const { adapter, useRealExecution } = await resolveAdapter(providerId);
+  const allTaskResults: TaskRunResult[] = [];
+
+  for (const entry of epicPlan.selectedEpics) {
+    if (!ctx.outputJson) {
+      console.log(
+        ctx.ui.blue(
+          `\n[oac] Executing epic: ${entry.epic.title} (${entry.epic.subtasks.length} subtasks)`,
+        ),
+      );
+    }
+
+    const result = await executeEpicEntry(entry, {
+      adapter,
+      useRealExecution,
+      resolvedRepo,
+      providerId,
+      timeoutSeconds,
+      mode,
+      ghToken,
+    });
+    allTaskResults.push(result);
+
+    if (!ctx.outputJson) {
+      const icon = result.execution.success ? ctx.ui.green("[OK]") : ctx.ui.red("[X]");
+      console.log(`${icon} ${entry.epic.title}`);
+      if (result.pr) console.log(`    PR #${result.pr.number}: ${result.pr.url}`);
+    }
+  }
+
+  // Update backlog with completed epics
+  const completedIds = allTaskResults.filter((r) => r.execution.success).map((r) => r.task.id);
+  const existingBacklog = await loadBacklog(resolvedRepo.localPath, contextDir);
+  if (existingBacklog && completedIds.length > 0) {
+    const updated = updateBacklog(existingBacklog, [], completedIds);
+    await persistBacklog(resolvedRepo.localPath, updated, contextDir);
+  }
+
+  await writeTracking(ctx, {
+    resolvedRepo,
+    providerId,
+    totalBudget,
+    candidateTasks: allTaskResults.map((r) => r.task),
+    completedTasks: allTaskResults,
+  });
+
+  printEpicSummary(ctx, epicPlan, allTaskResults, resolvedRepo.fullName, providerId, totalBudget);
+}
+
+function printEpicDryRun(
+  ctx: PipelineContext,
+  epicPlan: ReturnType<typeof buildEpicExecutionPlan>,
+  totalBudget: number,
+): void {
+  if (ctx.outputJson) {
+    console.log(
+      JSON.stringify(
+        { summary: { runId: ctx.runId, dryRun: true, epics: epicPlan }, plan: epicPlan },
+        null,
+        2,
+      ),
+    );
+  } else {
+    renderEpicPlanTable(ctx.ui, epicPlan, totalBudget);
+    console.log("");
+    console.log(ctx.ui.blue("Dry run complete. No epics were executed."));
+  }
+}
+
+function printEpicSummary(
+  ctx: PipelineContext,
+  epicPlan: ReturnType<typeof buildEpicExecutionPlan>,
+  results: TaskRunResult[],
+  repoName: string,
+  providerId: string,
+  totalBudget: number,
+): void {
+  const completed = results.filter((t) => t.execution.success).length;
+  const failed = results.length - completed;
+  const prsCreated = results.filter((t) => Boolean(t.pr)).length;
+  const tokensUsed = results.reduce((sum, t) => sum + t.execution.totalTokensUsed, 0);
+  const duration = (Date.now() - ctx.runStartedAt) / 1000;
+
+  if (ctx.outputJson) {
+    console.log(
+      JSON.stringify(
+        {
+          summary: {
+            runId: ctx.runId,
+            repo: repoName,
+            provider: providerId,
+            dryRun: false,
+            selectedEpics: epicPlan.selectedEpics.length,
+            deferredEpics: epicPlan.deferredEpics.length,
+            epicsCompleted: completed,
+            epicsFailed: failed,
+            prsCreated,
+            tokensUsed,
+            tokensBudgeted: totalBudget,
+          },
+          epics: results,
+        },
+        null,
+        2,
+      ),
+    );
+    return;
+  }
+
+  console.log("");
+  console.log(ctx.ui.bold("Run Summary (Epic Mode)"));
+  console.log(`  Epics completed: ${completed}/${results.length}`);
+  console.log(`  Epics failed:    ${failed}`);
+  console.log(`  PRs created:     ${prsCreated}`);
+  console.log(
+    `  Tokens used:     ${formatInteger(tokensUsed)} / ${formatBudgetDisplay(totalBudget)}`,
+  );
+  console.log(`  Duration:        ${formatDuration(duration)}`);
+}
+
+function renderEpicPlanTable(
+  ui: ChalkInstance,
+  plan: ReturnType<typeof buildEpicExecutionPlan>,
+  budget: number,
+): void {
+  const table = new Table({
+    head: ["#", "Epic", "Scope", "Subtasks", "Est. Tokens", "Priority"],
+  });
+
+  for (let i = 0; i < plan.selectedEpics.length; i++) {
+    const entry = plan.selectedEpics[i];
+    table.push([
+      String(i + 1),
+      truncate(entry.epic.title, 45),
+      entry.epic.scope,
+      String(entry.epic.subtasks.length),
+      formatInteger(entry.estimatedTokens),
+      String(entry.epic.priority),
+    ]);
+  }
+
+  if (plan.selectedEpics.length > 0) {
+    console.log(table.toString());
+  } else {
+    console.log(ui.yellow("No epics selected for execution."));
+  }
+
+  if (plan.deferredEpics.length > 0) {
+    console.log("");
+    console.log(ui.yellow(`Deferred (${plan.deferredEpics.length}):`));
+    for (const deferred of plan.deferredEpics) {
+      console.log(
+        `  - ${truncate(deferred.epic.title, 60)} (${formatInteger(deferred.estimatedTokens)} tokens)`,
+      );
+    }
+  }
+}
+
+// ── Task-based execution (fallback) ────────────────────────
+
+async function discoverTasks(
   ctx: PipelineContext,
   options: RunCommandOptions,
   config: OacConfig | null,
   ghToken: string | undefined,
+  resolvedRepo: Awaited<ReturnType<typeof resolveRepo>>,
 ) {
-  const repoInput = resolveRepoInput(options.repo, config);
   const scannerSelection = selectScannersFromConfig(config, Boolean(ghToken));
   const minPriority = config?.discovery.minPriority ?? 20;
   const maxTasks = options.maxTasks ?? undefined;
-
-  const resolveSpinner = createSpinner(ctx.outputJson, "Resolving repository...");
-  const resolvedRepo = await resolveRepo(repoInput);
-  resolveSpinner?.succeed(`Resolved ${resolvedRepo.fullName}`);
-
-  const cloneSpinner = createSpinner(ctx.outputJson, "Preparing local clone...");
-  await cloneRepo(resolvedRepo);
-  cloneSpinner?.succeed(`Repository ready at ${resolvedRepo.localPath}`);
 
   const scanSpinner = createSpinner(
     ctx.outputJson,

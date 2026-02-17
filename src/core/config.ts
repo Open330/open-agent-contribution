@@ -205,6 +205,18 @@ export const DashboardSchema = z
   .strict()
   .default({});
 
+export const AnalyzeSchema = z
+  .object({
+    /** Auto-run analysis before `oac run` if context is stale or missing. */
+    autoAnalyze: z.boolean().default(true),
+    /** Max age in ms before context is considered stale (default: 24h). */
+    staleAfterMs: z.number().int().positive().default(86_400_000),
+    /** Directory for persisted context, relative to repo root. */
+    contextDir: z.string().min(1).default(".oac/context"),
+  })
+  .strict()
+  .default({});
+
 export const OacConfigSchema = z
   .object({
     repos: z.array(RepoTargetSchema).default([]),
@@ -215,6 +227,7 @@ export const OacConfigSchema = z
     completion: CompletionSchema,
     tracking: TrackingSchema,
     dashboard: DashboardSchema,
+    analyze: AnalyzeSchema,
   })
   .strict();
 
