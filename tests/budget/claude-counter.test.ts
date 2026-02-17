@@ -1,35 +1,58 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ClaudeTokenCounter } from "../../src/budget/providers/claude-counter.js";
+const tiktokenMocks = vi.hoisted(() => {
+  const encode = vi.fn((text: string) =>
+    Array.from({ length: text.length }, (_, index) => index),
+  );
+  const getEncoding = vi.fn(() => ({
+    encode,
+  }));
+
+  return { encode, getEncoding };
+});
+
+vi.mock("tiktoken", () => ({
+  get_encoding: tiktokenMocks.getEncoding,
+}));
+
+async function loadClaudeCounterModule() {
+  return import("../../src/budget/providers/claude-counter.js");
+}
+
+beforeEach(() => {
+  vi.resetModules();
+  tiktokenMocks.getEncoding.mockClear();
+  tiktokenMocks.encode.mockClear();
+});
 
 describe("ClaudeTokenCounter", () => {
-  it("countTokens returns a positive number for non-empty text", () => {
+  it("countTokens delegates to encoder.encode and returns encoded length", async () => {
+    const { ClaudeTokenCounter } = await loadClaudeCounterModule();
     const counter = new ClaudeTokenCounter();
 
-    expect(counter.countTokens("This is a non-empty string.")).toBeGreaterThan(0);
+    expect(counter.countTokens("hello")).toBe(5);
+    expect(tiktokenMocks.getEncoding).toHaveBeenCalledWith("cl100k_base");
+    expect(tiktokenMocks.encode).toHaveBeenCalledWith("hello");
   });
 
-  it("countTokens returns 0 for empty string", () => {
-    const counter = new ClaudeTokenCounter();
+  it("getEncoder initializes the encoder once and reuses it", async () => {
+    const { ClaudeTokenCounter } = await loadClaudeCounterModule();
+    const firstCounter = new ClaudeTokenCounter();
+    const secondCounter = new ClaudeTokenCounter();
 
-    expect(counter.countTokens("")).toBe(0);
+    firstCounter.countTokens("first");
+    secondCounter.countTokens("second");
+
+    expect(tiktokenMocks.getEncoding).toHaveBeenCalledTimes(1);
+    expect(tiktokenMocks.encode).toHaveBeenCalledTimes(2);
   });
 
-  it("invocationOverhead is 1500", () => {
+  it("exposes Claude token budget constants", async () => {
+    const { ClaudeTokenCounter } = await loadClaudeCounterModule();
     const counter = new ClaudeTokenCounter();
 
     expect(counter.invocationOverhead).toBe(1_500);
-  });
-
-  it("maxContextTokens is 200000", () => {
-    const counter = new ClaudeTokenCounter();
-
     expect(counter.maxContextTokens).toBe(200_000);
-  });
-
-  it('encoding is "cl100k_base"', () => {
-    const counter = new ClaudeTokenCounter();
-
     expect(counter.encoding).toBe("cl100k_base");
   });
 });
