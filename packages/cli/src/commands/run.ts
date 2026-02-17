@@ -33,7 +33,7 @@ import ora, { type Ora } from "ora";
 
 import type { GlobalCliOptions } from "../cli.js";
 import { loadOptionalConfigFile } from "../config-loader.js";
-import { ensureGitHubAuth } from "../github-auth.js";
+import { checkGitHubScopes, ensureGitHubAuth } from "../github-auth.js";
 
 interface RunCommandOptions {
   repo?: string;
@@ -136,9 +136,28 @@ export function createRunCommand(): Command {
       if (!ghToken && !outputJson) {
         console.log(
           ui.yellow(
-            "[oac] Warning: GitHub auth not detected. Run `gh auth login` first to enable PR creation.",
+            "[oac] Warning: GitHub auth not detected. Run `gh auth login` first.",
           ),
         );
+        console.log(
+          ui.yellow(
+            "[oac] For private repos, ensure the 'repo' scope: gh auth refresh -s repo",
+          ),
+        );
+      } else if (ghToken && !outputJson) {
+        const missingScopes = checkGitHubScopes(["repo"]);
+        if (missingScopes.length > 0) {
+          console.log(
+            ui.yellow(
+              `[oac] Warning: GitHub token missing scope(s): ${missingScopes.join(", ")}. Private repos may fail.`,
+            ),
+          );
+          console.log(
+            ui.yellow(
+              "[oac] Fix with: gh auth refresh -s repo",
+            ),
+          );
+        }
       }
 
       if (!outputJson) {

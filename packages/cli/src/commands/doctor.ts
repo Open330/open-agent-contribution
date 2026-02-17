@@ -5,7 +5,7 @@ import { Command } from "commander";
 
 import type { GlobalCliOptions } from "../cli.js";
 
-type DoctorStatus = "pass" | "fail";
+type DoctorStatus = "pass" | "warn" | "fail";
 
 interface DoctorCheck {
   id: string;
@@ -35,7 +35,7 @@ export function createDoctorCommand(): Command {
     const ui = createUi(globalOptions);
 
     const checks = await runDoctorChecks();
-    const allPassed = checks.every((check) => check.status === "pass");
+    const allPassed = checks.every((check) => check.status !== "fail");
 
     if (globalOptions.json) {
       console.log(
@@ -126,12 +126,16 @@ async function checkGithubAuth(): Promise<DoctorCheck> {
 
   const authResult = await runCommand("gh", ["auth", "status"]);
   if (authResult.ok) {
+    const hasRepoScope = authResult.stdout.includes("repo");
     return {
       id: "github-auth",
       name: "GitHub auth",
       requirement: "gh auth status or GITHUB_TOKEN",
       value: "gh auth status",
-      status: "pass",
+      status: hasRepoScope ? "pass" : "warn",
+      message: hasRepoScope
+        ? undefined
+        : "Missing 'repo' scope — private repos won't work. Run: gh auth refresh -s repo",
     };
   }
 
@@ -168,8 +172,10 @@ function renderDoctorOutput(ui: ChalkInstance, checks: DoctorCheck[], allPassed:
   console.log("");
 
   for (const check of checks) {
-    const icon = check.status === "pass" ? ui.green("[OK]") : ui.red("[X]");
-    const status = check.status === "pass" ? ui.green("PASS") : ui.red("FAIL");
+    const iconMap = { pass: ui.green("[OK]"), warn: ui.yellow("[!]"), fail: ui.red("[X]") };
+    const statusMap = { pass: ui.green("PASS"), warn: ui.yellow("WARN"), fail: ui.red("FAIL") };
+    const icon = iconMap[check.status];
+    const status = statusMap[check.status];
 
     const name = check.name.padEnd(12, " ");
     const requirement = check.requirement.padEnd(30, " ");
@@ -179,6 +185,9 @@ function renderDoctorOutput(ui: ChalkInstance, checks: DoctorCheck[], allPassed:
 
     if (check.status === "fail" && check.message) {
       console.log(`    ${ui.red(check.message)}`);
+    }
+    if (check.status === "warn" && check.message) {
+      console.log(`    ${ui.yellow(check.message)}`);
     }
   }
 
