@@ -1,6 +1,6 @@
 {
   "name": "@open330/oac-discovery",
-  "version": "2026.3.2",
+  "version": "2026.3.3",
   "description": "Task discovery scanners (lint, to-do comments, GitHub issues) for OAC",
   "license": "MIT",
   "repository": {
