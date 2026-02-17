@@ -12,9 +12,11 @@
 
 **Put your spare AI tokens to work. Contribute to open source — automatically.**
 
+[![CI](https://img.shields.io/github/actions/workflow/status/Open330/open-agent-contribution/ci.yml?branch=main&label=CI)](https://github.com/Open330/open-agent-contribution/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@open330/oac?label=npm&color=CB3837&logo=npm)](https://www.npmjs.com/package/@open330/oac)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/github/license/Open330/open-agent-contribution?label=license)](https://github.com/Open330/open-agent-contribution/blob/main/LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D22-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![pnpm](https://img.shields.io/badge/pnpm-9.15.4-F69220?logo=pnpm&logoColor=white)](https://pnpm.io/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-3178C6?logo=typescript&logoColor=white)](https://typescriptlang.org/)
 
 [Getting Started](#-getting-started) · [How It Works](#-how-it-works) · [Commands](#-commands) · [Architecture](#-architecture) · [Contributing](#-contributing)
