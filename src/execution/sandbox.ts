@@ -9,6 +9,18 @@ export interface SandboxContext {
   cleanup(): Promise<void>;
 }
 
+/**
+ * Mutex that serializes all git worktree operations (add/remove/prune)
+ * to avoid .git/config lock races when running concurrent tasks.
+ */
+let worktreeLock = Promise.resolve();
+
+function withWorktreeLock<T>(fn: () => Promise<T>): Promise<T> {
+  const next = worktreeLock.then(fn, fn);
+  worktreeLock = next.then(() => {}, () => {});
+  return next;
+}
+
 function getWorktreePath(repoPath: string, branchName: string): string {
   return resolve(join(repoPath, "..", ".oac-worktrees", branchName));
 }
@@ -22,8 +34,10 @@ export async function createSandbox(
   const worktreeRoot = resolve(join(repoPath, "..", ".oac-worktrees"));
   const git = simpleGit(repoPath);
 
-  await mkdir(worktreeRoot, { recursive: true });
-  await git.raw(["worktree", "add", worktreePath, "-b", branchName, `origin/${baseBranch}`]);
+  await withWorktreeLock(async () => {
+    await mkdir(worktreeRoot, { recursive: true });
+    await git.raw(["worktree", "add", worktreePath, "-b", branchName, `origin/${baseBranch}`]);
+  });
 
   let cleanedUp = false;
 
@@ -37,15 +51,17 @@ export async function createSandbox(
 
       cleanedUp = true;
 
-      try {
-        await git.raw(["worktree", "remove", worktreePath, "--force"]);
-      } finally {
+      await withWorktreeLock(async () => {
         try {
-          await git.raw(["worktree", "prune"]);
-        } catch {
-          // Ignore cleanup pruning errors.
+          await git.raw(["worktree", "remove", worktreePath, "--force"]);
+        } finally {
+          try {
+            await git.raw(["worktree", "prune"]);
+          } catch {
+            // Ignore cleanup pruning errors.
+          }
         }
-      }
+      });
     },
   };
 }
