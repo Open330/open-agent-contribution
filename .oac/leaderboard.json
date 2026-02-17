@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-02-17T07:52:49.180Z",
+  "entries": [
+    {
+      "githubUsername": "jiunbae",
+      "totalRuns": 1,
+      "totalTasksCompleted": 4,
+      "totalTokensDonated": 73591,
+      "totalFilesChanged": 4,
+      "totalLinesChanged": 371,
+      "totalPRsCreated": 4,
+      "totalPRsMerged": 0,
+      "favoriteTaskSource": "test-gap",
+      "firstContribution": "2026-02-17T15:30:00+09:00",
+      "lastContribution": "2026-02-17T15:30:00+09:00"
+    },
+    {
+      "githubUsername": "jiun",
+      "totalRuns": 1,
+      "totalTasksCompleted": 1,
+      "totalTokensDonated": 0,
+      "totalFilesChanged": 1,
+      "totalLinesChanged": 0,
+      "totalPRsCreated": 1,
+      "totalPRsMerged": 0,
+      "favoriteTaskSource": "github-issue",
+      "firstContribution": "2026-02-17T07:51:17.816Z",
+      "lastContribution": "2026-02-17T07:51:17.816Z"
+    }
+  ],
+  "repoStats": {
+    "totalContributions": 2,
+    "totalTokensUsed": 73591,
+    "totalPRsCreated": 5,
+    "totalPRsMerged": 0,
+    "firstContribution": "2026-02-17T15:30:00+09:00",
+    "lastContribution": "2026-02-17T07:51:17.816Z"
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "version": "1.0",
+  "runId": "oac-dogfood-pr1-20260217",
+  "timestamp": "2026-02-17T15:30:00+09:00",
+  "contributor": {
+    "githubUsername": "jiunbae",
+    "email": "jiunbae.623@gmail.com"
+  },
+  "repo": {
+    "fullName": "Open330/open-agent-contribution",
+    "headSha": "3b5df782bafa0c635e4cec69ed33fc388e6ec0eb",
+    "defaultBranch": "main"
+  },
+  "budget": {
+    "provider": "codex-cli",
+    "totalTokensBudgeted": 100000,
+    "totalTokensUsed": 73591,
+    "estimatedCostUsd": 0
+  },
+  "tasks": [
+    {
+      "taskId": "budget-complexity-tests",
+      "title": "Add unit tests for budget complexity analyzer",
+      "source": "test-gap",
+      "complexity": "moderate",
+      "status": "success",
+      "tokensUsed": 18398,
+      "duration": 45,
+      "filesChanged": [
+        "packages/budget/tests/complexity.test.ts"
+      ],
+      "pr": {
+        "number": 1,
+        "url": "https://github.com/Open330/open-agent-contribution/pull/1",
+        "status": "open"
+      }
+    },
+    {
+      "taskId": "budget-estimator-tests",
+      "title": "Add unit tests for budget token estimator",
+      "source": "test-gap",
+      "complexity": "moderate",
+      "status": "success",
+      "tokensUsed": 18398,
+      "duration": 40,
+      "filesChanged": [
+        "packages/budget/tests/estimator.test.ts"
+      ],
+      "pr": {
+        "number": 1,
+        "url": "https://github.com/Open330/open-agent-contribution/pull/1",
+        "status": "open"
+      }
+    },
+    {
+      "taskId": "budget-claude-counter-tests",
+      "title": "Add unit tests for Claude token counter",
+      "source": "test-gap",
+      "complexity": "simple",
+      "status": "success",
+      "tokensUsed": 18398,
+      "duration": 30,
+      "filesChanged": [
+        "packages/budget/tests/claude-counter.test.ts"
+      ],
+      "pr": {
+        "number": 1,
+        "url": "https://github.com/Open330/open-agent-contribution/pull/1",
+        "status": "open"
+      }
+    },
+    {
+      "taskId": "budget-codex-counter-tests",
+      "title": "Add unit tests for Codex token counter",
+      "source": "test-gap",
+      "complexity": "simple",
+      "status": "success",
+      "tokensUsed": 18397,
+      "duration": 30,
+      "filesChanged": [
+        "packages/budget/tests/codex-counter.test.ts"
+      ],
+      "pr": {
+        "number": 1,
+        "url": "https://github.com/Open330/open-agent-contribution/pull/1",
+        "status": "open"
+      }
+    }
+  ],
+  "metrics": {
+    "tasksDiscovered": 27,
+    "tasksAttempted": 4,
+    "tasksSucceeded": 4,
+    "tasksFailed": 0,
+    "totalDuration": 145,
+    "totalFilesChanged": 4,
+    "totalLinesAdded": 371,
+    "totalLinesRemoved": 0
+  }
+}

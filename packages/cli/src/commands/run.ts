@@ -5,21 +5,32 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { buildExecutionPlan, estimateTokens } from "@oac/budget";
-import * as completionPackage from "@oac/completion";
-import { type OacConfig, type Task, type TokenEstimate, loadConfig } from "@oac/core";
+import {
+  type OacConfig,
+  type Task,
+  type TokenEstimate,
+  createEventBus,
+  loadConfig,
+} from "@oac/core";
 import {
   CompositeScanner,
+  GitHubIssuesScanner,
   LintScanner,
   type Scanner,
   TodoScanner,
   rankTasks,
 } from "@oac/discovery";
-import * as executionPackage from "@oac/execution";
+import {
+  CodexAdapter,
+  createSandbox,
+  executeTask as workerExecuteTask,
+} from "@oac/execution";
 import { cloneRepo, resolveRepo } from "@oac/repo";
 import { type ContributionLog, writeContributionLog } from "@oac/tracking";
 import chalk, { Chalk, type ChalkInstance } from "chalk";
 import Table from "cli-table3";
 import { Command } from "commander";
+import { execa } from "execa";
 import ora, { type Ora } from "ora";
 
 import type { GlobalCliOptions } from "../cli.js";
@@ -33,26 +44,19 @@ interface RunCommandOptions {
   mode?: string;
   maxTasks?: number;
   timeout?: number;
+  source?: string;
+}
+
+interface SandboxInfo {
+  branchName: string;
+  sandboxPath: string;
+  cleanup: () => Promise<void>;
 }
 
 type RunMode = "new-pr" | "update-pr" | "direct-commit";
-type SupportedScanner = "lint" | "todo";
+type SupportedScanner = "lint" | "todo" | "github-issues";
 type CompletionStatus = "success" | "partial" | "failed";
 
-type ExecutionHook = (input: {
-  task: Task;
-  estimate: TokenEstimate;
-  provider: string;
-  mode: RunMode;
-  timeoutSeconds: number;
-}) => Promise<unknown>;
-
-type CompletionHook = (input: {
-  task: Task;
-  execution: ExecutionOutcome;
-  repoFullName: string;
-  mode: RunMode;
-}) => Promise<unknown>;
 
 interface ExecutionOutcome {
   success: boolean;
@@ -67,6 +71,7 @@ interface TaskRunResult {
   task: Task;
   estimate: TokenEstimate;
   execution: ExecutionOutcome;
+  sandbox?: SandboxInfo;
   pr?: {
     number: number;
     url: string;
@@ -105,6 +110,7 @@ export function createRunCommand(): Command {
     .option("--mode <mode>", "Execution mode: new-pr|update-pr|direct-commit")
     .option("--max-tasks <number>", "Maximum number of discovered tasks to consider", parseInteger)
     .option("--timeout <seconds>", "Per-task timeout in seconds", parseInteger)
+    .option("--source <source>", "Filter tasks by source (lint, todo, github-issue, test-gap)")
     .action(async (options: RunCommandOptions, cmd) => {
       const globalOptions = getGlobalOptions(cmd);
       const ui = createUi(globalOptions);
@@ -154,6 +160,9 @@ export function createRunCommand(): Command {
       scanSpinner?.succeed(`Discovered ${scannedTasks.length} raw task(s)`);
 
       let candidateTasks = rankTasks(scannedTasks).filter((task) => task.priority >= minPriority);
+      if (options.source) {
+        candidateTasks = candidateTasks.filter((task) => task.source === options.source);
+      }
       if (typeof maxTasks === "number") {
         candidateTasks = candidateTasks.slice(0, maxTasks);
       }
@@ -225,19 +234,19 @@ export function createRunCommand(): Command {
         return;
       }
 
-      const executionHook = readExecutionHook();
-      const completionHook = readCompletionHook();
+      const codexAdapter = new CodexAdapter();
+      const codexAvailability = await codexAdapter.checkAvailability();
+      const useRealExecution = providerId.includes("codex") && codexAvailability.available;
 
       if (!outputJson && globalOptions.verbose) {
-        if (!executionHook) {
+        if (useRealExecution) {
           console.log(
-            ui.yellow("[oac] @oac/execution has no executeTask hook. Using fallback executor."),
+            ui.green(
+              `[oac] Using Codex CLI v${codexAvailability.version ?? "unknown"} for execution.`,
+            ),
           );
-        }
-        if (!completionHook && mode !== "direct-commit") {
-          console.log(
-            ui.yellow("[oac] @oac/completion has no completeTask hook. PR creation is skipped."),
-          );
+        } else {
+          console.log(ui.yellow("[oac] Codex CLI not available. Using simulated execution."));
         }
       }
 
@@ -251,14 +260,23 @@ export function createRunCommand(): Command {
         plan.selectedTasks,
         concurrency,
         async (entry): Promise<TaskRunResult> => {
-          const execution = await executeTask({
-            task: entry.task,
-            estimate: entry.estimate,
-            providerId,
-            mode,
-            timeoutSeconds,
-            executionHook,
-          });
+          let execution: ExecutionOutcome;
+          let sandbox: SandboxInfo | undefined;
+
+          if (useRealExecution) {
+            const result = await executeWithCodex({
+              task: entry.task,
+              estimate: entry.estimate,
+              codexAdapter,
+              repoPath: resolvedRepo.localPath,
+              baseBranch: resolvedRepo.meta.defaultBranch,
+              timeoutSeconds,
+            });
+            execution = result.execution;
+            sandbox = result.sandbox;
+          } else {
+            execution = await simulateExecution(entry.task, entry.estimate);
+          }
 
           completedCount += 1;
           if (executionSpinner) {
@@ -269,6 +287,7 @@ export function createRunCommand(): Command {
             task: entry.task,
             estimate: entry.estimate,
             execution,
+            sandbox,
           };
         },
       );
@@ -288,12 +307,12 @@ export function createRunCommand(): Command {
             return result;
           }
 
-          const pr = await completeTask({
-            completionHook,
+          const pr = await createPullRequest({
             task: result.task,
             execution: result.execution,
-            mode,
+            sandbox: result.sandbox,
             repoFullName: resolvedRepo.fullName,
+            baseBranch: resolvedRepo.meta.defaultBranch,
           });
 
           if (!pr) {
@@ -556,14 +575,21 @@ function selectScannersFromConfig(config: OacConfig | null): {
     enabled.push("todo");
   }
 
+  // Always include github-issues scanner when GITHUB_TOKEN is available
+  if (process.env.GITHUB_TOKEN) {
+    enabled.push("github-issues");
+  }
+
   if (enabled.length === 0) {
     enabled.push("lint", "todo");
   }
 
   const uniqueEnabled = [...new Set(enabled)];
-  const scannerInstances: Scanner[] = uniqueEnabled.map((scannerName) =>
-    scannerName === "lint" ? new LintScanner() : new TodoScanner(),
-  );
+  const scannerInstances: Scanner[] = uniqueEnabled.map((scannerName) => {
+    if (scannerName === "lint") return new LintScanner();
+    if (scannerName === "github-issues") return new GitHubIssuesScanner();
+    return new TodoScanner();
+  });
 
   return {
     enabled: uniqueEnabled,
@@ -585,51 +611,163 @@ async function estimateTaskMap(
   return new Map(entries);
 }
 
-function readExecutionHook(): ExecutionHook | null {
-  const candidate = (executionPackage as { executeTask?: unknown }).executeTask;
-  return typeof candidate === "function" ? (candidate as ExecutionHook) : null;
-}
-
-function readCompletionHook(): CompletionHook | null {
-  const candidate = (completionPackage as { completeTask?: unknown }).completeTask;
-  return typeof candidate === "function" ? (candidate as CompletionHook) : null;
-}
-
-async function executeTask(input: {
+async function executeWithCodex(input: {
   task: Task;
   estimate: TokenEstimate;
-  providerId: string;
-  mode: RunMode;
+  codexAdapter: CodexAdapter;
+  repoPath: string;
+  baseBranch: string;
   timeoutSeconds: number;
-  executionHook: ExecutionHook | null;
-}): Promise<ExecutionOutcome> {
+}): Promise<{ execution: ExecutionOutcome; sandbox: SandboxInfo }> {
   const startedAt = Date.now();
+  const taskSlug = input.task.id
+    .replace(/[^a-zA-Z0-9-]/g, "-")
+    .replace(/-+/g, "-")
+    .slice(0, 30);
+  const branchName = `oac/${Date.now()}-${taskSlug}`;
 
-  const executionPromise = input.executionHook
-    ? Promise.resolve(
-        input.executionHook({
-          task: input.task,
-          estimate: input.estimate,
-          provider: input.providerId,
-          mode: input.mode,
-          timeoutSeconds: input.timeoutSeconds,
-        }),
-      )
-    : simulateExecution(input.task, input.estimate);
+  const sandbox = await createSandbox(input.repoPath, branchName, input.baseBranch);
+  const eventBus = createEventBus();
+  const sandboxInfo: SandboxInfo = {
+    branchName,
+    sandboxPath: sandbox.path,
+    cleanup: sandbox.cleanup,
+  };
 
   try {
-    const rawResult = await withTimeout(executionPromise, input.timeoutSeconds * 1_000);
-    return normalizeExecutionOutcome(rawResult, input.estimate, startedAt);
+    const result = await workerExecuteTask(input.codexAdapter, input.task, sandbox, eventBus, {
+      tokenBudget: input.estimate.totalEstimatedTokens,
+      timeoutMs: input.timeoutSeconds * 1_000,
+    });
+
+    // Codex may edit files without committing — stage and commit any changes
+    const commitResult = await commitSandboxChanges(sandbox.path, input.task);
+
+    const filesChanged =
+      commitResult.filesChanged.length > 0
+        ? commitResult.filesChanged
+        : result.filesChanged.length > 0
+          ? result.filesChanged
+          : [];
+
+    return {
+      execution: {
+        success: result.success || commitResult.hasChanges,
+        exitCode: result.exitCode,
+        totalTokensUsed: result.totalTokensUsed,
+        filesChanged,
+        duration: result.duration > 0 ? result.duration / 1_000 : (Date.now() - startedAt) / 1_000,
+        error: result.error,
+      },
+      sandbox: sandboxInfo,
+    };
   } catch (error) {
+    // Even on error, check if Codex left uncommitted changes
+    const commitResult = await commitSandboxChanges(sandbox.path, input.task);
+    if (commitResult.hasChanges) {
+      return {
+        execution: {
+          success: true,
+          exitCode: 0,
+          totalTokensUsed: 0,
+          filesChanged: commitResult.filesChanged,
+          duration: (Date.now() - startedAt) / 1_000,
+        },
+        sandbox: sandboxInfo,
+      };
+    }
+
     const message = error instanceof Error ? error.message : String(error);
     return {
-      success: false,
-      exitCode: 124,
-      totalTokensUsed: 0,
-      filesChanged: [],
-      duration: (Date.now() - startedAt) / 1_000,
-      error: message,
+      execution: {
+        success: false,
+        exitCode: 1,
+        totalTokensUsed: 0,
+        filesChanged: [],
+        duration: (Date.now() - startedAt) / 1_000,
+        error: message,
+      },
+      sandbox: sandboxInfo,
     };
+  }
+}
+
+async function createPullRequest(input: {
+  task: Task;
+  execution: ExecutionOutcome;
+  sandbox?: SandboxInfo;
+  repoFullName: string;
+  baseBranch: string;
+}): Promise<
+  | {
+      number: number;
+      url: string;
+      status: "open" | "merged" | "closed";
+    }
+  | undefined
+> {
+  if (!input.sandbox) {
+    return undefined;
+  }
+
+  const { branchName, sandboxPath } = input.sandbox;
+  const [owner, repo] = input.repoFullName.split("/");
+
+  try {
+    // Push the branch from the sandbox worktree
+    await execa("git", ["push", "--set-upstream", "origin", branchName], { cwd: sandboxPath });
+
+    // Create PR using gh CLI
+    const prTitle = `[OAC] ${input.task.title}`;
+    const prBody = [
+      "## Summary",
+      "",
+      input.task.description || `Automated contribution for task "${input.task.title}".`,
+      "",
+      "## Context",
+      "",
+      `- **Task source:** ${input.task.source}`,
+      `- **Complexity:** ${input.task.complexity}`,
+      `- **Tokens used:** ${input.execution.totalTokensUsed}`,
+      `- **Files changed:** ${input.execution.filesChanged.length}`,
+      "",
+      "---",
+      "*This PR was automatically generated by [OAC](https://github.com/Open330/open-agent-contribution).*",
+    ].join("\n");
+
+    const ghResult = await execa(
+      "gh",
+      [
+        "pr",
+        "create",
+        "--repo",
+        input.repoFullName,
+        "--title",
+        prTitle,
+        "--body",
+        prBody,
+        "--head",
+        branchName,
+        "--base",
+        input.baseBranch,
+      ],
+      { cwd: sandboxPath },
+    );
+
+    // Parse PR URL from gh output
+    const prUrl = ghResult.stdout.trim();
+    const prNumberMatch = prUrl.match(/\/pull\/(\d+)/);
+    const prNumber = prNumberMatch ? Number.parseInt(prNumberMatch[1], 10) : 0;
+
+    return {
+      number: prNumber,
+      url: prUrl,
+      status: "open",
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`[oac] PR creation failed: ${message}`);
+    return undefined;
   }
 }
 
@@ -650,128 +788,35 @@ async function simulateExecution(task: Task, estimate: TokenEstimate): Promise<E
   };
 }
 
-function normalizeExecutionOutcome(
-  value: unknown,
-  estimate: TokenEstimate,
-  startedAt: number,
-): ExecutionOutcome {
-  if (!value || typeof value !== "object") {
-    return {
-      success: true,
-      exitCode: 0,
-      totalTokensUsed: Math.max(1, Math.round(estimate.totalEstimatedTokens * 0.9)),
-      filesChanged: [],
-      duration: (Date.now() - startedAt) / 1_000,
-    };
-  }
 
-  const record = value as Partial<ExecutionOutcome>;
-  const success = record.success !== false;
-
-  const filesChanged = Array.isArray(record.filesChanged)
-    ? record.filesChanged.filter((file): file is string => typeof file === "string")
-    : [];
-
-  const totalTokensUsed =
-    typeof record.totalTokensUsed === "number" && Number.isFinite(record.totalTokensUsed)
-      ? Math.max(0, Math.floor(record.totalTokensUsed))
-      : Math.max(1, Math.round(estimate.totalEstimatedTokens * 0.9));
-
-  return {
-    success,
-    exitCode:
-      typeof record.exitCode === "number" && Number.isFinite(record.exitCode)
-        ? Math.floor(record.exitCode)
-        : success
-          ? 0
-          : 1,
-    totalTokensUsed,
-    filesChanged,
-    duration:
-      typeof record.duration === "number" && Number.isFinite(record.duration)
-        ? Math.max(0, record.duration)
-        : (Date.now() - startedAt) / 1_000,
-    error: typeof record.error === "string" ? record.error : undefined,
-  };
-}
-
-async function completeTask(input: {
-  completionHook: CompletionHook | null;
-  task: Task;
-  execution: ExecutionOutcome;
-  repoFullName: string;
-  mode: RunMode;
-}): Promise<
-  | {
-      number: number;
-      url: string;
-      status: "open" | "merged" | "closed";
-    }
-  | undefined
-> {
-  if (!input.completionHook) {
-    return undefined;
-  }
-
+async function commitSandboxChanges(
+  sandboxPath: string,
+  task: Task,
+): Promise<{ hasChanges: boolean; filesChanged: string[] }> {
   try {
-    const result = await input.completionHook({
-      task: input.task,
-      execution: input.execution,
-      repoFullName: input.repoFullName,
-      mode: input.mode,
-    });
-
-    return normalizePr(result);
-  } catch {
-    return undefined;
-  }
-}
-
-function normalizePr(value: unknown):
-  | {
-      number: number;
-      url: string;
-      status: "open" | "merged" | "closed";
+    // Check for any uncommitted changes (staged + unstaged + untracked)
+    const statusResult = await execa("git", ["status", "--porcelain"], { cwd: sandboxPath });
+    if (!statusResult.stdout.trim()) {
+      return { hasChanges: false, filesChanged: [] };
     }
-  | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
+
+    await execa("git", ["add", "-A"], { cwd: sandboxPath });
+    await execa(
+      "git",
+      ["commit", "-m", `[OAC] ${task.title}\n\nAutomated contribution by OAC using Codex CLI.`],
+      { cwd: sandboxPath },
+    );
+
+    // Get the list of changed files from the commit
+    const diffResult = await execa("git", ["diff", "--name-only", "HEAD~1", "HEAD"], {
+      cwd: sandboxPath,
+    });
+    const changedFiles = diffResult.stdout.trim().split("\n").filter(Boolean);
+
+    return { hasChanges: true, filesChanged: changedFiles };
+  } catch {
+    return { hasChanges: false, filesChanged: [] };
   }
-
-  const record = value as { pr?: unknown };
-  const candidate =
-    record.pr && typeof record.pr === "object"
-      ? (record.pr as {
-          number?: unknown;
-          url?: unknown;
-          status?: unknown;
-        })
-      : ((value as {
-          number?: unknown;
-          url?: unknown;
-          status?: unknown;
-        }) ?? null);
-
-  if (!candidate) {
-    return undefined;
-  }
-
-  if (
-    typeof candidate.number !== "number" ||
-    !Number.isFinite(candidate.number) ||
-    typeof candidate.url !== "string"
-  ) {
-    return undefined;
-  }
-
-  const status =
-    candidate.status === "merged" || candidate.status === "closed" ? candidate.status : "open";
-
-  return {
-    number: Math.floor(candidate.number),
-    url: candidate.url,
-    status,
-  };
 }
 
 function buildContributionLog(input: {
