@@ -1,9 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const tiktokenMocks = vi.hoisted(() => {
-  const encode = vi.fn((text: string) =>
-    Array.from({ length: text.length }, (_, index) => index),
-  );
+  const encode = vi.fn((text: string) => Array.from({ length: text.length }, (_, index) => index));
   const getEncoding = vi.fn(() => ({
     encode,
   }));
