@@ -12,10 +12,10 @@
 
 **Put your spare AI tokens to work. Contribute to open source — automatically.**
 
+[![npm](https://img.shields.io/npm/v/@open330/oac?label=npm&color=CB3837&logo=npm)](https://www.npmjs.com/package/@open330/oac)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D24-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D22-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-3178C6?logo=typescript&logoColor=white)](https://typescriptlang.org/)
-[![pnpm](https://img.shields.io/badge/pnpm-9.15+-F69220?logo=pnpm&logoColor=white)](https://pnpm.io/)
 
 [Getting Started](#-getting-started) · [How It Works](#-how-it-works) · [Commands](#-commands) · [Architecture](#-architecture) · [Contributing](#-contributing)
 
@@ -39,8 +39,14 @@ Meanwhile, thousands of open source repos have TODOs nobody finishes, lint warni
 4. **Submit** pull requests, link issues, and track every contribution
 
 ```bash
+# Install globally
+npm install -g @open330/oac
+
 # That's it. One command.
 oac run --repo facebook/react --tokens 50000
+
+# Or run without installing
+npx @open330/oac run --repo facebook/react --tokens unlimited
 ```
 
 ```
@@ -82,18 +88,20 @@ oac run --repo facebook/react --tokens 50000
 
 ### Prerequisites
 
-- **Node.js** >= 24
-- **pnpm** >= 9.15
+- **Node.js** >= 22
 - **git** installed
 - At least one AI agent CLI: [Claude Code](https://claude.ai/code), [Codex](https://github.com/openai/codex), or [OpenCode](https://github.com/opencode-ai/opencode)
 
 ### Install
 
 ```bash
-# From npm (coming soon)
-npm install -g @oac/cli
+# From npm (recommended)
+npm install -g @open330/oac
 
-# From source
+# Or use without installing
+npx @open330/oac --help
+
+# From source (for contributors)
 git clone https://github.com/Open330/open-agent-contribution.git
 cd open-agent-contribution
 pnpm install
@@ -165,11 +173,14 @@ oac doctor
 ```bash
 oac run \
   --repo owner/repo \       # Target repository
-  --tokens 50000 \          # Token budget
+  --tokens 50000 \          # Token budget (or "unlimited")
   --provider claude-code \  # AI agent to use
   --concurrency 2 \         # Parallel agents (default: 2)
   --mode new-pr \           # Create PRs (or: direct-commit)
   --dry-run                 # Preview without executing
+
+# Run with unlimited budget (keeps going until rate-limited)
+oac run --repo owner/repo --tokens unlimited --concurrency 3
 ```
 
 ### `oac scan` — See What's Out There
@@ -199,7 +210,7 @@ OAC uses a TypeScript config file for full IDE autocompletion:
 
 ```typescript
 // oac.config.ts
-import { defineConfig } from '@oac/core';
+import { defineConfig } from '@open330/oac-core';
 
 export default defineConfig({
   repos: ['facebook/react', 'vercel/next.js'],
@@ -265,33 +276,34 @@ export default defineConfig({
            └───────────────────┘
 ```
 
-### Monorepo Structure
+### Packages
 
-```
-packages/
-├── core/          # Event bus, config, types, errors
-├── repo/          # GitHub repo resolution, cloning, metadata
-├── discovery/     # Task scanners (lint, TODO, test-gap, issues)
-├── budget/        # Token estimation, complexity analysis, planning
-├── execution/     # Agent pool, job queue, worktree sandbox
-├── completion/    # PR creation, issue linking, webhooks
-├── tracking/      # Contribution logs, leaderboard
-├── cli/           # Commander.js CLI application
-└── dashboard/     # Fastify + React localhost dashboard
-```
+All packages are published under the `@open330` scope on npm:
+
+| Package | npm | Description |
+|---------|-----|-------------|
+| [`@open330/oac`](packages/cli) | [![npm](https://img.shields.io/npm/v/@open330/oac?label=&color=CB3837)](https://www.npmjs.com/package/@open330/oac) | CLI — the main entry point |
+| [`@open330/oac-core`](packages/core) | [![npm](https://img.shields.io/npm/v/@open330/oac-core?label=&color=CB3837)](https://www.npmjs.com/package/@open330/oac-core) | Event bus, config, types, errors |
+| [`@open330/oac-repo`](packages/repo) | [![npm](https://img.shields.io/npm/v/@open330/oac-repo?label=&color=CB3837)](https://www.npmjs.com/package/@open330/oac-repo) | GitHub repo resolution, cloning, metadata |
+| [`@open330/oac-discovery`](packages/discovery) | [![npm](https://img.shields.io/npm/v/@open330/oac-discovery?label=&color=CB3837)](https://www.npmjs.com/package/@open330/oac-discovery) | Task scanners (lint, TODO, test-gap, issues) |
+| [`@open330/oac-budget`](packages/budget) | [![npm](https://img.shields.io/npm/v/@open330/oac-budget?label=&color=CB3837)](https://www.npmjs.com/package/@open330/oac-budget) | Token estimation, complexity analysis, planning |
+| [`@open330/oac-execution`](packages/execution) | [![npm](https://img.shields.io/npm/v/@open330/oac-execution?label=&color=CB3837)](https://www.npmjs.com/package/@open330/oac-execution) | Agent pool, job queue, worktree sandbox |
+| [`@open330/oac-completion`](packages/completion) | [![npm](https://img.shields.io/npm/v/@open330/oac-completion?label=&color=CB3837)](https://www.npmjs.com/package/@open330/oac-completion) | PR creation, issue linking |
+| [`@open330/oac-tracking`](packages/tracking) | [![npm](https://img.shields.io/npm/v/@open330/oac-tracking?label=&color=CB3837)](https://www.npmjs.com/package/@open330/oac-tracking) | Contribution logs, leaderboard |
+| [`@open330/oac-dashboard`](packages/dashboard) | [![npm](https://img.shields.io/npm/v/@open330/oac-dashboard?label=&color=CB3837)](https://www.npmjs.com/package/@open330/oac-dashboard) | Fastify web dashboard with SSE streaming |
 
 ### Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| Runtime | Node.js 24+, TypeScript 5.7+, ESM |
+| Runtime | Node.js 22+, TypeScript 5.7+, ESM |
 | Build | pnpm workspaces, Turborepo, tsup |
 | CLI | Commander.js, chalk, ora, cli-table3 |
 | Git | simple-git, git worktrees for isolation |
 | GitHub | @octokit/rest |
-| AI Agents | Claude Code, Codex CLI, OpenCode (pluggable) |
-| Dashboard | Fastify, React, Vite, shadcn/ui, Tailwind |
-| Quality | Vitest, Biome, 80% coverage threshold |
+| AI Agents | Claude Code, Codex CLI (pluggable via `AgentProvider`) |
+| Dashboard | Fastify + embedded SPA with SSE streaming |
+| Quality | Vitest, Biome |
 
 ---
 
@@ -375,7 +387,7 @@ You run `oac run`
 ### Adding a Custom Agent
 
 ```typescript
-import type { AgentProvider } from '@oac/execution';
+import type { AgentProvider } from '@open330/oac-execution';
 
 export class MyAgentAdapter implements AgentProvider {
   readonly id = 'my-agent';
@@ -392,11 +404,9 @@ export class MyAgentAdapter implements AgentProvider {
 
 ## Roadmap
 
-- [x] **v0.1** — Core engine, CLI (init/doctor/scan/plan/run), 2 scanners, single agent
-- [ ] **v0.2** — Parallel execution, all 5 scanners, multi-agent support, leaderboard
-- [ ] **v0.3** — Web dashboard, Linear/Jira webhooks, PR monitoring
-- [ ] **v0.4** — Security hardening, diff validation, crash reports, npm publish
-- [ ] **v1.0** — Plugin system, gamification, sparse checkout for large repos
+- [x] **2026.2.17** — Core engine, CLI, 5 scanners, Codex adapter, parallel execution, dashboard, npm publish
+- [ ] **Next** — Multi-agent support (Claude Code + Codex + OpenCode simultaneously)
+- [ ] **Future** — Linear/Jira webhooks, plugin system, sparse checkout for monorepos
 
 ---
 
@@ -417,6 +427,9 @@ pnpm test
 # Lint and format
 pnpm lint
 pnpm format
+
+# Or just let OAC contribute to itself
+npx @open330/oac run --repo Open330/open-agent-contribution --tokens unlimited
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
