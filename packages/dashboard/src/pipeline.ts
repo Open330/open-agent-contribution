@@ -363,6 +363,12 @@ export async function executePipeline(
   };
 
   try {
+    // 0. Ensure GitHub auth before any API calls
+    const preAuthToken = await resolveGitHubToken();
+    if (preAuthToken && !process.env.GITHUB_TOKEN && !process.env.GH_TOKEN) {
+      process.env.GITHUB_TOKEN = preAuthToken;
+    }
+
     // 1. Resolve repo
     emit({ type: "run:stage", stage: "resolving", message: `Resolving ${config.repo}...` });
     const resolvedRepo = await resolveRepo(config.repo);

@@ -8,6 +8,7 @@ import {
   rankTasks,
 } from "@open330/oac-discovery";
 import { cloneRepo, resolveRepo } from "@open330/oac-repo";
+import { ensureGitHubAuth } from "../github-auth.js";
 import chalk, { Chalk, type ChalkInstance } from "chalk";
 import Table from "cli-table3";
 import { Command } from "commander";
@@ -44,6 +45,8 @@ export function createPlanCommand(): Command {
       const minPriority = config?.discovery.minPriority ?? 20;
 
       const scannerSelection = selectScannersFromConfig(config);
+
+      ensureGitHubAuth();
 
       const resolveSpinner = createSpinner(outputJson, "Resolving repository...");
       const resolvedRepo = await resolveRepo(repoInput);
