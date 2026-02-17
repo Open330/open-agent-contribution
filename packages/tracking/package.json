@@ -1,6 +1,6 @@
 {
   "name": "@open330/oac-tracking",
-  "version": "2026.3.1",
+  "version": "2026.3.2",
   "description": "Contribution logging and leaderboard tracking for OAC",
   "license": "MIT",
   "repository": {
@@ -18,7 +18,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "publishConfig": {
     "access": "public"
