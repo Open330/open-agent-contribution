@@ -1,6 +1,6 @@
 {
   "name": "@open330/oac-execution",
-  "version": "2026.3.5",
+  "version": "2026.3.6",
   "description": "Agent execution engine and sandboxing for OAC",
   "license": "MIT",
   "repository": {

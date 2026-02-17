@@ -1,6 +1,6 @@
 {
   "name": "@open330/oac-dashboard",
-  "version": "2026.3.5",
+  "version": "2026.3.6",
   "description": "Web dashboard for monitoring OAC runs and contributions",
   "license": "MIT",
   "repository": {
