@@ -208,7 +208,7 @@ function toResolutionError(owner: string, repo: string, error: unknown): RepoRes
     const hasToken = !!(process.env.GITHUB_TOKEN || process.env.GH_TOKEN);
     const hint = hasToken
       ? `If this is a private repo, ensure your token has the "repo" scope: gh auth refresh -s repo`
-      : `If this is a private repo, authenticate first: gh auth login`;
+      : "If this is a private repo, authenticate first: gh auth login";
     return new RepoResolutionError(
       `Repository "${fullName}" was not found on GitHub. ${hint}`,
       "NOT_FOUND",

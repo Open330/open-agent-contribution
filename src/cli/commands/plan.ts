@@ -1,3 +1,7 @@
+import chalk, { Chalk, type ChalkInstance } from "chalk";
+import Table from "cli-table3";
+import { Command } from "commander";
+import ora, { type Ora } from "ora";
 import { buildExecutionPlan, estimateTokens } from "../../budget/index.js";
 import type { OacConfig, Task } from "../../core/index.js";
 import {
@@ -9,10 +13,6 @@ import {
 } from "../../discovery/index.js";
 import { cloneRepo, resolveRepo } from "../../repo/index.js";
 import { ensureGitHubAuth } from "../github-auth.js";
-import chalk, { Chalk, type ChalkInstance } from "chalk";
-import Table from "cli-table3";
-import { Command } from "commander";
-import ora, { type Ora } from "ora";
 
 import type { GlobalCliOptions } from "../cli.js";
 import { loadOptionalConfigFile } from "../config-loader.js";

@@ -72,9 +72,7 @@ export function checkGitHubScopes(required: string[] = ["repo"]): string[] {
     const scopeLine = combined.match(/Token scopes:\s*(.+)/);
     if (!scopeLine) return [];
 
-    const scopes = scopeLine[1]
-      .split(",")
-      .map((s) => s.trim().replace(/^'|'$/g, ""));
+    const scopes = scopeLine[1].split(",").map((s) => s.trim().replace(/^'|'$/g, ""));
     return required.filter((r) => !scopes.includes(r));
   } catch {
     return [];

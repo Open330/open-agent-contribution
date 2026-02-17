@@ -3,10 +3,10 @@ import type { Dirent } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import cors from "@fastify/cors";
+import Fastify from "fastify";
 import { contributionLogSchema } from "../tracking/index.js";
 import type { ContributionLog } from "../tracking/index.js";
 import { buildLeaderboard } from "../tracking/index.js";
-import Fastify from "fastify";
 import {
   type DashboardRunEvent,
   type RunConfig,

@@ -1,9 +1,9 @@
 import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { ResolvedRepo } from "../../src/repo/index.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GitHubIssuesScanner } from "../../src/discovery/scanners/github-issues-scanner.js";
+import type { ResolvedRepo } from "../../src/repo/index.js";
 
 const ORIGINAL_GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const fetchMock = vi.fn();

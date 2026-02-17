@@ -1,3 +1,7 @@
+import chalk, { Chalk, type ChalkInstance } from "chalk";
+import Table from "cli-table3";
+import { Command } from "commander";
+import ora, { type Ora } from "ora";
 import type { OacConfig } from "../../core/index.js";
 import {
   CompositeScanner,
@@ -10,10 +14,6 @@ import {
 } from "../../discovery/index.js";
 import { cloneRepo, resolveRepo } from "../../repo/index.js";
 import { ensureGitHubAuth } from "../github-auth.js";
-import chalk, { Chalk, type ChalkInstance } from "chalk";
-import Table from "cli-table3";
-import { Command } from "commander";
-import ora, { type Ora } from "ora";
 
 import type { GlobalCliOptions } from "../cli.js";
 import { loadOptionalConfigFile } from "../config-loader.js";
@@ -239,7 +239,12 @@ function selectScanners(
 
   for (const scannerName of requested) {
     const normalized = scannerName.toLowerCase();
-    if (normalized === "lint" || normalized === "todo" || normalized === "github-issues" || normalized === "test-gap") {
+    if (
+      normalized === "lint" ||
+      normalized === "todo" ||
+      normalized === "github-issues" ||
+      normalized === "test-gap"
+    ) {
       enabled.push(normalized as SupportedScanner);
     } else {
       unknown.push(scannerName);
@@ -267,7 +272,10 @@ function selectScanners(
   };
 }
 
-function scannersFromConfig(config: OacConfig | null, hasGitHubAuth = false): SupportedScanner[] | null {
+function scannersFromConfig(
+  config: OacConfig | null,
+  hasGitHubAuth = false,
+): SupportedScanner[] | null {
   if (!config) {
     return null;
   }

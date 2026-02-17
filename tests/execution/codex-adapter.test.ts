@@ -3,9 +3,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Readable } from "node:stream";
 
-import { OacError } from "../../src/core/index.js";
 import { execa } from "execa";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { OacError } from "../../src/core/index.js";
 
 import type { AgentEvent, AgentExecuteParams } from "../../src/execution/agents/agent.interface.js";
 import { CodexAdapter } from "../../src/execution/agents/codex.adapter.js";

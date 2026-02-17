@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 
+import PQueue from "p-queue";
 import {
   type ExecutionPlan,
   type ExecutionResult,
@@ -10,7 +11,6 @@ import {
   type TokenEstimate,
   executionError,
 } from "../core/index.js";
-import PQueue from "p-queue";
 
 import type { AgentProvider } from "./agents/agent.interface.js";
 import { createSandbox } from "./sandbox.js";

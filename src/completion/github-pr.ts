@@ -1,6 +1,6 @@
 import type { Octokit } from "@octokit/rest";
-import { type ResolvedRepo, completionError } from "../core/index.js";
 import { type SimpleGit, simpleGit } from "simple-git";
+import { type ResolvedRepo, completionError } from "../core/index.js";
 
 import type { CreatedPR, PRCreationParams } from "./types.js";
 

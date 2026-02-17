@@ -1,12 +1,12 @@
 import { createInterface } from "node:readline";
 
+import { execa } from "execa";
 import {
   type AgentProviderId,
   OacError,
   type TokenEstimate,
   executionError,
 } from "../../core/index.js";
-import { execa } from "execa";
 
 import type {
   AgentAvailability,

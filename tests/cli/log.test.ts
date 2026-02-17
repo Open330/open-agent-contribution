@@ -1,9 +1,9 @@
 import type { Dirent } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
 
-import type { ContributionLog } from "../../src/tracking/index.js";
 import { Command } from "commander";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { ContributionLog } from "../../src/tracking/index.js";
 
 import { createLogCommand } from "../../src/cli/commands/log.js";
 

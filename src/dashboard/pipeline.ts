@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 
+import { execa } from "execa";
 import { buildExecutionPlan, estimateTokens } from "../budget/index.js";
 import { type Task, type TokenEstimate, createEventBus } from "../core/index.js";
 import {
@@ -17,7 +18,6 @@ import {
 } from "../execution/index.js";
 import { cloneRepo, resolveRepo } from "../repo/index.js";
 import { type ContributionLog, writeContributionLog } from "../tracking/index.js";
-import { execa } from "execa";
 
 // ---------------------------------------------------------------------------
 // Types

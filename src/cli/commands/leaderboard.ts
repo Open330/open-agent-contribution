@@ -2,9 +2,9 @@ import type { Dirent } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
 
-import { type ContributionLog, contributionLogSchema } from "../../tracking/index.js";
 import Table from "cli-table3";
 import { Command } from "commander";
+import { type ContributionLog, contributionLogSchema } from "../../tracking/index.js";
 
 import type { GlobalCliOptions } from "../cli.js";
 

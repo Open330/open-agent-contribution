@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { OacError, type Task, createEventBus } from "../../src/core/index.js";
-import type { AgentEvent, AgentProvider, AgentResult } from "../../src/execution/agents/agent.interface.js";
+import type {
+  AgentEvent,
+  AgentProvider,
+  AgentResult,
+} from "../../src/execution/agents/agent.interface.js";
 import type { SandboxContext } from "../../src/execution/sandbox.js";
 import { executeTask } from "../../src/execution/worker.js";
 
