@@ -4,14 +4,15 @@ import { access } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { buildExecutionPlan, estimateTokens } from "@oac/budget";
+import { buildExecutionPlan, estimateTokens } from "@open330/oac-budget";
 import {
   type OacConfig,
   type Task,
   type TokenEstimate,
+  UNLIMITED_BUDGET,
   createEventBus,
   loadConfig,
-} from "@oac/core";
+} from "@open330/oac-core";
 import {
   CompositeScanner,
   GitHubIssuesScanner,
@@ -19,14 +20,14 @@ import {
   type Scanner,
   TodoScanner,
   rankTasks,
-} from "@oac/discovery";
+} from "@open330/oac-discovery";
 import {
   CodexAdapter,
   createSandbox,
   executeTask as workerExecuteTask,
-} from "@oac/execution";
-import { cloneRepo, resolveRepo } from "@oac/repo";
-import { type ContributionLog, writeContributionLog } from "@oac/tracking";
+} from "@open330/oac-execution";
+import { cloneRepo, resolveRepo } from "@open330/oac-repo";
+import { type ContributionLog, writeContributionLog } from "@open330/oac-tracking";
 import chalk, { Chalk, type ChalkInstance } from "chalk";
 import Table from "cli-table3";
 import { Command } from "commander";
@@ -103,7 +104,7 @@ export function createRunCommand(): Command {
   command
     .description("Run the full OAC pipeline")
     .option("--repo <owner/repo>", "Target repository (owner/repo or GitHub URL)")
-    .option("--tokens <number>", "Token budget for execution", parseInteger)
+    .option("--tokens <value>", 'Token budget (number or "unlimited")', parseTokens)
     .option("--provider <id>", "Agent provider id")
     .option("--concurrency <number>", "Maximum parallel task executions", parseInteger)
     .option("--dry-run", "Show plan without executing tasks", false)
@@ -135,7 +136,7 @@ export function createRunCommand(): Command {
       if (!outputJson) {
         console.log(
           ui.blue(
-            `Starting OAC run (budget: ${formatInteger(totalBudget)} tokens, concurrency: ${concurrency})`,
+            `Starting OAC run (budget: ${formatBudgetDisplay(totalBudget)} tokens, concurrency: ${concurrency})`,
           ),
         );
       }
@@ -399,7 +400,7 @@ export function createRunCommand(): Command {
       console.log(`  Tasks failed:    ${tasksFailed}`);
       console.log(`  PRs created:     ${prsCreated}`);
       console.log(
-        `  Tokens used:     ${formatInteger(tokensUsed)} / ${formatInteger(totalBudget)}`,
+        `  Tokens used:     ${formatInteger(tokensUsed)} / ${formatBudgetDisplay(totalBudget)}`,
       );
       console.log(`  Duration:        ${formatDuration(runDurationSeconds)}`);
       if (logPath) {
@@ -443,6 +444,20 @@ function parseInteger(value: string): number {
   }
 
   return parsed;
+}
+
+function parseTokens(value: string): number {
+  if (value.toLowerCase() === "unlimited") {
+    return UNLIMITED_BUDGET;
+  }
+  return parseInteger(value);
+}
+
+function formatBudgetDisplay(budget: number): string {
+  if (budget >= UNLIMITED_BUDGET) {
+    return "unlimited";
+  }
+  return formatInteger(budget);
 }
 
 function validateRunOptions(options: RunCommandOptions): void {
@@ -977,10 +992,10 @@ function renderSelectedPlanTable(
   console.log(
     `Budget used: ${formatInteger(
       plan.selectedTasks[plan.selectedTasks.length - 1]?.cumulativeBudgetUsed ?? 0,
-    )} / ${formatInteger(budget - plan.reserveTokens)} (effective)`,
+    )} / ${formatBudgetDisplay(budget - plan.reserveTokens)} (effective)`,
   );
-  console.log(`Reserve:     ${formatInteger(plan.reserveTokens)} (10%)`);
-  console.log(`Remaining:   ${formatInteger(plan.remainingTokens)}`);
+  console.log(`Reserve:     ${formatBudgetDisplay(plan.reserveTokens)} (10%)`);
+  console.log(`Remaining:   ${formatBudgetDisplay(plan.remainingTokens)}`);
 
   if (plan.deferredTasks.length > 0) {
     console.log("");

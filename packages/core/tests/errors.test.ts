@@ -208,11 +208,12 @@ describe("error codes", () => {
     expect(EXECUTION_ERROR_CODES).toContain("AGENT_TIMEOUT");
     expect(EXECUTION_ERROR_CODES).toContain("AGENT_OOM");
     expect(EXECUTION_ERROR_CODES).toContain("AGENT_TOKEN_LIMIT");
+    expect(EXECUTION_ERROR_CODES).toContain("AGENT_RATE_LIMITED");
     expect(EXECUTION_ERROR_CODES).toContain("VALIDATION_LINT_FAILED");
     expect(EXECUTION_ERROR_CODES).toContain("VALIDATION_TEST_FAILED");
     expect(EXECUTION_ERROR_CODES).toContain("VALIDATION_DIFF_TOO_LARGE");
     expect(EXECUTION_ERROR_CODES).toContain("VALIDATION_FORBIDDEN_PATTERN");
-    expect(EXECUTION_ERROR_CODES).toHaveLength(9);
+    expect(EXECUTION_ERROR_CODES).toHaveLength(10);
   });
 
   it("COMPLETION_ERROR_CODES contains expected codes", () => {

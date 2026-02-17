@@ -1,4 +1,4 @@
-import type { ExecutionResult, ResolvedRepo, Task } from "@oac/core";
+import type { ExecutionResult, ResolvedRepo, Task } from "@open330/oac-core";
 
 export interface PRCreationParams {
   repo: ResolvedRepo;

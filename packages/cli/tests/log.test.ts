@@ -1,7 +1,7 @@
 import type { Dirent } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
 
-import type { ContributionLog } from "@oac/tracking";
+import type { ContributionLog } from "@open330/oac-tracking";
 import { Command } from "commander";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

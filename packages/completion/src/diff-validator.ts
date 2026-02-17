@@ -1,6 +1,6 @@
 import { basename } from "node:path";
 
-import type { OacConfig } from "@oac/core";
+import type { OacConfig } from "@open330/oac-core";
 import { type SimpleGit, simpleGit } from "simple-git";
 
 const DEFAULT_MAX_DIFF_LINES = 500;

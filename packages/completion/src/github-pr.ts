@@ -1,4 +1,4 @@
-import { type ResolvedRepo, completionError } from "@oac/core";
+import { type ResolvedRepo, completionError } from "@open330/oac-core";
 import type { Octokit } from "@octokit/rest";
 import { type SimpleGit, simpleGit } from "simple-git";
 

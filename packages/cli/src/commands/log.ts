@@ -2,7 +2,7 @@ import type { Dirent } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
 
-import { type ContributionLog, contributionLogSchema } from "@oac/tracking";
+import { type ContributionLog, contributionLogSchema } from "@open330/oac-tracking";
 import Table from "cli-table3";
 import { Command } from "commander";
 

@@ -1,4 +1,4 @@
-import { type ExecutionResult, type ResolvedRepo, type Task, createEventBus } from "@oac/core";
+import { type ExecutionResult, type ResolvedRepo, type Task, createEventBus } from "@open330/oac-core";
 import type { Octokit } from "@octokit/rest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

@@ -1,4 +1,4 @@
-import type { ResolvedRepo, Task } from "@oac/core";
+import type { ResolvedRepo, Task } from "@open330/oac-core";
 import type { Octokit } from "@octokit/rest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

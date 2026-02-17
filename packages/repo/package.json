@@ -1,7 +1,13 @@
 {
-  "name": "@oac/repo",
+  "name": "@open330/oac-repo",
   "version": "0.1.0",
-  "private": true,
+  "description": "Repository resolution and cloning for OAC",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Open330/open-agent-contribution.git",
+    "directory": "packages/repo"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -11,13 +17,20 @@
       "types": "./dist/index.d.ts"
     }
   },
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@oac/core": "workspace:*",
+    "@open330/oac-core": "workspace:*",
     "@octokit/rest": "^21.1.1",
     "simple-git": "^3.27.0"
   },

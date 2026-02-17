@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { ResolvedRepo } from "@oac/repo";
+import type { ResolvedRepo } from "@open330/oac-repo";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GitHubIssuesScanner } from "../src/scanners/github-issues-scanner.js";
 

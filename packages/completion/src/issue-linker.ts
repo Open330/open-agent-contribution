@@ -1,4 +1,4 @@
-import { type ResolvedRepo, type Task, completionError } from "@oac/core";
+import { type ResolvedRepo, type Task, completionError } from "@open330/oac-core";
 import type { Octokit } from "@octokit/rest";
 
 import type { CreatedPR } from "./types.js";

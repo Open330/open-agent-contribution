@@ -1,7 +1,7 @@
 import { stat } from "node:fs/promises";
 import { createInterface } from "node:readline";
 
-import { type AgentProviderId, OacError, type TokenEstimate, executionError } from "@oac/core";
+import { type AgentProviderId, OacError, type TokenEstimate, executionError } from "@open330/oac-core";
 import { execa } from "execa";
 
 import type {
@@ -311,6 +311,17 @@ function normalizeUnknownError(error: unknown, executionId: string): OacError {
       context: { executionId, message },
       cause: error,
     });
+  }
+
+  if (/rate.limit|429|too many requests|throttl/i.test(message)) {
+    return executionError(
+      "AGENT_RATE_LIMITED",
+      `Codex execution rate-limited for ${executionId}`,
+      {
+        context: { executionId, message },
+        cause: error,
+      },
+    );
   }
 
   if (/network|ECONN|ENOTFOUND|EAI_AGAIN/i.test(message)) {

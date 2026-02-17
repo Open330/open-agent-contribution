@@ -103,7 +103,7 @@ import {
   type TokenEstimate,
   createEventBus,
   executionError,
-} from "@oac/core";
+} from "@open330/oac-core";
 import type { AgentProvider } from "../src/agents/agent.interface.js";
 import { ExecutionEngine, isTransientError } from "../src/engine.js";
 import { createSandbox } from "../src/sandbox.js";

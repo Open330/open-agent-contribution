@@ -1,4 +1,4 @@
-import type { Task, TaskComplexity, TaskSource } from "@oac/core";
+import type { Task, TaskComplexity, TaskSource } from "@open330/oac-core";
 import type { PriorityWeights } from "./types.js";
 
 const IMPACT_BY_SOURCE: Partial<Record<TaskSource, number>> = {

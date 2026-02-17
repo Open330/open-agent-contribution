@@ -1,5 +1,5 @@
-import type { Task, TaskComplexity, TaskSource } from "@oac/core";
-import type { ResolvedRepo } from "@oac/repo";
+import type { Task, TaskComplexity, TaskSource } from "@open330/oac-core";
+import type { ResolvedRepo } from "@open330/oac-repo";
 
 /**
  * Shared options passed to each scanner invocation.

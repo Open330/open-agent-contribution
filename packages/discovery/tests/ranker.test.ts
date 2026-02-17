@@ -1,4 +1,4 @@
-import type { Task, TaskComplexity, TaskSource } from "@oac/core";
+import type { Task, TaskComplexity, TaskSource } from "@open330/oac-core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { rankTasks } from "../src/ranker.js";
 import type { PriorityWeights } from "../src/types.js";

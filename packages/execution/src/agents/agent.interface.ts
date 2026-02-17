@@ -1,4 +1,4 @@
-import type { AgentProviderId, ExecutionResult, TokenEstimate } from "@oac/core";
+import type { AgentProviderId, ExecutionResult, TokenEstimate } from "@open330/oac-core";
 
 export interface AgentAvailability {
   available: boolean;

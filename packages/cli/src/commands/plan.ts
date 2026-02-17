@@ -3,16 +3,16 @@ import { access } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { buildExecutionPlan, estimateTokens } from "@oac/budget";
-import { type OacConfig, type Task, loadConfig } from "@oac/core";
+import { buildExecutionPlan, estimateTokens } from "@open330/oac-budget";
+import { type OacConfig, type Task, loadConfig } from "@open330/oac-core";
 import {
   CompositeScanner,
   LintScanner,
   type Scanner,
   TodoScanner,
   rankTasks,
-} from "@oac/discovery";
-import { cloneRepo, resolveRepo } from "@oac/repo";
+} from "@open330/oac-discovery";
+import { cloneRepo, resolveRepo } from "@open330/oac-repo";
 import chalk, { Chalk, type ChalkInstance } from "chalk";
 import Table from "cli-table3";
 import { Command } from "commander";

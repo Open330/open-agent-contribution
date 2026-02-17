@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Readable } from "node:stream";
 
-import { OacError } from "@oac/core";
+import { OacError } from "@open330/oac-core";
 import { execa } from "execa";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { OacError, type Task, createEventBus } from "@oac/core";
+import { OacError, type Task, createEventBus } from "@open330/oac-core";
 import type { AgentEvent, AgentProvider, AgentResult } from "../src/agents/agent.interface.js";
 import type { SandboxContext } from "../src/sandbox.js";
 import { executeTask } from "../src/worker.js";

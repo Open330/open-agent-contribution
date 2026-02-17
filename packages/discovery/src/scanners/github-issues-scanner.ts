@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import type { Task, TaskComplexity, TaskSource } from "@oac/core";
+import type { Task, TaskComplexity, TaskSource } from "@open330/oac-core";
 import type { ScanOptions, Scanner } from "../types.js";
 
 const GITHUB_API_BASE_URL = "https://api.github.com";

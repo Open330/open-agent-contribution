@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFile, readdir, stat } from "node:fs/promises";
 import { basename, resolve, sep } from "node:path";
-import type { Task, TaskComplexity, TaskSource } from "@oac/core";
+import type { Task, TaskComplexity, TaskSource } from "@open330/oac-core";
 import type { ScanOptions, Scanner } from "../types.js";
 
 const DEFAULT_EXCLUDES = [".git", "node_modules", "dist", "build", "coverage"] as const;

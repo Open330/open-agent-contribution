@@ -1,7 +1,13 @@
 {
-  "name": "@oac/execution",
+  "name": "@open330/oac-execution",
   "version": "0.1.0",
-  "private": true,
+  "description": "Agent execution engine and sandboxing for OAC",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Open330/open-agent-contribution.git",
+    "directory": "packages/execution"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -11,13 +17,20 @@
       "types": "./dist/index.d.ts"
     }
   },
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@oac/core": "workspace:*",
+    "@open330/oac-core": "workspace:*",
     "execa": "^9.5.2",
     "p-queue": "^8.1.0",
     "simple-git": "^3.27.0"

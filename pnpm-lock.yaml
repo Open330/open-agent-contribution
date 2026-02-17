@@ -32,7 +32,7 @@ importers:
 
   packages/budget:
     dependencies:
-      '@oac/core':
+      '@open330/oac-core':
         specifier: workspace:*
         version: link:../core
       tiktoken:
@@ -51,25 +51,25 @@ importers:
       '@inquirer/prompts':
         specifier: ^6.0.0
         version: 6.0.1
-      '@oac/budget':
+      '@open330/oac-budget':
         specifier: workspace:*
         version: link:../budget
-      '@oac/completion':
+      '@open330/oac-completion':
         specifier: workspace:*
         version: link:../completion
-      '@oac/core':
+      '@open330/oac-core':
         specifier: workspace:*
         version: link:../core
-      '@oac/discovery':
+      '@open330/oac-discovery':
         specifier: workspace:*
         version: link:../discovery
-      '@oac/execution':
+      '@open330/oac-execution':
         specifier: workspace:*
         version: link:../execution
-      '@oac/repo':
+      '@open330/oac-repo':
         specifier: workspace:*
         version: link:../repo
-      '@oac/tracking':
+      '@open330/oac-tracking':
         specifier: workspace:*
         version: link:../tracking
       chalk:
@@ -97,12 +97,12 @@ importers:
 
   packages/completion:
     dependencies:
-      '@oac/core':
-        specifier: workspace:*
-        version: link:../core
       '@octokit/rest':
         specifier: ^21.1.1
         version: 21.1.1
+      '@open330/oac-core':
+        specifier: workspace:*
+        version: link:../core
       simple-git:
         specifier: ^3.27.0
         version: 3.31.1
@@ -138,15 +138,30 @@ importers:
       '@fastify/static':
         specifier: ^8.1.0
         version: 8.3.0
-      '@oac/core':
+      '@open330/oac-budget':
+        specifier: workspace:*
+        version: link:../budget
+      '@open330/oac-core':
         specifier: workspace:*
         version: link:../core
-      '@oac/tracking':
+      '@open330/oac-discovery':
+        specifier: workspace:*
+        version: link:../discovery
+      '@open330/oac-execution':
+        specifier: workspace:*
+        version: link:../execution
+      '@open330/oac-repo':
+        specifier: workspace:*
+        version: link:../repo
+      '@open330/oac-tracking':
         specifier: workspace:*
         version: link:../tracking
       '@xterm/xterm':
         specifier: ^5.5.0
         version: 5.5.0
+      execa:
+        specifier: ^9.5.2
+        version: 9.6.1
       fastify:
         specifier: ^5.2.1
         version: 5.7.4
@@ -187,10 +202,10 @@ importers:
 
   packages/discovery:
     dependencies:
-      '@oac/core':
+      '@open330/oac-core':
         specifier: workspace:*
         version: link:../core
-      '@oac/repo':
+      '@open330/oac-repo':
         specifier: workspace:*
         version: link:../repo
     devDependencies:
@@ -203,7 +218,7 @@ importers:
 
   packages/execution:
     dependencies:
-      '@oac/core':
+      '@open330/oac-core':
         specifier: workspace:*
         version: link:../core
       execa:
@@ -225,12 +240,12 @@ importers:
 
   packages/repo:
     dependencies:
-      '@oac/core':
-        specifier: workspace:*
-        version: link:../core
       '@octokit/rest':
         specifier: ^21.1.1
         version: 21.1.1
+      '@open330/oac-core':
+        specifier: workspace:*
+        version: link:../core
       simple-git:
         specifier: ^3.27.0
         version: 3.31.1
@@ -244,7 +259,7 @@ importers:
 
   packages/tracking:
     dependencies:
-      '@oac/core':
+      '@open330/oac-core':
         specifier: workspace:*
         version: link:../core
       zod:

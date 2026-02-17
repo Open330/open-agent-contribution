@@ -1,5 +1,11 @@
 export type AgentProviderId = "claude-code" | "codex-cli" | "opencode" | (string & {});
 
+/**
+ * Sentinel value representing an unlimited token budget.
+ * Uses MAX_SAFE_INTEGER (passes Number.isFinite() checks in budget planner).
+ */
+export const UNLIMITED_BUDGET = Number.MAX_SAFE_INTEGER;
+
 export interface ResolvedRepo {
   fullName: string;
   owner: string;

@@ -6,7 +6,7 @@ import {
   type Task,
   completionError,
   executionError,
-} from "@oac/core";
+} from "@open330/oac-core";
 import type { Octokit } from "@octokit/rest";
 
 import {

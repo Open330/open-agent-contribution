@@ -1,7 +1,13 @@
 {
-  "name": "@oac/cli",
+  "name": "@open330/oac",
   "version": "0.1.0",
-  "private": true,
+  "description": "CLI for Open Agent Contribution - automate open source contributions with AI agents",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Open330/open-agent-contribution.git",
+    "directory": "packages/cli"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -14,19 +20,26 @@
       "types": "./dist/index.d.ts"
     }
   },
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "build": "tsup src/index.ts src/cli.ts --format esm --dts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@oac/core": "workspace:*",
-    "@oac/repo": "workspace:*",
-    "@oac/discovery": "workspace:*",
-    "@oac/budget": "workspace:*",
-    "@oac/execution": "workspace:*",
-    "@oac/completion": "workspace:*",
-    "@oac/tracking": "workspace:*",
+    "@open330/oac-core": "workspace:*",
+    "@open330/oac-repo": "workspace:*",
+    "@open330/oac-discovery": "workspace:*",
+    "@open330/oac-budget": "workspace:*",
+    "@open330/oac-execution": "workspace:*",
+    "@open330/oac-completion": "workspace:*",
+    "@open330/oac-tracking": "workspace:*",
     "@inquirer/prompts": "^6.0.0",
     "chalk": "^5.4.1",
     "cli-table3": "^0.6.5",

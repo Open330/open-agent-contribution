@@ -1,4 +1,4 @@
-import type { OacConfig } from "@oac/core";
+import type { OacConfig } from "@open330/oac-core";
 import { simpleGit } from "simple-git";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

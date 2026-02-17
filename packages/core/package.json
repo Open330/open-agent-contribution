@@ -1,7 +1,13 @@
 {
-  "name": "@oac/core",
+  "name": "@open330/oac-core",
   "version": "0.1.0",
-  "private": true,
+  "description": "Core types, config schema, and event bus for Open Agent Contribution",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Open330/open-agent-contribution.git",
+    "directory": "packages/core"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -10,6 +16,13 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     }
+  },
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22.0.0"
   },
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts",

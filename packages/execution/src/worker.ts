@@ -6,7 +6,7 @@ import {
   type OacEventBus,
   type Task,
   executionError,
-} from "@oac/core";
+} from "@open330/oac-core";
 
 import type { AgentEvent, AgentProvider, AgentResult } from "./agents/agent.interface.js";
 import type { SandboxContext } from "./sandbox.js";

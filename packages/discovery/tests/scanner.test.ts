@@ -1,4 +1,4 @@
-import type { Task } from "@oac/core";
+import type { Task } from "@open330/oac-core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CompositeScanner, createDefaultCompositeScanner } from "../src/scanner.js";
 import { LintScanner } from "../src/scanners/lint-scanner.js";

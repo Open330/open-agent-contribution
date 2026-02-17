@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { access, readFile } from "node:fs/promises";
 import { relative, resolve, sep } from "node:path";
-import type { Task, TaskComplexity } from "@oac/core";
+import type { Task, TaskComplexity } from "@open330/oac-core";
 import type { ScanOptions, Scanner } from "../types.js";
 
 const DEFAULT_TIMEOUT_MS = 60_000;

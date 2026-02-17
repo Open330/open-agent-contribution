@@ -167,7 +167,7 @@ function buildConfigFile(input: {
 }): string {
   const enabledProviders = input.providers.map((provider) => `'${provider}'`).join(", ");
 
-  return `import { defineConfig } from '@oac/core';
+  return `import { defineConfig } from '@open330/oac-core';
 
 export default defineConfig({
   repos: ['${input.repo}'],

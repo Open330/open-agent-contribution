@@ -9,7 +9,7 @@ import {
   type Task,
   type TokenEstimate,
   executionError,
-} from "@oac/core";
+} from "@open330/oac-core";
 import PQueue from "p-queue";
 
 import type { AgentProvider } from "./agents/agent.interface.js";
@@ -84,6 +84,7 @@ export function isTransientError(error: OacError): boolean {
   return (
     error.code === "AGENT_TIMEOUT" ||
     error.code === "AGENT_OOM" ||
+    error.code === "AGENT_RATE_LIMITED" ||
     error.code === "NETWORK_ERROR" ||
     error.code === "GIT_LOCK_FAILED"
   );
@@ -315,7 +316,10 @@ export class ExecutionEngine {
 
     if (job.attempts < job.maxAttempts && isTransientError(error)) {
       job.status = "retrying";
-      const retryDelay = Math.min(5_000, job.attempts * 1_000);
+      const retryDelay =
+        error.code === "AGENT_RATE_LIMITED"
+          ? Math.min(60_000, 10_000 * 2 ** (job.attempts - 1))
+          : Math.min(5_000, job.attempts * 1_000);
       this.schedule(job, retryDelay);
       return;
     }

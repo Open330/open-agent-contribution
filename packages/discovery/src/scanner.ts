@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { Task } from "@oac/core";
+import type { Task } from "@open330/oac-core";
 import { LintScanner } from "./scanners/lint-scanner.js";
 import { TodoScanner } from "./scanners/todo-scanner.js";
 import type { ScanOptions, Scanner } from "./types.js";

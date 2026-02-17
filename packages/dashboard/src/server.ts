@@ -1,11 +1,18 @@
+import { randomUUID } from "node:crypto";
 import type { Dirent } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import cors from "@fastify/cors";
-import { contributionLogSchema } from "@oac/tracking";
-import type { ContributionLog } from "@oac/tracking";
-import { buildLeaderboard } from "@oac/tracking";
+import { contributionLogSchema } from "@open330/oac-tracking";
+import type { ContributionLog } from "@open330/oac-tracking";
+import { buildLeaderboard } from "@open330/oac-tracking";
 import Fastify from "fastify";
+import {
+  type DashboardRunEvent,
+  type RunConfig,
+  type RunState,
+  executePipeline,
+} from "./pipeline.js";
 import { renderDashboardHtml } from "./ui.js";
 
 export interface DashboardOptions {
@@ -21,6 +28,27 @@ const DEFAULT_OPTIONS: DashboardOptions = {
   openBrowser: false,
   oacDir: process.cwd(),
 };
+
+// ---------------------------------------------------------------------------
+// Run state management (single-run mode)
+// ---------------------------------------------------------------------------
+
+let currentRun: RunState | null = null;
+const sseClients = new Set<(event: DashboardRunEvent) => void>();
+
+function broadcastEvent(event: DashboardRunEvent): void {
+  for (const send of sseClients) {
+    try {
+      send(event);
+    } catch {
+      // Client disconnected — will be cleaned up on close
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// File readers
+// ---------------------------------------------------------------------------
 
 async function readContributionLogs(oacDir: string): Promise<ContributionLog[]> {
   const contributionsPath = resolve(oacDir, ".oac", "contributions");
@@ -54,6 +82,11 @@ async function readContributionLogs(oacDir: string): Promise<ContributionLog[]> 
 }
 
 async function readRunStatus(oacDir: string): Promise<unknown> {
+  // Return live run state if a run is active
+  if (currentRun) {
+    return currentRun;
+  }
+
   try {
     const content = await readFile(resolve(oacDir, ".oac", "status.json"), "utf8");
     return JSON.parse(content);
@@ -61,6 +94,10 @@ async function readRunStatus(oacDir: string): Promise<unknown> {
     return { status: "idle", message: "No active runs" };
   }
 }
+
+// ---------------------------------------------------------------------------
+// Server
+// ---------------------------------------------------------------------------
 
 export async function createDashboardServer(
   options: Partial<DashboardOptions> = {},
@@ -98,6 +135,80 @@ export async function createDashboardServer(
     };
   });
 
+  // --- Start Run ---
+  app.post("/api/v1/runs", async (request, reply) => {
+    // Only one run at a time
+    if (currentRun && currentRun.status === "running") {
+      reply.code(409).send({ error: "A run is already in progress", runId: currentRun.runId });
+      return;
+    }
+
+    const body = request.body as Partial<RunConfig> | null;
+    if (!body?.repo || !body.provider || !body.tokens) {
+      reply.code(400).send({ error: "Missing required fields: repo, provider, tokens" });
+      return;
+    }
+
+    const config: RunConfig = {
+      repo: body.repo,
+      provider: body.provider,
+      tokens: body.tokens,
+      concurrency: typeof body.concurrency === "number" ? body.concurrency : undefined,
+      maxTasks: body.maxTasks,
+      source: body.source,
+    };
+
+    // Initialize run state
+    const runId = randomUUID();
+    currentRun = {
+      runId,
+      status: "running",
+      stage: "resolving",
+      config,
+      startedAt: new Date().toISOString(),
+      progress: {
+        tasksDiscovered: 0,
+        tasksSelected: 0,
+        tasksCompleted: 0,
+        tasksFailed: 0,
+        prsCreated: 0,
+        tokensUsed: 0,
+        prUrls: [],
+      },
+    };
+
+    // Fire-and-forget: pipeline runs in background
+    executePipeline(config, (event) => {
+      // Update currentRun from events
+      if (event.type === "run:stage" && currentRun) {
+        currentRun.stage = event.stage;
+      }
+      if (event.type === "run:progress" && currentRun) {
+        currentRun.progress = event.progress;
+      }
+      if (event.type === "run:completed" && currentRun) {
+        currentRun.status = "completed";
+        currentRun.completedAt = new Date().toISOString();
+      }
+      if (event.type === "run:error" && currentRun) {
+        currentRun.status = "failed";
+        currentRun.error = event.error;
+        currentRun.completedAt = new Date().toISOString();
+      }
+
+      // Broadcast to all SSE clients
+      broadcastEvent(event);
+    }).catch((err) => {
+      if (currentRun) {
+        currentRun.status = "failed";
+        currentRun.error = err instanceof Error ? err.message : String(err);
+        currentRun.completedAt = new Date().toISOString();
+      }
+    });
+
+    reply.code(202).send({ runId, status: "started" });
+  });
+
   // --- SSE Event Stream ---
   app.get("/api/v1/events", async (_request, reply) => {
     reply.raw.writeHead(200, {
@@ -110,6 +221,12 @@ export async function createDashboardServer(
       `event: connected\ndata: ${JSON.stringify({ time: new Date().toISOString() })}\n\n`,
     );
 
+    // Register for run event broadcasts
+    const sendEvent = (event: DashboardRunEvent) => {
+      reply.raw.write(`event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`);
+    };
+    sseClients.add(sendEvent);
+
     const interval = setInterval(() => {
       reply.raw.write(
         `event: heartbeat\ndata: ${JSON.stringify({ time: new Date().toISOString() })}\n\n`,
@@ -118,6 +235,7 @@ export async function createDashboardServer(
 
     _request.raw.on("close", () => {
       clearInterval(interval);
+      sseClients.delete(sendEvent);
     });
   });
 
