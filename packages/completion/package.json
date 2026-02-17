@@ -1,6 +1,6 @@
 {
   "name": "@open330/oac-completion",
-  "version": "2026.3.4",
+  "version": "2026.3.5",
   "description": "PR creation and post-execution completion for OAC",
   "license": "MIT",
   "repository": {
