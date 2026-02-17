@@ -1,3 +1,4 @@
+import type { Dirent } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
 
@@ -161,9 +162,9 @@ function parseStoredLeaderboardEntries(payload: unknown): LeaderboardEntry[] {
 async function readContributionLogs(repoPath: string): Promise<ContributionLog[]> {
   const contributionsPath = resolve(repoPath, ".oac", "contributions");
 
-  let entries: Awaited<ReturnType<typeof readdir>>;
+  let entries: Dirent[];
   try {
-    entries = await readdir(contributionsPath, { withFileTypes: true });
+    entries = await readdir(contributionsPath, { withFileTypes: true, encoding: "utf8" });
   } catch (error) {
     if (isFileNotFoundError(error)) {
       return [];

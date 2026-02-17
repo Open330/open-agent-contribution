@@ -164,7 +164,7 @@ function createAccumulator(
 async function readContributionLogs(contributionsPath: string): Promise<ContributionLog[]> {
   let fileNames: string[];
   try {
-    const entries = await readdir(contributionsPath, { withFileTypes: true });
+    const entries = await readdir(contributionsPath, { withFileTypes: true, encoding: "utf8" });
     fileNames = entries
       .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
       .map((entry) => entry.name)

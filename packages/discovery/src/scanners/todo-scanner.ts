@@ -429,7 +429,7 @@ async function collectFiles(rootDir: string, excludes: string[]): Promise<string
     const absoluteDir = resolve(rootDir, relativeDir);
     let entries: import("node:fs").Dirent[];
     try {
-      entries = await readdir(absoluteDir, { withFileTypes: true });
+      entries = await readdir(absoluteDir, { withFileTypes: true, encoding: "utf8" });
     } catch {
       return;
     }

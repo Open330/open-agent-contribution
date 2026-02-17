@@ -106,7 +106,7 @@ async function collectCandidateFiles(
     const absoluteDir = resolve(repoPath, relativeDir);
     let entries: import("node:fs").Dirent[];
     try {
-      entries = await readdir(absoluteDir, { withFileTypes: true });
+      entries = await readdir(absoluteDir, { withFileTypes: true, encoding: "utf8" });
     } catch {
       return;
     }
