@@ -17,6 +17,8 @@ import {
   rankTasks,
 } from "@open330/oac-discovery";
 import {
+  type AgentProvider,
+  ClaudeCodeAdapter,
   CodexAdapter,
   createSandbox,
   executeTask as workerExecuteTask,
@@ -241,19 +243,18 @@ export function createRunCommand(): Command {
         return;
       }
 
-      const codexAdapter = new CodexAdapter();
-      const codexAvailability = await codexAdapter.checkAvailability();
-      const useRealExecution = providerId.includes("codex") && codexAvailability.available;
+      const { adapter, useRealExecution } = await resolveAdapter(providerId);
 
       if (!outputJson && globalOptions.verbose) {
-        if (useRealExecution) {
+        if (useRealExecution && adapter) {
+          const avail = await adapter.checkAvailability();
           console.log(
             ui.green(
-              `[oac] Using Codex CLI v${codexAvailability.version ?? "unknown"} for execution.`,
+              `[oac] Using ${adapter.name} v${avail.version ?? "unknown"} for execution.`,
             ),
           );
         } else {
-          console.log(ui.yellow("[oac] Codex CLI not available. Using simulated execution."));
+          console.log(ui.yellow("[oac] No agent CLI available. Using simulated execution."));
         }
       }
 
@@ -270,11 +271,11 @@ export function createRunCommand(): Command {
           let execution: ExecutionOutcome;
           let sandbox: SandboxInfo | undefined;
 
-          if (useRealExecution) {
-            const result = await executeWithCodex({
+          if (useRealExecution && adapter) {
+            const result = await executeWithAgent({
               task: entry.task,
               estimate: entry.estimate,
-              codexAdapter,
+              adapter,
               repoPath: resolvedRepo.localPath,
               baseBranch: resolvedRepo.meta.defaultBranch,
               timeoutSeconds,
@@ -518,6 +519,27 @@ function resolveRepoInput(repoOption: string | undefined, config: OacConfig | nu
   throw new Error("No repository specified. Use --repo or configure repos in oac.config.ts.");
 }
 
+async function resolveAdapter(
+  providerId: string,
+): Promise<{ adapter: AgentProvider | null; useRealExecution: boolean }> {
+  // Normalize legacy ID
+  const normalizedId = providerId === "codex-cli" ? "codex" : providerId;
+
+  const adapters: Record<string, () => AgentProvider> = {
+    codex: () => new CodexAdapter(),
+    "claude-code": () => new ClaudeCodeAdapter(),
+  };
+
+  const factory = adapters[normalizedId];
+  if (!factory) {
+    return { adapter: null, useRealExecution: false };
+  }
+
+  const adapter = factory();
+  const availability = await adapter.checkAvailability();
+  return { adapter: availability.available ? adapter : null, useRealExecution: availability.available };
+}
+
 function resolveProviderId(providerOption: string | undefined, config: OacConfig | null): string {
   const fromFlag = providerOption?.trim();
   if (fromFlag) {
@@ -623,10 +645,10 @@ async function estimateTaskMap(
   return new Map(entries);
 }
 
-async function executeWithCodex(input: {
+async function executeWithAgent(input: {
   task: Task;
   estimate: TokenEstimate;
-  codexAdapter: CodexAdapter;
+  adapter: AgentProvider;
   repoPath: string;
   baseBranch: string;
   timeoutSeconds: number;
@@ -647,12 +669,12 @@ async function executeWithCodex(input: {
   };
 
   try {
-    const result = await workerExecuteTask(input.codexAdapter, input.task, sandbox, eventBus, {
+    const result = await workerExecuteTask(input.adapter, input.task, sandbox, eventBus, {
       tokenBudget: input.estimate.totalEstimatedTokens,
       timeoutMs: input.timeoutSeconds * 1_000,
     });
 
-    // Codex may edit files without committing — stage and commit any changes
+    // Agent may edit files without committing — stage and commit any changes
     const commitResult = await commitSandboxChanges(sandbox.path, input.task);
 
     const filesChanged =
@@ -674,7 +696,7 @@ async function executeWithCodex(input: {
       sandbox: sandboxInfo,
     };
   } catch (error) {
-    // Even on error, check if Codex left uncommitted changes
+    // Even on error, check if agent left uncommitted changes
     const commitResult = await commitSandboxChanges(sandbox.path, input.task);
     if (commitResult.hasChanges) {
       return {

@@ -111,8 +111,8 @@ export function renderDashboardHtml(port: number): string {
         <div class="form-group">
           <label for="run-provider">Agent Provider</label>
           <select id="run-provider">
-            <option value="codex-cli">Codex CLI</option>
             <option value="claude-code">Claude Code</option>
+            <option value="codex">Codex CLI</option>
           </select>
         </div>
         <div class="form-group">

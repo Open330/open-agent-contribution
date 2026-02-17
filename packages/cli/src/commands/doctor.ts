@@ -101,7 +101,7 @@ async function runDoctorChecks(): Promise<DoctorCheck[]> {
   const codexResult = await runCommand("codex", ["--version"]);
   const codexVersion = extractVersion(codexResult.stdout) ?? "--";
   checks.push({
-    id: "codex-cli",
+    id: "codex",
     name: "Codex CLI",
     requirement: "installed",
     value: codexVersion,

@@ -299,7 +299,7 @@ All packages are published under the `@open330` scope on npm:
 | CLI | Commander.js, chalk, ora, cli-table3 |
 | Git | simple-git, git worktrees for isolation |
 | GitHub | @octokit/rest |
-| AI Agents | Claude Code, Codex CLI (pluggable via `AgentProvider`) |
+| AI Agents | Claude Code (`claude-code`), Codex CLI (`codex`) — pluggable via `AgentProvider` |
 | Dashboard | Fastify + embedded SPA with SSE streaming |
 | Quality | Vitest, Biome |
 
@@ -378,7 +378,7 @@ You run `oac run`
 | Agent | Status | Provider ID |
 |-------|--------|-------------|
 | [Claude Code](https://claude.ai/code) | Supported | `claude-code` |
-| [Codex CLI](https://github.com/openai/codex) | Planned | `codex-cli` |
+| [Codex CLI](https://github.com/openai/codex) | Supported | `codex` |
 | [OpenCode](https://github.com/opencode-ai/opencode) | Planned | `opencode` |
 | Custom | Implement `AgentProvider` interface | any string |
 
@@ -402,8 +402,9 @@ export class MyAgentAdapter implements AgentProvider {
 
 ## Roadmap
 
-- [x] **2026.2.17** — Core engine, CLI, 5 scanners, Codex adapter, parallel execution, dashboard, npm publish
-- [ ] **Next** — Multi-agent support (Claude Code + Codex + OpenCode simultaneously)
+- [x] **2026.2.17** — Core engine, CLI, 5 scanners, parallel execution, dashboard, npm publish
+- [x] **2026.3.x** — Claude Code + Codex CLI adapters (both supported)
+- [ ] **Next** — OpenCode adapter, multi-agent routing (run multiple agents simultaneously)
 - [ ] **Future** — Linear/Jira webhooks, plugin system, sparse checkout for monorepos
 
 ---
