@@ -357,7 +357,9 @@ function buildScannerList(config: OacConfig | null, hasGitHubAuth: boolean): Sca
   const scanners: Scanner[] = [];
   if (config?.discovery.scanners.lint !== false) scanners.push(new LintScanner());
   if (config?.discovery.scanners.todo !== false) scanners.push(new TodoScanner());
-  scanners.push(new TestGapScanner());
+  if (config?.discovery.scanners.testGap !== false) {
+    scanners.push(new TestGapScanner());
+  }
   if (hasGitHubAuth) scanners.push(new GitHubIssuesScanner());
   return scanners;
 }
@@ -1122,8 +1124,9 @@ function selectScannersFromConfig(
     enabled.push("todo");
   }
 
-  // Always include test-gap for autonomous code analysis
-  enabled.push("test-gap");
+  if (config?.discovery.scanners.testGap !== false) {
+    enabled.push("test-gap");
+  }
 
   // Include GitHub issues scanner when a GitHub token is available.
   if (hasGitHubAuth) {

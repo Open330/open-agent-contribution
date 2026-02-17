@@ -287,8 +287,9 @@ function scannersFromConfig(
   if (config.discovery.scanners.todo) {
     configured.push("todo");
   }
-  // Always include test-gap for autonomous discovery
-  configured.push("test-gap");
+  if (config.discovery.scanners.testGap) {
+    configured.push("test-gap");
+  }
   if (hasGitHubAuth) {
     configured.push("github-issues");
   }
