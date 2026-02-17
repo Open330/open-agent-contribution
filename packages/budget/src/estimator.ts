@@ -5,7 +5,7 @@ import { analyzeTaskComplexity } from "./complexity.js";
 import { ClaudeTokenCounter } from "./providers/claude-counter.js";
 import { CodexTokenCounter } from "./providers/codex-counter.js";
 
-export type AgentProviderId = "claude-code" | "codex-cli" | "opencode" | string;
+export type AgentProviderId = "claude-code" | "codex" | "opencode" | string;
 
 export type TaskSource = "lint" | "todo" | "test-gap" | "dead-code" | "github-issue" | "custom";
 

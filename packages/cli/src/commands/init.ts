@@ -8,7 +8,7 @@ import { Command } from "commander";
 
 import type { GlobalCliOptions } from "../cli.js";
 
-type ProviderId = "claude-code" | "codex-cli" | "opencode";
+type ProviderId = "claude-code" | "codex" | "opencode";
 
 interface InitSummary {
   configPath: string;
@@ -45,8 +45,8 @@ export function createInitCommand(): Command {
       message: "Select AI provider(s):",
       choices: [
         { name: "Claude Code", value: "claude-code", checked: true },
-        { name: "Codex CLI", value: "codex-cli" },
-        { name: "OpenCode", value: "opencode" },
+        { name: "Codex CLI", value: "codex" },
+        { name: "OpenCode (coming soon)", value: "opencode", disabled: true },
       ],
       validate: (value) => (value.length > 0 ? true : "Select at least one provider to continue."),
     });
