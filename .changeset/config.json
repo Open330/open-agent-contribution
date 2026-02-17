@@ -2,19 +2,7 @@
   "$schema": "https://unpkg.com/@changesets/config@3.1.1/schema.json",
   "changelog": "@changesets/cli/changelog",
   "commit": false,
-  "fixed": [
-    [
-      "@open330/oac-core",
-      "@open330/oac-repo",
-      "@open330/oac-discovery",
-      "@open330/oac-budget",
-      "@open330/oac-execution",
-      "@open330/oac-completion",
-      "@open330/oac-tracking",
-      "@open330/oac",
-      "@open330/oac-dashboard"
-    ]
-  ],
+  "fixed": [],
   "linked": [],
   "access": "public",
   "baseBranch": "main",
