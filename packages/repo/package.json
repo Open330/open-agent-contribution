@@ -1,6 +1,6 @@
 {
   "name": "@open330/oac-repo",
-  "version": "2026.3.1",
+  "version": "2026.3.2",
   "description": "Repository resolution and cloning for OAC",
   "license": "MIT",
   "repository": {
@@ -18,7 +18,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "publishConfig": {
     "access": "public"
