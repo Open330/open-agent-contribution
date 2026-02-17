@@ -206,13 +206,11 @@ oac scan --repo owner/repo --format table
 
 ## Configuration
 
-OAC uses a TypeScript config file for full IDE autocompletion:
+OAC uses a TypeScript config file:
 
 ```typescript
 // oac.config.ts
-import { defineConfig } from '@open330/oac-core';
-
-export default defineConfig({
+export default {
   repos: ['facebook/react', 'vercel/next.js'],
 
   provider: {
@@ -241,7 +239,7 @@ export default defineConfig({
     mode: 'new-pr',
     taskTimeout: 300,
   },
-});
+};
 ```
 
 ---
