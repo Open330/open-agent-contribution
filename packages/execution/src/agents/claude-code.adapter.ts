@@ -461,7 +461,11 @@ export class ClaudeCodeAdapter implements AgentProvider {
     const processEnv: Record<string, string> = {
       ...Object.fromEntries(
         Object.entries(process.env).filter(
-          (entry): entry is [string, string] => typeof entry[1] === "string",
+          (entry): entry is [string, string] =>
+            typeof entry[1] === "string" &&
+            // Strip Claude Code session markers to allow spawning a fresh Claude subprocess
+            entry[0] !== "CLAUDECODE" &&
+            entry[0] !== "CLAUDE_CODE_SESSION",
         ),
       ),
       ...params.env,
@@ -472,6 +476,7 @@ export class ClaudeCodeAdapter implements AgentProvider {
     const subprocess = execa("claude", ["-p", params.prompt], {
       cwd: params.workingDirectory,
       env: processEnv,
+      extendEnv: false,
       reject: false,
       timeout: params.timeoutMs,
     });

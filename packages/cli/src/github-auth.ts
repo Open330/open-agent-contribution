@@ -39,19 +39,42 @@ export function ensureGitHubAuth(): string | undefined {
 /**
  * Checks whether the current gh auth has the required scopes.
  * Returns missing scopes or empty array if all present.
+ *
+ * Note: `gh auth status` outputs scope info to stderr, so we
+ * redirect stderr to stdout to capture it.
  */
 export function checkGitHubScopes(required: string[] = ["repo"]): string[] {
   try {
+    // gh auth status prints token info to stderr
     const output = execFileSync("gh", ["auth", "status"], {
       timeout: 5_000,
       encoding: "utf-8",
+      // Merge stderr into stdout so we can read scope info
       stdio: ["ignore", "pipe", "pipe"],
     });
 
-    const scopeMatch = output.match(/Token scopes:\s*'([^']+)'/);
-    if (!scopeMatch) return [];
+    // Try stdout first, then if empty try running with shell redirect
+    let combined = output;
+    if (!combined.includes("Token scopes")) {
+      // gh auth status writes to stderr — use shell to capture both
+      try {
+        combined = execFileSync("sh", ["-c", "gh auth status 2>&1"], {
+          timeout: 5_000,
+          encoding: "utf-8",
+          stdio: ["ignore", "pipe", "ignore"],
+        });
+      } catch {
+        return [];
+      }
+    }
 
-    const scopes = scopeMatch[1].split(",").map((s) => s.trim().replace(/^'|'$/g, ""));
+    // Match: Token scopes: 'admin:org', 'gist', 'repo', 'workflow'
+    const scopeLine = combined.match(/Token scopes:\s*(.+)/);
+    if (!scopeLine) return [];
+
+    const scopes = scopeLine[1]
+      .split(",")
+      .map((s) => s.trim().replace(/^'|'$/g, ""));
     return required.filter((r) => !scopes.includes(r));
   } catch {
     return [];
