@@ -6,8 +6,17 @@ import { execFileSync } from "node:child_process";
  * Call this before any GitHub API usage (resolveRepo, etc.).
  */
 export function ensureGitHubAuth(): string | undefined {
-  if (process.env.GITHUB_TOKEN) return process.env.GITHUB_TOKEN;
-  if (process.env.GH_TOKEN) return process.env.GH_TOKEN;
+  const githubToken = process.env.GITHUB_TOKEN?.trim();
+  if (githubToken) {
+    process.env.GITHUB_TOKEN = githubToken;
+    return githubToken;
+  }
+
+  const ghToken = process.env.GH_TOKEN?.trim();
+  if (ghToken) {
+    process.env.GITHUB_TOKEN = ghToken;
+    return ghToken;
+  }
 
   try {
     const token = execFileSync("gh", ["auth", "token"], {

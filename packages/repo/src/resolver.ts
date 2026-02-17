@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { Octokit } from "@octokit/rest";
@@ -41,7 +42,7 @@ export async function resolveRepo(input: string): Promise<ResolvedRepo> {
   }
 
   const octokit = new Octokit({
-    auth: process.env.GITHUB_TOKEN || process.env.GH_TOKEN,
+    auth: resolveGitHubToken(),
   });
 
   const repoData = await fetchRepo(octokit, parsed.owner, parsed.name);
@@ -272,4 +273,35 @@ function isApiError(error: unknown): error is { status?: number } {
 
 function defaultLocalPath(owner: string, name: string): string {
   return join(homedir(), ".oac", "cache", "repos", owner, name);
+}
+
+function resolveGitHubToken(): string | undefined {
+  const githubToken = process.env.GITHUB_TOKEN?.trim();
+  if (githubToken) {
+    process.env.GITHUB_TOKEN = githubToken;
+    return githubToken;
+  }
+
+  const ghToken = process.env.GH_TOKEN?.trim();
+  if (ghToken) {
+    process.env.GITHUB_TOKEN = ghToken;
+    return ghToken;
+  }
+
+  try {
+    const token = execFileSync("gh", ["auth", "token"], {
+      timeout: 5_000,
+      encoding: "utf-8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+
+    if (token.length > 0) {
+      process.env.GITHUB_TOKEN = token;
+      return token;
+    }
+  } catch {
+    // gh not installed or not authenticated
+  }
+
+  return undefined;
 }
