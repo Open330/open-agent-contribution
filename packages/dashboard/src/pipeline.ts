@@ -222,6 +222,18 @@ async function commitSandboxChanges(
   }
 }
 
+async function resolveGitHubToken(): Promise<string | undefined> {
+  if (process.env.GITHUB_TOKEN) return process.env.GITHUB_TOKEN;
+  if (process.env.GH_TOKEN) return process.env.GH_TOKEN;
+  try {
+    const result = await execa("gh", ["auth", "token"], { reject: false, timeout: 5_000 });
+    if (result.exitCode === 0 && result.stdout.trim().length > 0) return result.stdout.trim();
+  } catch {
+    // gh not available
+  }
+  return undefined;
+}
+
 async function createPullRequest(input: {
   task: Task;
   execution: ExecutionOutcome;
@@ -232,7 +244,18 @@ async function createPullRequest(input: {
   const { branchName, sandboxPath } = input.sandbox;
 
   try {
-    await execa("git", ["push", "--set-upstream", "origin", branchName], { cwd: sandboxPath });
+    // Resolve token upfront to avoid interactive device flow
+    const ghToken = await resolveGitHubToken();
+    const ghEnv: Record<string, string> = { ...process.env } as Record<string, string>;
+    if (ghToken) {
+      ghEnv.GH_TOKEN = ghToken;
+      ghEnv.GITHUB_TOKEN = ghToken;
+    }
+
+    await execa("git", ["push", "--set-upstream", "origin", branchName], {
+      cwd: sandboxPath,
+      env: ghEnv,
+    });
 
     const prTitle = `[OAC] ${input.task.title}`;
     const prBody = [
@@ -267,7 +290,7 @@ async function createPullRequest(input: {
         "--base",
         input.baseBranch,
       ],
-      { cwd: sandboxPath },
+      { cwd: sandboxPath, env: ghEnv },
     );
 
     const prUrl = ghResult.stdout.trim();

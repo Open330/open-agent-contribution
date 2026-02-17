@@ -149,6 +149,9 @@ export function createRunCommand(): Command {
       await cloneRepo(resolvedRepo);
       cloneSpinner?.succeed(`Repository ready at ${resolvedRepo.localPath}`);
 
+      // Pre-flight: ensure GitHub auth is available (avoids interactive device flow mid-run)
+      const ghToken = await resolveGitHubToken(ui, outputJson);
+
       const scanSpinner = createSpinner(
         outputJson,
         `Running scanners: ${scannerSelection.enabled.join(", ")}`,
@@ -314,6 +317,7 @@ export function createRunCommand(): Command {
             sandbox: result.sandbox,
             repoFullName: resolvedRepo.fullName,
             baseBranch: resolvedRepo.meta.defaultBranch,
+            ghToken,
           });
 
           if (!pr) {
@@ -707,12 +711,47 @@ async function executeWithCodex(input: {
   }
 }
 
+async function resolveGitHubToken(
+  ui: ReturnType<typeof createUi>,
+  outputJson: boolean,
+): Promise<string | undefined> {
+  // 1. Prefer explicit env var
+  if (process.env.GITHUB_TOKEN) {
+    return process.env.GITHUB_TOKEN;
+  }
+  if (process.env.GH_TOKEN) {
+    return process.env.GH_TOKEN;
+  }
+
+  // 2. Try to extract from gh CLI (non-interactive)
+  try {
+    const result = await execa("gh", ["auth", "token"], { reject: false, timeout: 5_000 });
+    if (result.exitCode === 0 && result.stdout.trim().length > 0) {
+      return result.stdout.trim();
+    }
+  } catch {
+    // gh not available or not authenticated
+  }
+
+  // 3. Warn the user — don't block the run, but PR creation will fail
+  if (!outputJson) {
+    console.log(
+      ui.yellow(
+        "[oac] Warning: GitHub auth not detected. Run `gh auth login` first to enable PR creation.",
+      ),
+    );
+  }
+
+  return undefined;
+}
+
 async function createPullRequest(input: {
   task: Task;
   execution: ExecutionOutcome;
   sandbox?: SandboxInfo;
   repoFullName: string;
   baseBranch: string;
+  ghToken?: string;
 }): Promise<
   | {
       number: number;
@@ -729,8 +768,18 @@ async function createPullRequest(input: {
   const [owner, repo] = input.repoFullName.split("/");
 
   try {
+    // Build env with explicit GitHub token to avoid interactive device flow
+    const ghEnv: Record<string, string> = { ...process.env } as Record<string, string>;
+    if (input.ghToken) {
+      ghEnv.GH_TOKEN = input.ghToken;
+      ghEnv.GITHUB_TOKEN = input.ghToken;
+    }
+
     // Push the branch from the sandbox worktree
-    await execa("git", ["push", "--set-upstream", "origin", branchName], { cwd: sandboxPath });
+    await execa("git", ["push", "--set-upstream", "origin", branchName], {
+      cwd: sandboxPath,
+      env: ghEnv,
+    });
 
     // Create PR using gh CLI
     const prTitle = `[OAC] ${input.task.title}`;
@@ -766,7 +815,7 @@ async function createPullRequest(input: {
         "--base",
         input.baseBranch,
       ],
-      { cwd: sandboxPath },
+      { cwd: sandboxPath, env: ghEnv },
     );
 
     // Parse PR URL from gh output
