@@ -13,6 +13,10 @@ const originalOacPort = process.env.OAC_PORT;
 const originalOacHost = process.env.OAC_HOST;
 const originalOacDir = process.env.OAC_DIR;
 
+function unsetEnv(key: string): void {
+  Reflect.deleteProperty(process.env, key);
+}
+
 async function importDevEntrypoint(): Promise<void> {
   await import("../../src/dashboard/dev.js");
 }
@@ -22,28 +26,28 @@ beforeEach(() => {
   startDashboardMock.mockReset();
 
   process.argv = ["node", "src/dashboard/dev.ts"];
-  delete process.env.OAC_PORT;
-  delete process.env.OAC_HOST;
-  delete process.env.OAC_DIR;
+  unsetEnv("OAC_PORT");
+  unsetEnv("OAC_HOST");
+  unsetEnv("OAC_DIR");
 });
 
 afterEach(() => {
   process.argv = [...originalArgv];
 
   if (originalOacPort === undefined) {
-    delete process.env.OAC_PORT;
+    unsetEnv("OAC_PORT");
   } else {
     process.env.OAC_PORT = originalOacPort;
   }
 
   if (originalOacHost === undefined) {
-    delete process.env.OAC_HOST;
+    unsetEnv("OAC_HOST");
   } else {
     process.env.OAC_HOST = originalOacHost;
   }
 
   if (originalOacDir === undefined) {
-    delete process.env.OAC_DIR;
+    unsetEnv("OAC_DIR");
   } else {
     process.env.OAC_DIR = originalOacDir;
   }
