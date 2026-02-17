@@ -31,6 +31,7 @@ import ora, { type Ora } from "ora";
 
 import type { GlobalCliOptions } from "../cli.js";
 import { loadOptionalConfigFile } from "../config-loader.js";
+import { ensureGitHubAuth } from "../github-auth.js";
 
 interface RunCommandOptions {
   repo?: string;
@@ -128,6 +129,16 @@ export function createRunCommand(): Command {
       const runStartedAt = Date.now();
       const runId = randomUUID();
 
+      // Pre-flight: ensure GitHub auth is available before any API calls
+      const ghToken = ensureGitHubAuth();
+      if (!ghToken && !outputJson) {
+        console.log(
+          ui.yellow(
+            "[oac] Warning: GitHub auth not detected. Run `gh auth login` first to enable PR creation.",
+          ),
+        );
+      }
+
       if (!outputJson) {
         console.log(
           ui.blue(
@@ -143,9 +154,6 @@ export function createRunCommand(): Command {
       const cloneSpinner = createSpinner(outputJson, "Preparing local clone...");
       await cloneRepo(resolvedRepo);
       cloneSpinner?.succeed(`Repository ready at ${resolvedRepo.localPath}`);
-
-      // Pre-flight: ensure GitHub auth is available (avoids interactive device flow mid-run)
-      const ghToken = await resolveGitHubToken(ui, outputJson);
 
       const scanSpinner = createSpinner(
         outputJson,
@@ -696,39 +704,6 @@ async function executeWithCodex(input: {
   }
 }
 
-async function resolveGitHubToken(
-  ui: ReturnType<typeof createUi>,
-  outputJson: boolean,
-): Promise<string | undefined> {
-  // 1. Prefer explicit env var
-  if (process.env.GITHUB_TOKEN) {
-    return process.env.GITHUB_TOKEN;
-  }
-  if (process.env.GH_TOKEN) {
-    return process.env.GH_TOKEN;
-  }
-
-  // 2. Try to extract from gh CLI (non-interactive)
-  try {
-    const result = await execa("gh", ["auth", "token"], { reject: false, timeout: 5_000 });
-    if (result.exitCode === 0 && result.stdout.trim().length > 0) {
-      return result.stdout.trim();
-    }
-  } catch {
-    // gh not available or not authenticated
-  }
-
-  // 3. Warn the user — don't block the run, but PR creation will fail
-  if (!outputJson) {
-    console.log(
-      ui.yellow(
-        "[oac] Warning: GitHub auth not detected. Run `gh auth login` first to enable PR creation.",
-      ),
-    );
-  }
-
-  return undefined;
-}
 
 async function createPullRequest(input: {
   task: Task;

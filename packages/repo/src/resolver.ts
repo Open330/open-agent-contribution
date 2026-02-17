@@ -41,7 +41,7 @@ export async function resolveRepo(input: string): Promise<ResolvedRepo> {
   }
 
   const octokit = new Octokit({
-    auth: process.env.GITHUB_TOKEN,
+    auth: process.env.GITHUB_TOKEN || process.env.GH_TOKEN,
   });
 
   const repoData = await fetchRepo(octokit, parsed.owner, parsed.name);
