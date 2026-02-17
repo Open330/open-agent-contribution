@@ -36,7 +36,7 @@ function readMetadataNumber(task: Task, key: string): number | undefined {
 function buildTaskPrompt(task: Task): string {
   const fileList = task.targetFiles.length > 0 ? task.targetFiles.join("\n") : "(none provided)";
 
-  return [
+  const lines = [
     "You are implementing a scoped repository contribution task.",
     `Task ID: ${task.id}`,
     `Title: ${task.title}`,
@@ -44,12 +44,31 @@ function buildTaskPrompt(task: Task): string {
     `Priority: ${task.priority}`,
     `Complexity: ${task.complexity}`,
     `Execution mode: ${task.executionMode}`,
+  ];
+
+  if (task.linkedIssue) {
+    lines.push(
+      "",
+      `GitHub Issue #${task.linkedIssue.number}: ${task.linkedIssue.url}`,
+      task.linkedIssue.labels.length > 0
+        ? `Labels: ${task.linkedIssue.labels.join(", ")}`
+        : "",
+      "Resolve this issue completely. Read the issue description carefully and implement the fix.",
+    );
+  }
+
+  lines.push(
+    "",
     "Description:",
     task.description,
+    "",
     "Target files:",
     fileList,
+    "",
     "Apply minimal, safe changes and ensure the repository remains buildable.",
-  ].join("\n");
+  );
+
+  return lines.filter((l) => l !== undefined).join("\n");
 }
 
 function stageFromEvent(event: AgentEvent): string {
