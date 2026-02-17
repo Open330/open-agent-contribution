@@ -58,7 +58,6 @@ type RunMode = "new-pr" | "update-pr" | "direct-commit";
 type SupportedScanner = "lint" | "todo" | "github-issues";
 type CompletionStatus = "success" | "partial" | "failed";
 
-
 interface ExecutionOutcome {
   success: boolean;
   exitCode: number;
@@ -851,7 +850,6 @@ async function simulateExecution(task: Task, estimate: TokenEstimate): Promise<E
     duration: (Date.now() - start) / 1_000,
   };
 }
-
 
 async function commitSandboxChanges(
   sandboxPath: string,

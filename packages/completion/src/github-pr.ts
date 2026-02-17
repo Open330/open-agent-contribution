@@ -1,5 +1,5 @@
-import { type ResolvedRepo, completionError } from "@open330/oac-core";
 import type { Octokit } from "@octokit/rest";
+import { type ResolvedRepo, completionError } from "@open330/oac-core";
 import { type SimpleGit, simpleGit } from "simple-git";
 
 import type { CreatedPR, PRCreationParams } from "./types.js";

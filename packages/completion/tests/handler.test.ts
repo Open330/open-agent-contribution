@@ -1,5 +1,10 @@
-import { type ExecutionResult, type ResolvedRepo, type Task, createEventBus } from "@open330/oac-core";
 import type { Octokit } from "@octokit/rest";
+import {
+  type ExecutionResult,
+  type ResolvedRepo,
+  type Task,
+  createEventBus,
+} from "@open330/oac-core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../src/diff-validator.js", () => ({

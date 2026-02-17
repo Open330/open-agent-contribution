@@ -1,5 +1,5 @@
-import type { ResolvedRepo, Task } from "@open330/oac-core";
 import type { Octokit } from "@octokit/rest";
+import type { ResolvedRepo, Task } from "@open330/oac-core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { linkIssueToePR } from "../src/issue-linker.js";

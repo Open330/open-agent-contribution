@@ -10,7 +10,11 @@ import {
   TodoScanner,
   rankTasks,
 } from "@open330/oac-discovery";
-import { CodexAdapter, createSandbox, executeTask as workerExecuteTask } from "@open330/oac-execution";
+import {
+  CodexAdapter,
+  createSandbox,
+  executeTask as workerExecuteTask,
+} from "@open330/oac-execution";
 import { cloneRepo, resolveRepo } from "@open330/oac-repo";
 import { type ContributionLog, writeContributionLog } from "@open330/oac-tracking";
 import { execa } from "execa";
@@ -206,11 +210,9 @@ async function commitSandboxChanges(
     }
 
     await execa("git", ["add", "-A"], { cwd: sandboxPath });
-    await execa(
-      "git",
-      ["commit", "-m", `[OAC] ${task.title}\n\nAutomated contribution by OAC.`],
-      { cwd: sandboxPath },
-    );
+    await execa("git", ["commit", "-m", `[OAC] ${task.title}\n\nAutomated contribution by OAC.`], {
+      cwd: sandboxPath,
+    });
 
     const diffResult = await execa("git", ["diff", "--name-only", "HEAD~1", "HEAD"], {
       cwd: sandboxPath,
@@ -551,10 +553,7 @@ export async function executePipeline(
         tasksSucceeded: progress.tasksCompleted,
         tasksFailed: progress.tasksFailed,
         totalDuration: (Date.now() - new Date(startedAt).getTime()) / 1_000,
-        totalFilesChanged: taskResults.reduce(
-          (sum, r) => sum + r.execution.filesChanged.length,
-          0,
-        ),
+        totalFilesChanged: taskResults.reduce((sum, r) => sum + r.execution.filesChanged.length, 0),
         totalLinesAdded: 0,
         totalLinesRemoved: 0,
       },

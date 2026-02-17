@@ -1,3 +1,4 @@
+import type { Octokit } from "@octokit/rest";
 import {
   type OacConfig,
   OacError,
@@ -7,7 +8,6 @@ import {
   completionError,
   executionError,
 } from "@open330/oac-core";
-import type { Octokit } from "@octokit/rest";
 
 import {
   type DiffValidationConfig,
