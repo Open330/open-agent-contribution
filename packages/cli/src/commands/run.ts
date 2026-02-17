@@ -126,13 +126,13 @@ export function createRunCommand(): Command {
       const timeoutSeconds = resolveTimeout(options.timeout, config);
       const minPriority = config?.discovery.minPriority ?? 20;
       const maxTasks = options.maxTasks ?? undefined;
-      const scannerSelection = selectScannersFromConfig(config);
+      const ghToken = ensureGitHubAuth();
+      const scannerSelection = selectScannersFromConfig(config, Boolean(ghToken));
 
       const runStartedAt = Date.now();
       const runId = randomUUID();
 
       // Pre-flight: ensure GitHub auth is available before any API calls
-      const ghToken = ensureGitHubAuth();
       if (!ghToken && !outputJson) {
         console.log(
           ui.yellow(
@@ -615,7 +615,10 @@ function resolveTimeout(timeoutOption: number | undefined, config: OacConfig | n
   return Math.floor(configuredTimeout);
 }
 
-function selectScannersFromConfig(config: OacConfig | null): {
+function selectScannersFromConfig(
+  config: OacConfig | null,
+  hasGitHubAuth: boolean,
+): {
   enabled: SupportedScanner[];
   scanner: CompositeScanner;
 } {
@@ -628,8 +631,8 @@ function selectScannersFromConfig(config: OacConfig | null): {
     enabled.push("todo");
   }
 
-  // Always include github-issues scanner when GITHUB_TOKEN is available
-  if (process.env.GITHUB_TOKEN) {
+  // Include GitHub issues scanner when a GitHub token is available.
+  if (hasGitHubAuth) {
     enabled.push("github-issues");
   }
 

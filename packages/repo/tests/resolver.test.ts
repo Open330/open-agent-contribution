@@ -13,6 +13,10 @@ const cacheMocks = vi.hoisted(() => ({
   set: vi.fn(),
 }));
 
+const childProcessMocks = vi.hoisted(() => ({
+  execFileSync: vi.fn(),
+}));
+
 vi.mock("@octokit/rest", () => ({
   Octokit: vi.fn().mockImplementation((options: unknown) => {
     octokitMocks.create(options);
@@ -24,6 +28,10 @@ vi.mock("@octokit/rest", () => ({
       },
     };
   }),
+}));
+
+vi.mock("node:child_process", () => ({
+  execFileSync: childProcessMocks.execFileSync,
 }));
 
 vi.mock("../src/metadata-cache.js", () => ({
@@ -116,6 +124,11 @@ async function expectParsedInput(
 beforeEach(() => {
   vi.clearAllMocks();
 
+  childProcessMocks.execFileSync.mockReset();
+  childProcessMocks.execFileSync.mockImplementation(() => {
+    throw new Error("gh unavailable");
+  });
+
   cacheMocks.get.mockResolvedValue(null);
   cacheMocks.set.mockResolvedValue(undefined);
 
@@ -134,6 +147,7 @@ beforeEach(() => {
 
 afterEach(() => {
   process.env.GITHUB_TOKEN = undefined;
+  process.env.GH_TOKEN = undefined;
 });
 
 describe("RepoResolutionError", () => {
@@ -321,5 +335,41 @@ describe("cache behavior via resolveRepo", () => {
     expect(octokitMocks.listLanguages).not.toHaveBeenCalled();
     expect(octokitMocks.getBranch).not.toHaveBeenCalled();
     expect(cacheMocks.set).not.toHaveBeenCalled();
+  });
+});
+
+describe("GitHub auth token resolution", () => {
+  it("uses GH_TOKEN when GITHUB_TOKEN is not set", async () => {
+    process.env.GITHUB_TOKEN = "";
+    process.env.GH_TOKEN = "gh-token-value";
+
+    await resolveRepo("owner/repo");
+
+    expect(octokitMocks.create).toHaveBeenCalledWith(
+      expect.objectContaining({ auth: "gh-token-value" }),
+    );
+    expect(childProcessMocks.execFileSync).not.toHaveBeenCalled();
+    expect(process.env.GITHUB_TOKEN).toBe("gh-token-value");
+  });
+
+  it("falls back to gh auth token when environment tokens are missing", async () => {
+    process.env.GITHUB_TOKEN = "";
+    process.env.GH_TOKEN = "";
+    childProcessMocks.execFileSync.mockReturnValueOnce("gh-cli-token\n");
+
+    await resolveRepo("owner/repo");
+
+    expect(childProcessMocks.execFileSync).toHaveBeenCalledWith(
+      "gh",
+      ["auth", "token"],
+      expect.objectContaining({
+        timeout: 5_000,
+        encoding: "utf-8",
+      }),
+    );
+    expect(octokitMocks.create).toHaveBeenCalledWith(
+      expect.objectContaining({ auth: "gh-cli-token" }),
+    );
+    expect(process.env.GITHUB_TOKEN).toBe("gh-cli-token");
   });
 });
