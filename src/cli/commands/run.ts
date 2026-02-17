@@ -195,7 +195,7 @@ async function runPipeline(
   });
 }
 
-function printGitHubAuthWarnings(ctx: PipelineContext, ghToken: string | null): void {
+function printGitHubAuthWarnings(ctx: PipelineContext, ghToken: string | undefined): void {
   if (ctx.outputJson) return;
 
   if (!ghToken) {
@@ -231,7 +231,7 @@ async function discoverRepo(
   ctx: PipelineContext,
   options: RunCommandOptions,
   config: OacConfig | null,
-  ghToken: string | null,
+  ghToken: string | undefined,
 ) {
   const repoInput = resolveRepoInput(options.repo, config);
   const scannerSelection = selectScannersFromConfig(config, Boolean(ghToken));
@@ -347,7 +347,7 @@ async function executePlan(
     concurrency: number;
     timeoutSeconds: number;
     mode: RunMode;
-    ghToken: string | null;
+    ghToken?: string;
   },
 ): Promise<TaskRunResult[]> {
   const { plan, providerId, resolvedRepo, concurrency, timeoutSeconds, mode, ghToken } = params;
