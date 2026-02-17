@@ -1,5 +1,10 @@
 import { randomUUID } from "node:crypto";
 
+import chalk, { Chalk, type ChalkInstance } from "chalk";
+import Table from "cli-table3";
+import { Command } from "commander";
+import { execa } from "execa";
+import ora, { type Ora } from "ora";
 import { buildExecutionPlan, estimateTokens } from "../../budget/index.js";
 import {
   type OacConfig,
@@ -26,11 +31,6 @@ import {
 } from "../../execution/index.js";
 import { cloneRepo, resolveRepo } from "../../repo/index.js";
 import { type ContributionLog, writeContributionLog } from "../../tracking/index.js";
-import chalk, { Chalk, type ChalkInstance } from "chalk";
-import Table from "cli-table3";
-import { Command } from "commander";
-import { execa } from "execa";
-import ora, { type Ora } from "ora";
 
 import type { GlobalCliOptions } from "../cli.js";
 import { loadOptionalConfigFile } from "../config-loader.js";
@@ -114,329 +114,411 @@ export function createRunCommand(): Command {
     .action(async (options: RunCommandOptions, cmd) => {
       const globalOptions = getGlobalOptions(cmd);
       const ui = createUi(globalOptions);
-      const outputJson = globalOptions.json;
-
       validateRunOptions(options);
-
-      const config = await loadOptionalConfig(globalOptions.config, globalOptions.verbose, ui);
-      const repoInput = resolveRepoInput(options.repo, config);
-      const providerId = resolveProviderId(options.provider, config);
-      const totalBudget = resolveBudget(options.tokens, config);
-      const mode = resolveMode(options.mode, config);
-      const concurrency = resolveConcurrency(options.concurrency, config);
-      const timeoutSeconds = resolveTimeout(options.timeout, config);
-      const minPriority = config?.discovery.minPriority ?? 20;
-      const maxTasks = options.maxTasks ?? undefined;
-      const ghToken = ensureGitHubAuth();
-      const scannerSelection = selectScannersFromConfig(config, Boolean(ghToken));
-
-      const runStartedAt = Date.now();
-      const runId = randomUUID();
-
-      // Pre-flight: ensure GitHub auth is available before any API calls
-      if (!ghToken && !outputJson) {
-        console.log(
-          ui.yellow(
-            "[oac] Warning: GitHub auth not detected. Run `gh auth login` first.",
-          ),
-        );
-        console.log(
-          ui.yellow(
-            "[oac] For private repos, ensure the 'repo' scope: gh auth refresh -s repo",
-          ),
-        );
-      } else if (ghToken && !outputJson) {
-        const missingScopes = checkGitHubScopes(["repo"]);
-        if (missingScopes.length > 0) {
-          console.log(
-            ui.yellow(
-              `[oac] Warning: GitHub token missing scope(s): ${missingScopes.join(", ")}. Private repos may fail.`,
-            ),
-          );
-          console.log(
-            ui.yellow(
-              "[oac] Fix with: gh auth refresh -s repo",
-            ),
-          );
-        }
-      }
-
-      if (!outputJson) {
-        console.log(
-          ui.blue(
-            `Starting OAC run (budget: ${formatBudgetDisplay(totalBudget)} tokens, concurrency: ${concurrency})`,
-          ),
-        );
-      }
-
-      const resolveSpinner = createSpinner(outputJson, "Resolving repository...");
-      const resolvedRepo = await resolveRepo(repoInput);
-      resolveSpinner?.succeed(`Resolved ${resolvedRepo.fullName}`);
-
-      const cloneSpinner = createSpinner(outputJson, "Preparing local clone...");
-      await cloneRepo(resolvedRepo);
-      cloneSpinner?.succeed(`Repository ready at ${resolvedRepo.localPath}`);
-
-      const scanSpinner = createSpinner(
-        outputJson,
-        `Running scanners: ${scannerSelection.enabled.join(", ")}`,
-      );
-      const scannedTasks = await scannerSelection.scanner.scan(resolvedRepo.localPath, {
-        exclude: config?.discovery.exclude,
-        maxTasks: config?.discovery.maxTasks,
-        repo: resolvedRepo,
-      });
-      scanSpinner?.succeed(`Discovered ${scannedTasks.length} raw task(s)`);
-
-      let candidateTasks = rankTasks(scannedTasks).filter((task) => task.priority >= minPriority);
-      if (options.source) {
-        candidateTasks = candidateTasks.filter((task) => task.source === options.source);
-      }
-      if (typeof maxTasks === "number") {
-        candidateTasks = candidateTasks.slice(0, maxTasks);
-      }
-
-      if (candidateTasks.length === 0) {
-        const emptySummary: RunSummaryOutput = {
-          runId,
-          repo: resolvedRepo.fullName,
-          provider: providerId,
-          dryRun: Boolean(options.dryRun),
-          selectedTasks: 0,
-          deferredTasks: 0,
-          tasksCompleted: 0,
-          tasksFailed: 0,
-          prsCreated: 0,
-          tokensUsed: 0,
-          tokensBudgeted: totalBudget,
-        };
-
-        if (outputJson) {
-          console.log(JSON.stringify({ summary: emptySummary, plan: null }, null, 2));
-        } else {
-          console.log(ui.yellow("No tasks discovered for execution."));
-        }
-        return;
-      }
-
-      const estimateSpinner = createSpinner(
-        outputJson,
-        `Estimating tokens for ${candidateTasks.length} task(s)...`,
-      );
-      const estimates = await estimateTaskMap(candidateTasks, providerId);
-      estimateSpinner?.succeed("Token estimation completed");
-
-      const plan = buildExecutionPlan(candidateTasks, estimates, totalBudget);
-
-      if (options.dryRun) {
-        const dryRunSummary: RunSummaryOutput = {
-          runId,
-          repo: resolvedRepo.fullName,
-          provider: providerId,
-          dryRun: true,
-          selectedTasks: plan.selectedTasks.length,
-          deferredTasks: plan.deferredTasks.length,
-          tasksCompleted: 0,
-          tasksFailed: 0,
-          prsCreated: 0,
-          tokensUsed: 0,
-          tokensBudgeted: totalBudget,
-        };
-
-        if (outputJson) {
-          console.log(
-            JSON.stringify(
-              {
-                summary: dryRunSummary,
-                plan,
-              },
-              null,
-              2,
-            ),
-          );
-        } else {
-          renderSelectedPlanTable(ui, plan, totalBudget);
-          console.log("");
-          console.log(ui.blue("Dry run complete. No tasks were executed."));
-        }
-
-        return;
-      }
-
-      const { adapter, useRealExecution } = await resolveAdapter(providerId);
-
-      if (!outputJson && globalOptions.verbose) {
-        if (useRealExecution && adapter) {
-          const avail = await adapter.checkAvailability();
-          console.log(
-            ui.green(
-              `[oac] Using ${adapter.name} v${avail.version ?? "unknown"} for execution.`,
-            ),
-          );
-        } else {
-          console.log(ui.yellow("[oac] No agent CLI available. Using simulated execution."));
-        }
-      }
-
-      const executionSpinner = createSpinner(
-        outputJson,
-        `Executing ${plan.selectedTasks.length} planned task(s)...`,
-      );
-
-      let completedCount = 0;
-      const executedTasks = await runWithConcurrency(
-        plan.selectedTasks,
-        concurrency,
-        async (entry): Promise<TaskRunResult> => {
-          let execution: ExecutionOutcome;
-          let sandbox: SandboxInfo | undefined;
-
-          if (useRealExecution && adapter) {
-            const result = await executeWithAgent({
-              task: entry.task,
-              estimate: entry.estimate,
-              adapter,
-              repoPath: resolvedRepo.localPath,
-              baseBranch: resolvedRepo.meta.defaultBranch,
-              timeoutSeconds,
-            });
-            execution = result.execution;
-            sandbox = result.sandbox;
-          } else {
-            execution = await simulateExecution(entry.task, entry.estimate);
-          }
-
-          completedCount += 1;
-          if (executionSpinner) {
-            executionSpinner.text = `Executing tasks... (${completedCount}/${plan.selectedTasks.length})`;
-          }
-
-          return {
-            task: entry.task,
-            estimate: entry.estimate,
-            execution,
-            sandbox,
-          };
-        },
-      );
-
-      executionSpinner?.succeed("Execution stage finished");
-
-      const completionSpinner = createSpinner(outputJson, "Completing task outputs...");
-      const completedTasks = await runWithConcurrency(
-        executedTasks,
-        concurrency,
-        async (result): Promise<TaskRunResult> => {
-          if (mode === "direct-commit") {
-            return result;
-          }
-
-          if (!result.execution.success) {
-            return result;
-          }
-
-          const pr = await createPullRequest({
-            task: result.task,
-            execution: result.execution,
-            sandbox: result.sandbox,
-            repoFullName: resolvedRepo.fullName,
-            baseBranch: resolvedRepo.meta.defaultBranch,
-            ghToken,
-          });
-
-          if (!pr) {
-            return result;
-          }
-
-          return {
-            ...result,
-            pr,
-          };
-        },
-      );
-      completionSpinner?.succeed("Completion stage finished");
-
-      const tasksCompleted = completedTasks.filter((task) => task.execution.success).length;
-      const tasksFailed = completedTasks.length - tasksCompleted;
-      const prsCreated = completedTasks.filter((task) => Boolean(task.pr)).length;
-      const tokensUsed = completedTasks.reduce(
-        (sum, task) => sum + task.execution.totalTokensUsed,
-        0,
-      );
-
-      const runDurationSeconds = (Date.now() - runStartedAt) / 1000;
-      const contributionLog = buildContributionLog({
-        runId,
-        repoFullName: resolvedRepo.fullName,
-        repoHeadSha: resolvedRepo.git.headSha,
-        defaultBranch: resolvedRepo.meta.defaultBranch,
-        repoOwner: resolvedRepo.owner,
-        providerId,
-        totalBudget,
-        runDurationSeconds,
-        discoveredTasks: candidateTasks.length,
-        taskResults: completedTasks,
-      });
-
-      const trackingSpinner = createSpinner(outputJson, "Writing contribution log...");
-      let logPath: string | undefined;
-      try {
-        logPath = await writeContributionLog(contributionLog, resolvedRepo.localPath);
-        trackingSpinner?.succeed(`Contribution log written: ${logPath}`);
-      } catch (error) {
-        trackingSpinner?.fail("Failed to write contribution log");
-        if (globalOptions.verbose && !outputJson) {
-          const message = error instanceof Error ? error.message : String(error);
-          console.warn(ui.yellow(`[oac] Tracking failed: ${message}`));
-        }
-      }
-
-      const summary: RunSummaryOutput = {
-        runId,
-        repo: resolvedRepo.fullName,
-        provider: providerId,
-        dryRun: false,
-        selectedTasks: plan.selectedTasks.length,
-        deferredTasks: plan.deferredTasks.length,
-        tasksCompleted,
-        tasksFailed,
-        prsCreated,
-        tokensUsed,
-        tokensBudgeted: totalBudget,
-        logPath,
-      };
-
-      if (outputJson) {
-        console.log(
-          JSON.stringify(
-            {
-              summary,
-              plan,
-              tasks: completedTasks,
-            },
-            null,
-            2,
-          ),
-        );
-        return;
-      }
-
-      renderTaskResults(ui, completedTasks);
-      console.log("");
-      console.log(ui.bold("Run Summary"));
-      console.log(`  Tasks completed: ${tasksCompleted}/${completedTasks.length}`);
-      console.log(`  Tasks failed:    ${tasksFailed}`);
-      console.log(`  PRs created:     ${prsCreated}`);
-      console.log(
-        `  Tokens used:     ${formatInteger(tokensUsed)} / ${formatBudgetDisplay(totalBudget)}`,
-      );
-      console.log(`  Duration:        ${formatDuration(runDurationSeconds)}`);
-      if (logPath) {
-        console.log(`  Log:             ${logPath}`);
-      }
+      await runPipeline(options, globalOptions, ui);
     });
 
   return command;
+}
+
+interface PipelineContext {
+  options: RunCommandOptions;
+  globalOptions: Required<GlobalCliOptions>;
+  ui: ChalkInstance;
+  outputJson: boolean;
+  runId: string;
+  runStartedAt: number;
+}
+
+async function runPipeline(
+  options: RunCommandOptions,
+  globalOptions: Required<GlobalCliOptions>,
+  ui: ChalkInstance,
+): Promise<void> {
+  const ctx: PipelineContext = {
+    options,
+    globalOptions,
+    ui,
+    outputJson: globalOptions.json,
+    runId: randomUUID(),
+    runStartedAt: Date.now(),
+  };
+
+  const config = await loadOptionalConfig(globalOptions.config, globalOptions.verbose, ui);
+  const providerId = resolveProviderId(options.provider, config);
+  const totalBudget = resolveBudget(options.tokens, config);
+  const mode = resolveMode(options.mode, config);
+  const concurrency = resolveConcurrency(options.concurrency, config);
+  const timeoutSeconds = resolveTimeout(options.timeout, config);
+  const ghToken = ensureGitHubAuth();
+
+  printGitHubAuthWarnings(ctx, ghToken);
+  printRunHeader(ctx, totalBudget, concurrency);
+
+  const resolvedRepo = await discoverRepo(ctx, options, config, ghToken);
+  const { candidateTasks, plan } = resolvedRepo;
+
+  if (candidateTasks.length === 0) {
+    printEmptySummary(ctx, resolvedRepo.fullName, providerId, totalBudget);
+    return;
+  }
+
+  if (options.dryRun) {
+    printDryRunSummary(ctx, resolvedRepo.fullName, providerId, totalBudget, plan);
+    return;
+  }
+
+  const completedTasks = await executePlan(ctx, {
+    plan,
+    providerId,
+    resolvedRepo,
+    concurrency,
+    timeoutSeconds,
+    mode,
+    ghToken,
+  });
+
+  await writeTracking(ctx, {
+    resolvedRepo,
+    providerId,
+    totalBudget,
+    candidateTasks,
+    completedTasks,
+  });
+
+  printFinalSummary(ctx, {
+    plan,
+    resolvedRepo,
+    providerId,
+    totalBudget,
+    completedTasks,
+  });
+}
+
+function printGitHubAuthWarnings(ctx: PipelineContext, ghToken: string | null): void {
+  if (ctx.outputJson) return;
+
+  if (!ghToken) {
+    console.log(
+      ctx.ui.yellow("[oac] Warning: GitHub auth not detected. Run `gh auth login` first."),
+    );
+    console.log(
+      ctx.ui.yellow("[oac] For private repos, ensure the 'repo' scope: gh auth refresh -s repo"),
+    );
+  } else {
+    const missingScopes = checkGitHubScopes(["repo"]);
+    if (missingScopes.length > 0) {
+      console.log(
+        ctx.ui.yellow(
+          `[oac] Warning: GitHub token missing scope(s): ${missingScopes.join(", ")}. Private repos may fail.`,
+        ),
+      );
+      console.log(ctx.ui.yellow("[oac] Fix with: gh auth refresh -s repo"));
+    }
+  }
+}
+
+function printRunHeader(ctx: PipelineContext, totalBudget: number, concurrency: number): void {
+  if (ctx.outputJson) return;
+  console.log(
+    ctx.ui.blue(
+      `Starting OAC run (budget: ${formatBudgetDisplay(totalBudget)} tokens, concurrency: ${concurrency})`,
+    ),
+  );
+}
+
+async function discoverRepo(
+  ctx: PipelineContext,
+  options: RunCommandOptions,
+  config: OacConfig | null,
+  ghToken: string | null,
+) {
+  const repoInput = resolveRepoInput(options.repo, config);
+  const scannerSelection = selectScannersFromConfig(config, Boolean(ghToken));
+  const minPriority = config?.discovery.minPriority ?? 20;
+  const maxTasks = options.maxTasks ?? undefined;
+
+  const resolveSpinner = createSpinner(ctx.outputJson, "Resolving repository...");
+  const resolvedRepo = await resolveRepo(repoInput);
+  resolveSpinner?.succeed(`Resolved ${resolvedRepo.fullName}`);
+
+  const cloneSpinner = createSpinner(ctx.outputJson, "Preparing local clone...");
+  await cloneRepo(resolvedRepo);
+  cloneSpinner?.succeed(`Repository ready at ${resolvedRepo.localPath}`);
+
+  const scanSpinner = createSpinner(
+    ctx.outputJson,
+    `Running scanners: ${scannerSelection.enabled.join(", ")}`,
+  );
+  const scannedTasks = await scannerSelection.scanner.scan(resolvedRepo.localPath, {
+    exclude: config?.discovery.exclude,
+    maxTasks: config?.discovery.maxTasks,
+    repo: resolvedRepo,
+  });
+  scanSpinner?.succeed(`Discovered ${scannedTasks.length} raw task(s)`);
+
+  let candidateTasks = rankTasks(scannedTasks).filter((task) => task.priority >= minPriority);
+  if (options.source) {
+    candidateTasks = candidateTasks.filter((task) => task.source === options.source);
+  }
+  if (typeof maxTasks === "number") {
+    candidateTasks = candidateTasks.slice(0, maxTasks);
+  }
+
+  const estimateSpinner = createSpinner(
+    ctx.outputJson,
+    `Estimating tokens for ${candidateTasks.length} task(s)...`,
+  );
+  const estimates =
+    candidateTasks.length > 0
+      ? await estimateTaskMap(candidateTasks, resolveProviderId(options.provider, config))
+      : new Map<string, TokenEstimate>();
+  if (candidateTasks.length > 0) estimateSpinner?.succeed("Token estimation completed");
+  else estimateSpinner?.stop();
+
+  const plan = buildExecutionPlan(candidateTasks, estimates, resolveBudget(options.tokens, config));
+
+  return { ...resolvedRepo, candidateTasks, plan, fullName: resolvedRepo.fullName };
+}
+
+function printEmptySummary(
+  ctx: PipelineContext,
+  repoName: string,
+  providerId: string,
+  totalBudget: number,
+): void {
+  const emptySummary: RunSummaryOutput = {
+    runId: ctx.runId,
+    repo: repoName,
+    provider: providerId,
+    dryRun: Boolean(ctx.options.dryRun),
+    selectedTasks: 0,
+    deferredTasks: 0,
+    tasksCompleted: 0,
+    tasksFailed: 0,
+    prsCreated: 0,
+    tokensUsed: 0,
+    tokensBudgeted: totalBudget,
+  };
+
+  if (ctx.outputJson) {
+    console.log(JSON.stringify({ summary: emptySummary, plan: null }, null, 2));
+  } else {
+    console.log(ctx.ui.yellow("No tasks discovered for execution."));
+  }
+}
+
+function printDryRunSummary(
+  ctx: PipelineContext,
+  repoName: string,
+  providerId: string,
+  totalBudget: number,
+  plan: ReturnType<typeof buildExecutionPlan>,
+): void {
+  const dryRunSummary: RunSummaryOutput = {
+    runId: ctx.runId,
+    repo: repoName,
+    provider: providerId,
+    dryRun: true,
+    selectedTasks: plan.selectedTasks.length,
+    deferredTasks: plan.deferredTasks.length,
+    tasksCompleted: 0,
+    tasksFailed: 0,
+    prsCreated: 0,
+    tokensUsed: 0,
+    tokensBudgeted: totalBudget,
+  };
+
+  if (ctx.outputJson) {
+    console.log(JSON.stringify({ summary: dryRunSummary, plan }, null, 2));
+  } else {
+    renderSelectedPlanTable(ctx.ui, plan, totalBudget);
+    console.log("");
+    console.log(ctx.ui.blue("Dry run complete. No tasks were executed."));
+  }
+}
+
+async function executePlan(
+  ctx: PipelineContext,
+  params: {
+    plan: ReturnType<typeof buildExecutionPlan>;
+    providerId: string;
+    resolvedRepo: Awaited<ReturnType<typeof resolveRepo>>;
+    concurrency: number;
+    timeoutSeconds: number;
+    mode: RunMode;
+    ghToken: string | null;
+  },
+): Promise<TaskRunResult[]> {
+  const { plan, providerId, resolvedRepo, concurrency, timeoutSeconds, mode, ghToken } = params;
+  const { adapter, useRealExecution } = await resolveAdapter(providerId);
+
+  if (!ctx.outputJson && ctx.globalOptions.verbose) {
+    if (useRealExecution && adapter) {
+      const avail = await adapter.checkAvailability();
+      console.log(
+        ctx.ui.green(`[oac] Using ${adapter.name} v${avail.version ?? "unknown"} for execution.`),
+      );
+    } else {
+      console.log(ctx.ui.yellow("[oac] No agent CLI available. Using simulated execution."));
+    }
+  }
+
+  const executionSpinner = createSpinner(
+    ctx.outputJson,
+    `Executing ${plan.selectedTasks.length} planned task(s)...`,
+  );
+  let completedCount = 0;
+
+  const executedTasks = await runWithConcurrency(
+    plan.selectedTasks,
+    concurrency,
+    async (entry): Promise<TaskRunResult> => {
+      let execution: ExecutionOutcome;
+      let sandbox: SandboxInfo | undefined;
+
+      if (useRealExecution && adapter) {
+        const result = await executeWithAgent({
+          task: entry.task,
+          estimate: entry.estimate,
+          adapter,
+          repoPath: resolvedRepo.localPath,
+          baseBranch: resolvedRepo.meta.defaultBranch,
+          timeoutSeconds,
+        });
+        execution = result.execution;
+        sandbox = result.sandbox;
+      } else {
+        execution = await simulateExecution(entry.task, entry.estimate);
+      }
+
+      completedCount += 1;
+      if (executionSpinner) {
+        executionSpinner.text = `Executing tasks... (${completedCount}/${plan.selectedTasks.length})`;
+      }
+
+      return { task: entry.task, estimate: entry.estimate, execution, sandbox };
+    },
+  );
+
+  executionSpinner?.succeed("Execution stage finished");
+
+  const completionSpinner = createSpinner(ctx.outputJson, "Completing task outputs...");
+  const completedTasks = await runWithConcurrency(
+    executedTasks,
+    concurrency,
+    async (result): Promise<TaskRunResult> => {
+      if (mode === "direct-commit" || !result.execution.success) return result;
+
+      const pr = await createPullRequest({
+        task: result.task,
+        execution: result.execution,
+        sandbox: result.sandbox,
+        repoFullName: resolvedRepo.fullName,
+        baseBranch: resolvedRepo.meta.defaultBranch,
+        ghToken,
+      });
+
+      return pr ? { ...result, pr } : result;
+    },
+  );
+  completionSpinner?.succeed("Completion stage finished");
+
+  return completedTasks;
+}
+
+async function writeTracking(
+  ctx: PipelineContext,
+  params: {
+    resolvedRepo: Awaited<ReturnType<typeof resolveRepo>>;
+    providerId: string;
+    totalBudget: number;
+    candidateTasks: Task[];
+    completedTasks: TaskRunResult[];
+  },
+): Promise<string | undefined> {
+  const { resolvedRepo, providerId, totalBudget, candidateTasks, completedTasks } = params;
+  const runDurationSeconds = (Date.now() - ctx.runStartedAt) / 1000;
+
+  const contributionLog = buildContributionLog({
+    runId: ctx.runId,
+    repoFullName: resolvedRepo.fullName,
+    repoHeadSha: resolvedRepo.git.headSha,
+    defaultBranch: resolvedRepo.meta.defaultBranch,
+    repoOwner: resolvedRepo.owner,
+    providerId,
+    totalBudget,
+    runDurationSeconds,
+    discoveredTasks: candidateTasks.length,
+    taskResults: completedTasks,
+  });
+
+  const trackingSpinner = createSpinner(ctx.outputJson, "Writing contribution log...");
+  try {
+    const logPath = await writeContributionLog(contributionLog, resolvedRepo.localPath);
+    trackingSpinner?.succeed(`Contribution log written: ${logPath}`);
+    return logPath;
+  } catch (error) {
+    trackingSpinner?.fail("Failed to write contribution log");
+    if (ctx.globalOptions.verbose && !ctx.outputJson) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(ctx.ui.yellow(`[oac] Tracking failed: ${message}`));
+    }
+    return undefined;
+  }
+}
+
+function printFinalSummary(
+  ctx: PipelineContext,
+  params: {
+    plan: ReturnType<typeof buildExecutionPlan>;
+    resolvedRepo: Awaited<ReturnType<typeof resolveRepo>>;
+    providerId: string;
+    totalBudget: number;
+    completedTasks: TaskRunResult[];
+    logPath?: string;
+  },
+): void {
+  const { plan, resolvedRepo, providerId, totalBudget, completedTasks } = params;
+  const tasksCompleted = completedTasks.filter((t) => t.execution.success).length;
+  const tasksFailed = completedTasks.length - tasksCompleted;
+  const prsCreated = completedTasks.filter((t) => Boolean(t.pr)).length;
+  const tokensUsed = completedTasks.reduce((sum, t) => sum + t.execution.totalTokensUsed, 0);
+  const runDurationSeconds = (Date.now() - ctx.runStartedAt) / 1000;
+
+  const summary: RunSummaryOutput = {
+    runId: ctx.runId,
+    repo: resolvedRepo.fullName,
+    provider: providerId,
+    dryRun: false,
+    selectedTasks: plan.selectedTasks.length,
+    deferredTasks: plan.deferredTasks.length,
+    tasksCompleted,
+    tasksFailed,
+    prsCreated,
+    tokensUsed,
+    tokensBudgeted: totalBudget,
+    logPath: params.logPath,
+  };
+
+  if (ctx.outputJson) {
+    console.log(JSON.stringify({ summary, plan, tasks: completedTasks }, null, 2));
+    return;
+  }
+
+  renderTaskResults(ctx.ui, completedTasks);
+  console.log("");
+  console.log(ctx.ui.bold("Run Summary"));
+  console.log(`  Tasks completed: ${tasksCompleted}/${completedTasks.length}`);
+  console.log(`  Tasks failed:    ${tasksFailed}`);
+  console.log(`  PRs created:     ${prsCreated}`);
+  console.log(
+    `  Tokens used:     ${formatInteger(tokensUsed)} / ${formatBudgetDisplay(totalBudget)}`,
+  );
+  console.log(`  Duration:        ${formatDuration(runDurationSeconds)}`);
+  if (params.logPath) {
+    console.log(`  Log:             ${params.logPath}`);
+  }
 }
 
 function getGlobalOptions(command: Command): Required<GlobalCliOptions> {
@@ -557,7 +639,10 @@ async function resolveAdapter(
 
   const adapter = factory();
   const availability = await adapter.checkAvailability();
-  return { adapter: availability.available ? adapter : null, useRealExecution: availability.available };
+  return {
+    adapter: availability.available ? adapter : null,
+    useRealExecution: availability.available,
+  };
 }
 
 function resolveProviderId(providerOption: string | undefined, config: OacConfig | null): string {
@@ -753,7 +838,6 @@ async function executeWithAgent(input: {
   }
 }
 
-
 async function createPullRequest(input: {
   task: Task;
   execution: ExecutionOutcome;
@@ -801,10 +885,7 @@ async function createPullRequest(input: {
 
     // Auto-resolve: link PR to GitHub issue so it closes on merge
     if (input.task.linkedIssue) {
-      prBodyLines.push(
-        `Closes #${input.task.linkedIssue.number}`,
-        "",
-      );
+      prBodyLines.push(`Closes #${input.task.linkedIssue.number}`, "");
     }
 
     prBodyLines.push(

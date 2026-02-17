@@ -50,9 +50,7 @@ function buildTaskPrompt(task: Task): string {
     lines.push(
       "",
       `GitHub Issue #${task.linkedIssue.number}: ${task.linkedIssue.url}`,
-      task.linkedIssue.labels.length > 0
-        ? `Labels: ${task.linkedIssue.labels.join(", ")}`
-        : "",
+      task.linkedIssue.labels.length > 0 ? `Labels: ${task.linkedIssue.labels.join(", ")}` : "",
       "Resolve this issue completely. Read the issue description carefully and implement the fix.",
     );
   }

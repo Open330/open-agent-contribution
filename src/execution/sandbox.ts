@@ -17,7 +17,10 @@ let worktreeLock = Promise.resolve();
 
 function withWorktreeLock<T>(fn: () => Promise<T>): Promise<T> {
   const next = worktreeLock.then(fn, fn);
-  worktreeLock = next.then(() => {}, () => {});
+  worktreeLock = next.then(
+    () => {},
+    () => {},
+  );
   return next;
 }
 

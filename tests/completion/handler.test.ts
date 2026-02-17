@@ -1,11 +1,11 @@
 import type { Octokit } from "@octokit/rest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   type ExecutionResult,
   type ResolvedRepo,
   type Task,
   createEventBus,
 } from "../../src/core/index.js";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../../src/completion/diff-validator.js", () => ({
   validateDiff: vi.fn().mockResolvedValue({ valid: true, warnings: [], errors: [] }),

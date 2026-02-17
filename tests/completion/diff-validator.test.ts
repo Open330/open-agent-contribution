@@ -1,6 +1,6 @@
-import type { OacConfig } from "../../src/core/index.js";
 import { simpleGit } from "simple-git";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { OacConfig } from "../../src/core/index.js";
 
 import { validateDiff } from "../../src/completion/diff-validator.js";
 

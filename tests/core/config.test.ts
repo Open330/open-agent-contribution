@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { OacConfigSchema, defineConfig, interpolateEnvVars, loadConfig } from "../../src/core/config.js";
+import {
+  OacConfigSchema,
+  defineConfig,
+  interpolateEnvVars,
+  loadConfig,
+} from "../../src/core/config.js";
 import { OacError } from "../../src/core/errors.js";
 
 describe("default config values", () => {

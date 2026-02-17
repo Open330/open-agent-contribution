@@ -1,5 +1,5 @@
-import type { Task } from "../../src/core/index.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { Task } from "../../src/core/index.js";
 import { CompositeScanner, createDefaultCompositeScanner } from "../../src/discovery/scanner.js";
 import { LintScanner } from "../../src/discovery/scanners/lint-scanner.js";
 import { TodoScanner } from "../../src/discovery/scanners/todo-scanner.js";

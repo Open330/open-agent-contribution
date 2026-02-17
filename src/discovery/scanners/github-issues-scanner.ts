@@ -309,7 +309,11 @@ function mapIssueToTask(issue: GitHubIssueResponse, discoveredAt: string): Task 
 function mapComplexityFromLabels(labels: string[]): TaskComplexity {
   const normalized = labels.map((label) => label.toLowerCase());
 
-  if (normalized.some((label) => label.includes("good first issue") || label.includes("good-first-issue"))) {
+  if (
+    normalized.some(
+      (label) => label.includes("good first issue") || label.includes("good-first-issue"),
+    )
+  ) {
     return "simple";
   }
   if (normalized.some((label) => label.includes("feature"))) {

@@ -1,13 +1,13 @@
 import { stat } from "node:fs/promises";
 import { createInterface } from "node:readline";
 
+import { execa } from "execa";
 import {
   type AgentProviderId,
   OacError,
   type TokenEstimate,
   executionError,
 } from "../../core/index.js";
-import { execa } from "execa";
 
 import type {
   AgentAvailability,
@@ -468,6 +468,32 @@ export class CodexAdapter implements AgentProvider {
 
     this.runningExecutions.set(params.executionId, subprocess);
 
+    const processStdoutLine = (line: string): void => {
+      const payload = parseJsonPayload(line);
+      const tokenEvent = parseTokenEvent(line, payload, tokenState);
+      if (tokenEvent?.type === "tokens") {
+        eventQueue.push(tokenEvent);
+      }
+
+      if (!payload) return;
+
+      const fileEvent = parseFileEditFromPayload(payload);
+      if (fileEvent) {
+        filesChanged.add(fileEvent.path);
+        eventQueue.push(fileEvent);
+      }
+
+      const toolEvent = parseToolUseFromPayload(payload);
+      if (toolEvent) {
+        eventQueue.push(toolEvent);
+      }
+
+      const errorEvent = parseErrorFromPayload(payload);
+      if (errorEvent) {
+        eventQueue.push(errorEvent);
+      }
+    };
+
     const consumeStream = async (
       stream: NodeJS.ReadableStream | undefined,
       streamName: "stdout" | "stderr",
@@ -482,42 +508,12 @@ export class CodexAdapter implements AgentProvider {
       });
 
       for await (const line of lineReader) {
-        eventQueue.push({
-          type: "output",
-          content: line,
-          stream: streamName,
-        });
+        eventQueue.push({ type: "output", content: line, stream: streamName });
 
         if (streamName === "stdout") {
-          const payload = parseJsonPayload(line);
-          const tokenEvent = parseTokenEvent(line, payload, tokenState);
-          if (tokenEvent?.type === "tokens") {
-            eventQueue.push(tokenEvent);
-          }
-
-          if (payload) {
-            const fileEvent = parseFileEditFromPayload(payload);
-            if (fileEvent) {
-              filesChanged.add(fileEvent.path);
-              eventQueue.push(fileEvent);
-            }
-
-            const toolEvent = parseToolUseFromPayload(payload);
-            if (toolEvent) {
-              eventQueue.push(toolEvent);
-            }
-
-            const errorEvent = parseErrorFromPayload(payload);
-            if (errorEvent) {
-              eventQueue.push(errorEvent);
-            }
-          }
+          processStdoutLine(line);
         } else if (/error|failed|exception/i.test(line)) {
-          eventQueue.push({
-            type: "error",
-            message: line.trim(),
-            recoverable: true,
-          });
+          eventQueue.push({ type: "error", message: line.trim(), recoverable: true });
         }
       }
     };

@@ -1,5 +1,5 @@
-import type { Task, TaskComplexity, TaskSource } from "../../src/core/index.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { Task, TaskComplexity, TaskSource } from "../../src/core/index.js";
 import { rankTasks } from "../../src/discovery/ranker.js";
 import type { PriorityWeights } from "../../src/discovery/types.js";
 
