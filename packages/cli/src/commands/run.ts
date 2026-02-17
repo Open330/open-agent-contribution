@@ -13,6 +13,7 @@ import {
   GitHubIssuesScanner,
   LintScanner,
   type Scanner,
+  TestGapScanner,
   TodoScanner,
   rankTasks,
 } from "@open330/oac-discovery";
@@ -54,7 +55,7 @@ interface SandboxInfo {
 }
 
 type RunMode = "new-pr" | "update-pr" | "direct-commit";
-type SupportedScanner = "lint" | "todo" | "github-issues";
+type SupportedScanner = "lint" | "todo" | "github-issues" | "test-gap";
 type CompletionStatus = "success" | "partial" | "failed";
 
 interface ExecutionOutcome {
@@ -109,7 +110,7 @@ export function createRunCommand(): Command {
     .option("--mode <mode>", "Execution mode: new-pr|update-pr|direct-commit")
     .option("--max-tasks <number>", "Maximum number of discovered tasks to consider", parseInteger)
     .option("--timeout <seconds>", "Per-task timeout in seconds", parseInteger)
-    .option("--source <source>", "Filter tasks by source (lint, todo, github-issue, test-gap)")
+    .option("--source <source>", "Filter tasks by source: lint, todo, github-issue, test-gap")
     .action(async (options: RunCommandOptions, cmd) => {
       const globalOptions = getGlobalOptions(cmd);
       const ui = createUi(globalOptions);
@@ -631,19 +632,23 @@ function selectScannersFromConfig(
     enabled.push("todo");
   }
 
+  // Always include test-gap for autonomous code analysis
+  enabled.push("test-gap");
+
   // Include GitHub issues scanner when a GitHub token is available.
   if (hasGitHubAuth) {
     enabled.push("github-issues");
   }
 
   if (enabled.length === 0) {
-    enabled.push("lint", "todo");
+    enabled.push("lint", "todo", "test-gap");
   }
 
   const uniqueEnabled = [...new Set(enabled)];
   const scannerInstances: Scanner[] = uniqueEnabled.map((scannerName) => {
     if (scannerName === "lint") return new LintScanner();
     if (scannerName === "github-issues") return new GitHubIssuesScanner();
+    if (scannerName === "test-gap") return new TestGapScanner();
     return new TodoScanner();
   });
 

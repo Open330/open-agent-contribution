@@ -1,6 +1,6 @@
 {
   "name": "@open330/oac",
-  "version": "2026.3.4",
+  "version": "2026.3.5",
   "description": "CLI for Open Agent Contribution - automate open source contributions with AI agents",
   "license": "MIT",
   "repository": {

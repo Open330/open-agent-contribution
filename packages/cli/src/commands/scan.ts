@@ -1,8 +1,10 @@
 import type { OacConfig } from "@open330/oac-core";
 import {
   CompositeScanner,
+  GitHubIssuesScanner,
   LintScanner,
   type Scanner,
+  TestGapScanner,
   TodoScanner,
   rankTasks,
 } from "@open330/oac-discovery";
@@ -24,9 +26,9 @@ interface ScanCommandOptions {
 }
 
 type OutputFormat = "table" | "json";
-type SupportedScanner = "lint" | "todo";
+type SupportedScanner = "lint" | "todo" | "github-issues" | "test-gap";
 
-const SUPPORTED_SCANNERS: SupportedScanner[] = ["lint", "todo"];
+const SUPPORTED_SCANNERS: SupportedScanner[] = ["lint", "todo", "github-issues", "test-gap"];
 
 export function createScanCommand(): Command {
   const command = new Command("scan");
@@ -50,7 +52,8 @@ export function createScanCommand(): Command {
 
       const config = await loadOptionalConfig(globalOptions.config, globalOptions.verbose, ui);
       const repoInput = resolveRepoInput(options.repo, config);
-      const scannerSelection = selectScanners(options.scanners, config);
+      const ghToken = ensureGitHubAuth();
+      const scannerSelection = selectScanners(options.scanners, config, Boolean(ghToken));
 
       if (!outputJson && scannerSelection.unknown.length > 0) {
         console.log(
@@ -59,8 +62,6 @@ export function createScanCommand(): Command {
           ),
         );
       }
-
-      ensureGitHubAuth();
 
       const resolveSpinner = createSpinner(outputJson, "Resolving repository...");
       const resolvedRepo = await resolveRepo(repoInput);
@@ -219,22 +220,27 @@ function resolveRepoInput(repoOption: string | undefined, config: OacConfig | nu
 function selectScanners(
   scannerOption: string | undefined,
   config: OacConfig | null,
+  hasGitHubAuth = false,
 ): {
   enabled: SupportedScanner[];
   unknown: string[];
   scanner: CompositeScanner;
 } {
+  const defaultScanners: SupportedScanner[] = ["lint", "todo", "test-gap"];
+  if (hasGitHubAuth) {
+    defaultScanners.push("github-issues");
+  }
   const requested = scannerOption
     ? parseCsv(scannerOption)
-    : (scannersFromConfig(config) ?? [...SUPPORTED_SCANNERS]);
+    : (scannersFromConfig(config, hasGitHubAuth) ?? defaultScanners);
 
   const enabled: SupportedScanner[] = [];
   const unknown: string[] = [];
 
   for (const scannerName of requested) {
     const normalized = scannerName.toLowerCase();
-    if (normalized === "lint" || normalized === "todo") {
-      enabled.push(normalized);
+    if (normalized === "lint" || normalized === "todo" || normalized === "github-issues" || normalized === "test-gap") {
+      enabled.push(normalized as SupportedScanner);
     } else {
       unknown.push(scannerName);
     }
@@ -247,9 +253,12 @@ function selectScanners(
     );
   }
 
-  const scannerInstances: Scanner[] = uniqueEnabled.map((name) =>
-    name === "lint" ? new LintScanner() : new TodoScanner(),
-  );
+  const scannerInstances: Scanner[] = uniqueEnabled.map((name) => {
+    if (name === "lint") return new LintScanner();
+    if (name === "github-issues") return new GitHubIssuesScanner();
+    if (name === "test-gap") return new TestGapScanner();
+    return new TodoScanner();
+  });
 
   return {
     enabled: uniqueEnabled,
@@ -258,7 +267,7 @@ function selectScanners(
   };
 }
 
-function scannersFromConfig(config: OacConfig | null): SupportedScanner[] | null {
+function scannersFromConfig(config: OacConfig | null, hasGitHubAuth = false): SupportedScanner[] | null {
   if (!config) {
     return null;
   }
@@ -269,6 +278,11 @@ function scannersFromConfig(config: OacConfig | null): SupportedScanner[] | null
   }
   if (config.discovery.scanners.todo) {
     configured.push("todo");
+  }
+  // Always include test-gap for autonomous discovery
+  configured.push("test-gap");
+  if (hasGitHubAuth) {
+    configured.push("github-issues");
   }
 
   if (configured.length === 0) {
