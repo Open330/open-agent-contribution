@@ -1,0 +1,290 @@
+import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import type { ResolvedRepo } from "../../src/repo/index.js";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { GitHubIssuesScanner } from "../../src/discovery/scanners/github-issues-scanner.js";
+
+const ORIGINAL_GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const fetchMock = vi.fn();
+
+function makeResolvedRepo(owner = "octocat", name = "hello-world"): ResolvedRepo {
+  return {
+    fullName: `${owner}/${name}`,
+    owner,
+    name,
+    localPath: "/tmp/repo",
+    worktreePath: "/tmp/repo/.worktree/main",
+    meta: {
+      defaultBranch: "main",
+      language: "TypeScript",
+      languages: { TypeScript: 100 },
+      size: 1,
+      stars: 1,
+      openIssuesCount: 0,
+      topics: [],
+      license: "MIT",
+      isArchived: false,
+      isFork: false,
+      permissions: {
+        admin: true,
+        maintain: true,
+        push: true,
+        triage: true,
+        pull: true,
+      },
+    },
+    git: {
+      headSha: "1234567890abcdef",
+      remoteUrl: `https://github.com/${owner}/${name}.git`,
+      isShallowClone: false,
+    },
+  };
+}
+
+function makeIssue(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    number: 1,
+    title: "Fix flaky test in parser",
+    body: "Tests occasionally fail due to timing assumptions.",
+    html_url: "https://github.com/octocat/hello-world/issues/1",
+    labels: [{ name: "bug" }],
+    user: { login: "octocat" },
+    created_at: "2026-01-15T10:00:00Z",
+    ...overrides,
+  };
+}
+
+function mockFetchJson(payload: unknown, status = 200): void {
+  fetchMock.mockResolvedValue({
+    ok: status >= 200 && status < 300,
+    status,
+    json: vi.fn().mockResolvedValue(payload),
+  } as unknown as Response);
+}
+
+async function createTempRepo(configText?: string): Promise<string> {
+  const repoPath = await mkdtemp(join(tmpdir(), "github-issues-scanner-"));
+  if (!configText) {
+    return repoPath;
+  }
+
+  const gitDir = join(repoPath, ".git");
+  await mkdir(gitDir, { recursive: true });
+  await writeFile(join(gitDir, "config"), configText, "utf8");
+  return repoPath;
+}
+
+describe("GitHubIssuesScanner", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    fetchMock.mockReset();
+    vi.stubGlobal("fetch", fetchMock);
+    process.env.GITHUB_TOKEN = "env-token";
+  });
+
+  afterEach(() => {
+    if (ORIGINAL_GITHUB_TOKEN === undefined) {
+      process.env.GITHUB_TOKEN = "";
+    } else {
+      process.env.GITHUB_TOKEN = ORIGINAL_GITHUB_TOKEN;
+    }
+  });
+
+  it("returns empty when no token is available", async () => {
+    process.env.GITHUB_TOKEN = "";
+    const scanner = new GitHubIssuesScanner();
+
+    const tasks = await scanner.scan("/repo", { repo: makeResolvedRepo() });
+
+    expect(tasks).toEqual([]);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("returns empty when repository metadata is unavailable", async () => {
+    const repoPath = await createTempRepo();
+    const scanner = new GitHubIssuesScanner("token");
+
+    const tasks = await scanner.scan(repoPath);
+
+    expect(tasks).toEqual([]);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("parses issues into tasks and calls GitHub API with expected headers", async () => {
+    mockFetchJson([makeIssue()]);
+    const scanner = new GitHubIssuesScanner();
+
+    const tasks = await scanner.scan("/repo", { repo: makeResolvedRepo() });
+
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0]).toMatchObject({
+      id: "github-issue-1",
+      source: "github-issue",
+      title: "Fix flaky test in parser",
+      complexity: "simple",
+      targetFiles: [],
+      executionMode: "new-pr",
+      priority: 0,
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.github.com/repos/octocat/hello-world/issues?state=open&per_page=30&sort=updated",
+      expect.objectContaining({
+        method: "GET",
+        headers: {
+          Authorization: "Bearer env-token",
+          Accept: "application/vnd.github.v3+json",
+        },
+      }),
+    );
+  });
+
+  it("filters out pull request entries from the issues API response", async () => {
+    mockFetchJson([
+      makeIssue({ number: 1, title: "Issue task" }),
+      makeIssue({
+        number: 2,
+        title: "Pull request should be ignored",
+        pull_request: { url: "https://api.github.com/repos/octocat/hello-world/pulls/2" },
+      }),
+      makeIssue({ number: 3, title: "Another issue task" }),
+    ]);
+    const scanner = new GitHubIssuesScanner();
+
+    const tasks = await scanner.scan("/repo", { repo: makeResolvedRepo() });
+
+    expect(tasks.map((task) => task.id)).toEqual(["github-issue-1", "github-issue-3"]);
+  });
+
+  it("respects maxTasks option", async () => {
+    mockFetchJson([makeIssue({ number: 1 }), makeIssue({ number: 2 }), makeIssue({ number: 3 })]);
+    const scanner = new GitHubIssuesScanner();
+
+    const tasks = await scanner.scan("/repo", { repo: makeResolvedRepo(), maxTasks: 2 });
+
+    expect(tasks).toHaveLength(2);
+    expect(tasks.map((task) => task.id)).toEqual(["github-issue-1", "github-issue-2"]);
+  });
+
+  it("maps issue labels to task complexity", async () => {
+    mockFetchJson([
+      makeIssue({ number: 1, labels: [{ name: "bug" }] }),
+      makeIssue({ number: 2, labels: [{ name: "feature" }] }),
+      makeIssue({ number: 3, labels: [{ name: "enhancement" }] }),
+      makeIssue({ number: 4, labels: [] }),
+    ]);
+    const scanner = new GitHubIssuesScanner();
+
+    const tasks = await scanner.scan("/repo", { repo: makeResolvedRepo() });
+
+    expect(tasks.map((task) => task.complexity)).toEqual([
+      "simple",
+      "complex",
+      "moderate",
+      "moderate",
+    ]);
+  });
+
+  it("returns empty when GitHub API responds with non-success status", async () => {
+    mockFetchJson({ message: "API rate limit exceeded" }, 403);
+    const scanner = new GitHubIssuesScanner();
+
+    const tasks = await scanner.scan("/repo", { repo: makeResolvedRepo() });
+
+    expect(tasks).toEqual([]);
+  });
+
+  it("returns empty when fetch throws a network error", async () => {
+    fetchMock.mockRejectedValue(new Error("network down"));
+    const scanner = new GitHubIssuesScanner();
+
+    const tasks = await scanner.scan("/repo", { repo: makeResolvedRepo() });
+
+    expect(tasks).toEqual([]);
+  });
+
+  it("truncates long title and description values", async () => {
+    const longTitle = "T".repeat(200);
+    const longBody = "B".repeat(1_200);
+    mockFetchJson([makeIssue({ title: longTitle, body: longBody })]);
+    const scanner = new GitHubIssuesScanner();
+
+    const tasks = await scanner.scan("/repo", { repo: makeResolvedRepo() });
+
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0]?.title.length).toBe(120);
+    expect(tasks[0]?.title.endsWith("…")).toBe(true);
+    expect(tasks[0]?.description.length).toBe(500);
+    expect(tasks[0]?.description.endsWith("…")).toBe(true);
+  });
+
+  it("sets issue metadata fields", async () => {
+    mockFetchJson([
+      makeIssue({
+        number: 77,
+        title: "Track retry policy",
+        labels: [{ name: "bug" }, { name: "help wanted" }],
+        user: { login: "maintainer" },
+        created_at: "2026-01-01T00:00:00Z",
+        html_url: "https://github.com/octocat/hello-world/issues/77",
+      }),
+    ]);
+    const scanner = new GitHubIssuesScanner();
+
+    const tasks = await scanner.scan("/repo", { repo: makeResolvedRepo() });
+    const task = tasks[0];
+
+    expect(task).toBeDefined();
+    expect(task?.metadata).toMatchObject({
+      issueNumber: 77,
+      labels: ["bug", "help wanted"],
+      url: "https://github.com/octocat/hello-world/issues/77",
+      author: "maintainer",
+      createdAt: "2026-01-01T00:00:00Z",
+      estimatedTokens: 4_000,
+    });
+  });
+
+  it("parses owner and repo from .git/config when options.repo is missing", async () => {
+    const repoPath = await createTempRepo(`
+[core]
+  repositoryformatversion = 0
+[remote "origin"]
+  url = git@github.com:my-org/my-repo.git
+  fetch = +refs/heads/*:refs/remotes/origin/*
+`);
+    mockFetchJson([makeIssue({ number: 10 })]);
+    const scanner = new GitHubIssuesScanner("token");
+
+    const tasks = await scanner.scan(repoPath);
+
+    expect(tasks).toHaveLength(1);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.github.com/repos/my-org/my-repo/issues?state=open&per_page=30&sort=updated",
+      expect.objectContaining({
+        headers: {
+          Authorization: "Bearer token",
+          Accept: "application/vnd.github.v3+json",
+        },
+      }),
+    );
+  });
+
+  it("prefers constructor token over environment token", async () => {
+    mockFetchJson([makeIssue({ number: 99 })]);
+    const scanner = new GitHubIssuesScanner("constructor-token");
+
+    await scanner.scan("/repo", { repo: makeResolvedRepo() });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        headers: {
+          Authorization: "Bearer constructor-token",
+          Accept: "application/vnd.github.v3+json",
+        },
+      }),
+    );
+  });
+});
