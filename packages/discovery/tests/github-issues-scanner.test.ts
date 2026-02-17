@@ -204,6 +204,25 @@ describe("GitHubIssuesScanner", () => {
     expect(tasks).toEqual([]);
   });
 
+  it("normalizes multiline titles and falls back for image-only descriptions", async () => {
+    mockFetchJson([
+      makeIssue({
+        title: "Titulo\n[>|<]",
+        body:
+          "![scanner-attachment.jpeg]" +
+          "(https://github.com/user-attachments/assets/c184abdd-d366-48b1-8746-dc79fb68cbe8)\n\n",
+        labels: [],
+      }),
+    ]);
+    const scanner = new GitHubIssuesScanner();
+
+    const tasks = await scanner.scan("/repo", { repo: makeResolvedRepo() });
+
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0]?.title).toBe("Titulo [>|<]");
+    expect(tasks[0]?.description).toBe("No description provided.\n\nLabels: none");
+  });
+
   it("truncates long title and description values", async () => {
     const longTitle = "T".repeat(200);
     const longBody = "B".repeat(1_200);

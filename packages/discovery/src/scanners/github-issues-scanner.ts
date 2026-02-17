@@ -262,7 +262,7 @@ function stripGitSuffix(value: string): string {
 
 function mapIssueToTask(issue: GitHubIssueResponse, discoveredAt: string): Task | undefined {
   const issueNumber = asNumber(issue.number);
-  const rawTitle = asString(issue.title)?.trim();
+  const rawTitle = normalizeIssueTitle(asString(issue.title));
   if (issueNumber === undefined || !rawTitle) {
     return undefined;
   }
@@ -271,7 +271,7 @@ function mapIssueToTask(issue: GitHubIssueResponse, discoveredAt: string): Task 
   const complexity = mapComplexityFromLabels(labels);
   const estimatedTokens = ESTIMATED_TOKENS_BY_COMPLEXITY[complexity];
 
-  const bodyText = asString(issue.body)?.trim() || "No description provided.";
+  const bodyText = normalizeIssueBody(asString(issue.body));
   const labelSummary = labels.length > 0 ? `Labels: ${labels.join(", ")}` : "Labels: none";
 
   const title = truncate(rawTitle, TITLE_LIMIT);
@@ -369,6 +369,37 @@ function truncate(value: string, maxLength: number): string {
   }
 
   return `${value.slice(0, maxLength - 1)}…`;
+}
+
+function normalizeIssueTitle(value: string | undefined): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  const normalized = value
+    .replace(/[\u0000-\u001F\u007F]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return normalized.length > 0 ? normalized : undefined;
+}
+
+function normalizeIssueBody(value: string | undefined): string {
+  if (!value) {
+    return "No description provided.";
+  }
+
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    return "No description provided.";
+  }
+
+  const withoutImages = trimmed
+    .replace(/!\[[^\]]*]\([^)]*\)/g, "")
+    .replace(/<img\s+[^>]*>/gi, "")
+    .trim();
+
+  return withoutImages.length > 0 ? trimmed : "No description provided.";
 }
 
 function toIssueResponse(value: unknown): GitHubIssueResponse {
