@@ -26,3 +26,25 @@ export function ensureGitHubAuth(): string | undefined {
 
   return undefined;
 }
+
+/**
+ * Checks whether the current gh auth has the required scopes.
+ * Returns missing scopes or empty array if all present.
+ */
+export function checkGitHubScopes(required: string[] = ["repo"]): string[] {
+  try {
+    const output = execFileSync("gh", ["auth", "status"], {
+      timeout: 5_000,
+      encoding: "utf-8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+
+    const scopeMatch = output.match(/Token scopes:\s*'([^']+)'/);
+    if (!scopeMatch) return [];
+
+    const scopes = scopeMatch[1].split(",").map((s) => s.trim().replace(/^'|'$/g, ""));
+    return required.filter((r) => !scopes.includes(r));
+  } catch {
+    return [];
+  }
+}

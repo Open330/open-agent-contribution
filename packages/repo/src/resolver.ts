@@ -204,8 +204,12 @@ function toResolutionError(owner: string, repo: string, error: unknown): RepoRes
       : "unknown error";
 
   if (status === 404) {
+    const hasToken = !!(process.env.GITHUB_TOKEN || process.env.GH_TOKEN);
+    const hint = hasToken
+      ? `If this is a private repo, ensure your token has the "repo" scope: gh auth refresh -s repo`
+      : `If this is a private repo, authenticate first: gh auth login`;
     return new RepoResolutionError(
-      `Repository "${fullName}" was not found on GitHub.`,
+      `Repository "${fullName}" was not found on GitHub. ${hint}`,
       "NOT_FOUND",
       error,
     );
@@ -213,7 +217,7 @@ function toResolutionError(owner: string, repo: string, error: unknown): RepoRes
 
   if (status === 403) {
     return new RepoResolutionError(
-      `Access denied while resolving "${fullName}". Check GITHUB_TOKEN permissions.`,
+      `Access denied for "${fullName}". Ensure your token has the "repo" scope: gh auth refresh -s repo`,
       "FORBIDDEN",
       error,
     );
