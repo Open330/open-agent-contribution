@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import {
+  type Epic,
   type ExecutionResult,
   OacError,
   type OacEventBus,
@@ -191,4 +192,72 @@ export async function executeTask(
     }
     throw normalizeExecutionError(error, task, executionId);
   }
+}
+
+// ── Epic support ────────────────────────────────────────────
+
+/**
+ * Build a context-aware prompt for an entire epic, including all subtasks
+ * and module context.
+ */
+export function buildEpicPrompt(epic: Epic): string {
+  const lines = [
+    "You are implementing a coherent set of changes as a single epic.",
+    `Epic: ${epic.title}`,
+    `Scope: ${epic.scope} module`,
+    "",
+    "Description:",
+    epic.description,
+    "",
+    `Subtasks (${epic.subtasks.length}):`,
+  ];
+
+  for (let i = 0; i < epic.subtasks.length; i++) {
+    const task = epic.subtasks[i];
+    const files = task.targetFiles.length > 0 ? ` [${task.targetFiles.join(", ")}]` : "";
+    lines.push(`  ${i + 1}. ${task.title}${files}`);
+    if (task.description) {
+      lines.push(`     ${task.description}`);
+    }
+  }
+
+  if (epic.contextFiles.length > 0) {
+    lines.push(
+      "",
+      "Context files to read for understanding:",
+      ...epic.contextFiles.map((f) => `  - ${f}`),
+    );
+  }
+
+  lines.push(
+    "",
+    "Instructions:",
+    "- Apply all changes in a single coherent commit.",
+    "- Ensure the repository remains buildable after changes.",
+    "- Address all subtasks listed above.",
+  );
+
+  return lines.join("\n");
+}
+
+/**
+ * Convert an Epic into a Task for backward compatibility with executeTask().
+ */
+export function epicAsTask(epic: Epic): Task {
+  const allTargetFiles = [...new Set(epic.subtasks.flatMap((t) => t.targetFiles))];
+
+  return {
+    id: epic.id,
+    source: epic.subtasks[0]?.source ?? "custom",
+    title: epic.title,
+    description: buildEpicPrompt(epic),
+    targetFiles: allTargetFiles,
+    priority: epic.priority,
+    complexity:
+      epic.subtasks.length >= 7 ? "complex" : epic.subtasks.length >= 4 ? "moderate" : "simple",
+    executionMode: "new-pr",
+    metadata: { epicId: epic.id, subtaskCount: epic.subtasks.length },
+    discoveredAt: epic.createdAt,
+    parentEpicId: undefined,
+  };
 }

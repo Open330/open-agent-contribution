@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { isAbsolute, resolve } from "node:path";
 
+import type { Epic } from "../core/types.js";
 import { analyzeTaskComplexity } from "./complexity.js";
 import { ClaudeTokenCounter } from "./providers/claude-counter.js";
 import { CodexTokenCounter } from "./providers/codex-counter.js";
@@ -247,4 +248,29 @@ export async function estimateTokens(
     confidence: clamp(confidence, 0.1, 0.95),
     feasible,
   };
+}
+
+// ── Epic token estimation ────────────────────────────────────
+
+const EPIC_CONTEXT_OVERHEAD = 1.2; // 20% overhead for shared module understanding
+
+/**
+ * Estimate tokens for an entire epic by summing subtask estimates
+ * plus a 20% context overhead for shared module understanding.
+ */
+export async function estimateEpicTokens(epic: Epic, provider: AgentProviderId): Promise<number> {
+  if (epic.subtasks.length === 0) {
+    return 0;
+  }
+
+  const subtaskEstimates = await Promise.all(
+    epic.subtasks.map((task) => estimateTokens(task, provider)),
+  );
+
+  const subtaskTotal = subtaskEstimates.reduce(
+    (sum, estimate) => sum + estimate.totalEstimatedTokens,
+    0,
+  );
+
+  return Math.ceil(subtaskTotal * EPIC_CONTEXT_OVERHEAD);
 }

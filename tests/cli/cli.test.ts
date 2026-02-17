@@ -12,6 +12,7 @@ describe("createCliProgram", () => {
     const commandNames = program.commands.map((cmd) => cmd.name());
 
     expect(commandNames).toContain("init");
+    expect(commandNames).toContain("analyze");
     expect(commandNames).toContain("doctor");
     expect(commandNames).toContain("scan");
     expect(commandNames).toContain("plan");
@@ -42,8 +43,8 @@ describe("createCliProgram", () => {
     expect(typeof program.version()).toBe("string");
   });
 
-  it("has 8 subcommands", async () => {
+  it("has 9 subcommands", async () => {
     const program = await createCliProgram();
-    expect(program.commands).toHaveLength(8);
+    expect(program.commands).toHaveLength(9);
   });
 });

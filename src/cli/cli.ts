@@ -1,5 +1,6 @@
 import { Command } from "commander";
 
+import { createAnalyzeCommand } from "./commands/analyze.js";
 import { createDoctorCommand } from "./commands/doctor.js";
 import { createInitCommand } from "./commands/init.js";
 import { createLeaderboardCommand } from "./commands/leaderboard.js";
@@ -20,6 +21,7 @@ export interface GlobalCliOptions {
 
 function registerCommands(program: Command): void {
   program.addCommand(createInitCommand());
+  program.addCommand(createAnalyzeCommand());
   program.addCommand(createDoctorCommand());
   program.addCommand(createScanCommand());
   program.addCommand(createPlanCommand());

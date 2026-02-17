@@ -63,3 +63,25 @@ export interface ScannerTaskContext {
   source: TaskSource;
   complexity: TaskComplexity;
 }
+
+// ── Raw findings (pre-task, pre-grouping) ─────────────────────
+
+/**
+ * A raw finding from a scanner, before being converted to a Task or grouped
+ * into an Epic.  This provides the atomic unit of information that the
+ * analyzer collects and the epic-grouper aggregates.
+ */
+export interface RawFinding {
+  scannerId: string;
+  source: TaskSource;
+  filePath: string;
+  module?: string;
+  title: string;
+  description: string;
+  severity: "info" | "warning" | "error";
+  complexity: TaskComplexity;
+  line?: number;
+  column?: number;
+  metadata: Record<string, unknown>;
+  discoveredAt: string;
+}
