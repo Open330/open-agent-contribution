@@ -7,7 +7,7 @@ import { createInitCommand } from "./commands/init.js";
 import { createLeaderboardCommand } from "./commands/leaderboard.js";
 import { createLogCommand } from "./commands/log.js";
 import { createPlanCommand } from "./commands/plan.js";
-import { createRunCommand } from "./commands/run.js";
+import { createRunCommand } from "./commands/run/index.js";
 import { createScanCommand } from "./commands/scan.js";
 import { createStatusCommand } from "./commands/status.js";
 
