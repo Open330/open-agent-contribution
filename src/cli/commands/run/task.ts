@@ -6,12 +6,8 @@ import { execa } from "execa";
 import PQueue from "p-queue";
 import { buildExecutionPlan } from "../../../budget/index.js";
 import {
-  CompositeScanner,
-  GitHubIssuesScanner,
-  LintScanner,
-  type Scanner,
-  TestGapScanner,
-  TodoScanner,
+  type ScannerName,
+  buildScanners,
   rankTasks,
 } from "../../../discovery/index.js";
 import {
@@ -38,7 +34,6 @@ import type {
   RunMode,
   RunSummaryOutput,
   SandboxInfo,
-  SupportedScanner,
   TaskRunResult,
 } from "./types.js";
 import { formatBudgetDisplay, formatDuration } from "./types.js";
@@ -348,44 +343,9 @@ export function printFinalSummary(
 export function selectScannersFromConfig(
   config: OacConfig | null,
   hasGitHubAuth: boolean,
-): {
-  enabled: SupportedScanner[];
-  scanner: CompositeScanner;
-} {
-  const enabled: SupportedScanner[] = [];
-
-  if (config?.discovery.scanners.lint !== false) {
-    enabled.push("lint");
-  }
-  if (config?.discovery.scanners.todo !== false) {
-    enabled.push("todo");
-  }
-
-  if (config?.discovery.scanners.testGap !== false) {
-    enabled.push("test-gap");
-  }
-
-  // Include GitHub issues scanner when a GitHub token is available.
-  if (hasGitHubAuth) {
-    enabled.push("github-issues");
-  }
-
-  if (enabled.length === 0) {
-    enabled.push("lint", "todo", "test-gap");
-  }
-
-  const uniqueEnabled = [...new Set(enabled)];
-  const scannerInstances: Scanner[] = uniqueEnabled.map((scannerName) => {
-    if (scannerName === "lint") return new LintScanner();
-    if (scannerName === "github-issues") return new GitHubIssuesScanner();
-    if (scannerName === "test-gap") return new TestGapScanner();
-    return new TodoScanner();
-  });
-
-  return {
-    enabled: uniqueEnabled,
-    scanner: new CompositeScanner(scannerInstances),
-  };
+) {
+  const { names, composite } = buildScanners(config, hasGitHubAuth);
+  return { enabled: names, scanner: composite };
 }
 
 export async function executeWithAgent(input: {

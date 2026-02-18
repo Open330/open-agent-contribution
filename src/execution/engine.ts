@@ -13,6 +13,7 @@ import {
 } from "../core/index.js";
 
 import type { AgentProvider } from "./agents/agent.interface.js";
+import { normalizeExecutionError, toErrorMessage } from "./normalize-error.js";
 import { createSandbox } from "./sandbox.js";
 import { executeTask } from "./worker.js";
 
@@ -58,17 +59,6 @@ export interface RunResult {
 interface ActiveJobState {
   job: Job;
   agent: AgentProvider;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
-
-function toErrorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return String(error);
 }
 
 function sanitizeBranchSegment(value: string): string {
@@ -345,84 +335,10 @@ export class ExecutionEngine {
   }
 
   private normalizeError(error: unknown, job: Job): OacError {
-    if (error instanceof OacError) {
-      return error;
-    }
-
-    const message = toErrorMessage(error);
-    if (/timed out|timeout/i.test(message)) {
-      return executionError("AGENT_TIMEOUT", `Job ${job.id} timed out.`, {
-        context: {
-          jobId: job.id,
-          taskId: job.task.id,
-          message,
-          attempt: job.attempts,
-        },
-        cause: error,
-      });
-    }
-
-    if (/out of memory|ENOMEM|heap/i.test(message)) {
-      return executionError("AGENT_OOM", `Job ${job.id} ran out of memory.`, {
-        context: {
-          jobId: job.id,
-          taskId: job.task.id,
-          message,
-          attempt: job.attempts,
-        },
-        cause: error,
-      });
-    }
-
-    if (/network|ECONN|ENOTFOUND|EAI_AGAIN/i.test(message)) {
-      return new OacError(
-        `Job ${job.id} failed due to a network error.`,
-        "NETWORK_ERROR",
-        "recoverable",
-        {
-          jobId: job.id,
-          taskId: job.task.id,
-          message,
-          attempt: job.attempts,
-        },
-        error,
-      );
-    }
-
-    if (/index\.lock|cannot lock ref|Unable to create '.+?\.git\/index\.lock'/i.test(message)) {
-      return new OacError(
-        `Job ${job.id} failed due to a git lock conflict.`,
-        "GIT_LOCK_FAILED",
-        "recoverable",
-        {
-          jobId: job.id,
-          taskId: job.task.id,
-          message,
-          attempt: job.attempts,
-        },
-        error,
-      );
-    }
-
-    if (isRecord(error) && error.name === "AbortError") {
-      return executionError("AGENT_EXECUTION_FAILED", `Job ${job.id} was aborted.`, {
-        context: {
-          jobId: job.id,
-          taskId: job.task.id,
-          attempt: job.attempts,
-        },
-        cause: error,
-      });
-    }
-
-    return executionError("AGENT_EXECUTION_FAILED", `Job ${job.id} failed unexpectedly.`, {
-      context: {
-        jobId: job.id,
-        taskId: job.task.id,
-        message,
-        attempt: job.attempts,
-      },
-      cause: error,
+    return normalizeExecutionError(error, {
+      jobId: job.id,
+      taskId: job.task.id,
+      attempt: job.attempts,
     });
   }
 

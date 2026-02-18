@@ -1,6 +1,7 @@
 import chalk, { Chalk, type ChalkInstance } from "chalk";
 import { Command } from "commander";
 import ora, { type Ora } from "ora";
+import PQueue from "p-queue";
 
 import { estimateTokens } from "../budget/index.js";
 import type { OacConfig, Task, TokenEstimate } from "../core/index.js";
@@ -144,14 +145,17 @@ export async function estimateTaskMap(
 ): Promise<Map<string, TokenEstimate>> {
   let completed = 0;
   const total = tasks.length;
+  const queue = new PQueue({ concurrency: 10 });
 
   const entries = await Promise.all(
-    tasks.map(async (task) => {
-      const estimate = await estimateTokens(task, providerId);
-      completed += 1;
-      onProgress?.(completed, total);
-      return [task.id, estimate] as const;
-    }),
+    tasks.map((task) =>
+      queue.add(async () => {
+        const estimate = await estimateTokens(task, providerId);
+        completed += 1;
+        onProgress?.(completed, total);
+        return [task.id, estimate] as const;
+      }) as Promise<readonly [string, TokenEstimate]>,
+    ),
   );
 
   return new Map(entries);

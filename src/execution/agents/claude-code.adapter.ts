@@ -17,109 +17,16 @@ import type {
   AgentResult,
   TokenEstimateParams,
 } from "./agent.interface.js";
+import {
+  AsyncEventQueue,
+  type TokenPatch,
+  type TokenState,
+  isRecord,
+  readNumber,
+  readString,
+} from "./shared.js";
 
 type RunningProcess = ReturnType<typeof execa>;
-
-interface TokenState {
-  inputTokens: number;
-  outputTokens: number;
-  cumulativeTokens: number;
-}
-
-interface TokenPatch {
-  inputTokens?: number;
-  outputTokens?: number;
-  cumulativeTokens?: number;
-}
-
-class AsyncEventQueue<T> implements AsyncIterable<T> {
-  private readonly values: T[] = [];
-  private readonly resolvers: Array<(value: IteratorResult<T>) => void> = [];
-  private done = false;
-  private pendingError: unknown;
-
-  public push(value: T): void {
-    if (this.done) {
-      return;
-    }
-
-    const nextResolver = this.resolvers.shift();
-    if (nextResolver) {
-      nextResolver({ done: false, value });
-      return;
-    }
-
-    this.values.push(value);
-  }
-
-  public close(): void {
-    if (this.done) {
-      return;
-    }
-
-    this.done = true;
-    this.flush();
-  }
-
-  public fail(error: unknown): void {
-    this.pendingError = error;
-    this.done = true;
-    this.flush();
-  }
-
-  public [Symbol.asyncIterator](): AsyncIterator<T> {
-    return {
-      next: async (): Promise<IteratorResult<T>> => {
-        if (this.values.length > 0) {
-          const value = this.values.shift();
-          if (value === undefined) {
-            return { done: true, value: undefined };
-          }
-          return { done: false, value };
-        }
-
-        if (this.pendingError !== undefined) {
-          throw this.pendingError;
-        }
-
-        if (this.done) {
-          return { done: true, value: undefined };
-        }
-
-        return new Promise<IteratorResult<T>>((resolve) => {
-          this.resolvers.push(resolve);
-        });
-      },
-    };
-  }
-
-  private flush(): void {
-    for (const resolve of this.resolvers.splice(0)) {
-      resolve({ done: true, value: undefined });
-    }
-  }
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
-
-function readNumber(value: unknown): number | undefined {
-  if (typeof value !== "number" || !Number.isFinite(value)) {
-    return undefined;
-  }
-
-  return Math.max(0, Math.floor(value));
-}
-
-function readString(value: unknown): string | undefined {
-  if (typeof value !== "string") {
-    return undefined;
-  }
-
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : undefined;
-}
 
 function parseJsonPayload(line: string): Record<string, unknown> | undefined {
   const trimmed = line.trim();

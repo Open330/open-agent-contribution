@@ -6,14 +6,7 @@ import type { OacConfig } from "../../core/index.js";
 import { analyzeCodebase, persistContext } from "../../discovery/analyzer.js";
 import { createBacklog, persistBacklog } from "../../discovery/backlog.js";
 import { groupFindingsIntoEpics } from "../../discovery/epic-grouper.js";
-import {
-  CompositeScanner,
-  GitHubIssuesScanner,
-  LintScanner,
-  type Scanner,
-  TestGapScanner,
-  TodoScanner,
-} from "../../discovery/index.js";
+import { buildScanners } from "../../discovery/index.js";
 import { cloneRepo, resolveRepo } from "../../repo/index.js";
 import { ensureGitHubAuth } from "../github-auth.js";
 
@@ -169,18 +162,6 @@ function normalizeOutputFormat(value: string): OutputFormat {
   throw new Error(`Unsupported --format value "${value}". Use "table" or "json".`);
 }
 
-function buildScannerList(config: OacConfig | null, hasGitHubAuth: boolean): Scanner[] {
-  const scanners: Scanner[] = [];
-
-  const lint = config?.discovery.scanners.lint ?? true;
-  const todo = config?.discovery.scanners.todo ?? true;
-
-  if (lint) scanners.push(new LintScanner());
-  if (todo) scanners.push(new TodoScanner());
-  scanners.push(new TestGapScanner());
-  if (hasGitHubAuth) scanners.push(new GitHubIssuesScanner());
-
-  return scanners;
+function buildScannerList(config: OacConfig | null, hasGitHubAuth: boolean) {
+  return buildScanners(config, hasGitHubAuth).instances;
 }
-
-

@@ -7,12 +7,8 @@ import {
 } from "../../../budget/index.js";
 import type { Epic, OacConfig, TokenEstimate } from "../../../core/index.js";
 import {
-  GitHubIssuesScanner,
-  LintScanner,
-  type Scanner,
-  TestGapScanner,
-  TodoScanner,
   analyzeCodebase,
+  buildScanners,
   createBacklog,
   getPendingEpics,
   groupFindingsIntoEpics,
@@ -98,15 +94,9 @@ export async function tryLoadOrAnalyzeEpics(
   return getPendingEpics(backlog);
 }
 
-export function buildScannerList(config: OacConfig | null, hasGitHubAuth: boolean): Scanner[] {
-  const scanners: Scanner[] = [];
-  if (config?.discovery.scanners.lint !== false) scanners.push(new LintScanner());
-  if (config?.discovery.scanners.todo !== false) scanners.push(new TodoScanner());
-  if (config?.discovery.scanners.testGap !== false) {
-    scanners.push(new TestGapScanner());
-  }
-  if (hasGitHubAuth) scanners.push(new GitHubIssuesScanner());
-  return scanners;
+/** @deprecated Use {@link buildScanners} from discovery/scanner-factory instead. */
+export function buildScannerList(config: OacConfig | null, hasGitHubAuth: boolean) {
+  return buildScanners(config, hasGitHubAuth).instances;
 }
 
 function makeStubEstimate(taskId: string, providerId: string, tokens: number): TokenEstimate {

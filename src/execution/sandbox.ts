@@ -2,6 +2,7 @@ import { mkdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
 import { simpleGit } from "simple-git";
+import { executionError } from "../core/index.js";
 
 export interface SandboxContext {
   path: string;
@@ -28,11 +29,24 @@ function getWorktreePath(repoPath: string, branchName: string): string {
   return resolve(join(repoPath, "..", ".oac-worktrees", branchName));
 }
 
+/**
+ * Allowed characters in branch names.
+ * Prevents injection of arbitrary git arguments or path traversal.
+ */
+const SAFE_BRANCH_RE = /^[a-zA-Z0-9/_.-]+$/;
+
 export async function createSandbox(
   repoPath: string,
   branchName: string,
   baseBranch: string,
 ): Promise<SandboxContext> {
+  if (!SAFE_BRANCH_RE.test(branchName)) {
+    throw executionError("AGENT_EXECUTION_FAILED", `Invalid branch name: ${branchName}`);
+  }
+  if (!SAFE_BRANCH_RE.test(baseBranch)) {
+    throw executionError("AGENT_EXECUTION_FAILED", `Invalid base branch name: ${baseBranch}`);
+  }
+
   const worktreePath = getWorktreePath(repoPath, branchName);
   const worktreeRoot = resolve(join(repoPath, "..", ".oac-worktrees"));
   const git = simpleGit(repoPath);

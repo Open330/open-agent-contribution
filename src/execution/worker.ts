@@ -3,13 +3,12 @@ import { randomUUID } from "node:crypto";
 import {
   type Epic,
   type ExecutionResult,
-  OacError,
   type OacEventBus,
   type Task,
-  executionError,
 } from "../core/index.js";
 
 import type { AgentEvent, AgentProvider, AgentResult } from "./agents/agent.interface.js";
+import { normalizeExecutionError } from "./normalize-error.js";
 import type { SandboxContext } from "./sandbox.js";
 
 const DEFAULT_TOKEN_BUDGET = 50_000;
@@ -107,32 +106,7 @@ function mergeExecutionResult(
   };
 }
 
-function normalizeExecutionError(error: unknown, task: Task, executionId: string): OacError {
-  if (error instanceof OacError) {
-    return error;
-  }
 
-  const message = error instanceof Error ? error.message : String(error);
-  if (/timed out|timeout/i.test(message)) {
-    return executionError("AGENT_TIMEOUT", `Task ${task.id} timed out during execution.`, {
-      context: {
-        taskId: task.id,
-        executionId,
-        message,
-      },
-      cause: error,
-    });
-  }
-
-  return executionError("AGENT_EXECUTION_FAILED", `Task ${task.id} failed during execution.`, {
-    context: {
-      taskId: task.id,
-      executionId,
-      message,
-    },
-    cause: error,
-  });
-}
 
 export async function executeTask(
   agent: AgentProvider,
@@ -190,7 +164,7 @@ export async function executeTask(
     } catch {
       // Ignore stream failures and surface the primary execution error.
     }
-    throw normalizeExecutionError(error, task, executionId);
+    throw normalizeExecutionError(error, { taskId: task.id, executionId });
   }
 }
 

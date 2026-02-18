@@ -33,6 +33,8 @@ const DEFAULT_OPTIONS: DashboardOptions = {
 // Run state management (single-run mode)
 // ---------------------------------------------------------------------------
 
+const MAX_SSE_CLIENTS = 50;
+
 let currentRun: RunState | null = null;
 const sseClients = new Set<(event: DashboardRunEvent) => void>();
 
@@ -65,20 +67,19 @@ async function readContributionLogs(oacDir: string): Promise<ContributionLog[]> 
     .map((entry) => entry.name)
     .sort();
 
-  const logs: ContributionLog[] = [];
-  for (const fileName of files) {
-    try {
-      const content = await readFile(resolve(contributionsPath, fileName), "utf8");
-      const parsed = contributionLogSchema.safeParse(JSON.parse(content));
-      if (parsed.success) {
-        logs.push(parsed.data);
+  const results = await Promise.all(
+    files.map(async (fileName) => {
+      try {
+        const content = await readFile(resolve(contributionsPath, fileName), "utf8");
+        const parsed = contributionLogSchema.safeParse(JSON.parse(content));
+        return parsed.success ? parsed.data : null;
+      } catch {
+        return null;
       }
-    } catch {
-      // skip invalid files
-    }
-  }
+    }),
+  );
 
-  return logs;
+  return results.filter((log): log is ContributionLog => log !== null);
 }
 
 async function readRunStatus(oacDir: string): Promise<unknown> {
@@ -225,6 +226,10 @@ export async function createDashboardServer(
     const sendEvent = (event: DashboardRunEvent) => {
       reply.raw.write(`event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`);
     };
+    if (sseClients.size >= MAX_SSE_CLIENTS) {
+      reply.status(503).send({ error: "Too many SSE connections" });
+      return;
+    }
     sseClients.add(sendEvent);
 
     const interval = setInterval(() => {
@@ -255,9 +260,14 @@ export async function startDashboard(options: Partial<DashboardOptions> = {}): P
   console.log(`  SSE: ${url}/api/v1/events\n`);
 
   if (opts.openBrowser) {
-    const { exec } = await import("node:child_process");
+    const { execFile } = await import("node:child_process");
     const command =
       process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
-    exec(`${command} ${url}`);
+    execFile(command, [url], (err) => {
+      if (err) {
+        // Non-critical — browser opening is best-effort.
+        console.warn(`Could not open browser: ${err.message}`);
+      }
+    });
   }
 }

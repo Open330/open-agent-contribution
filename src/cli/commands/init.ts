@@ -1,5 +1,5 @@
 import { constants as fsConstants } from "node:fs";
-import { access, mkdir, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 import { checkbox, confirm, input } from "@inquirer/prompts";
@@ -100,6 +100,7 @@ async function runMinimalInit(
 
   await writeFile(configPath, configContent, "utf8");
   await mkdir(trackingDirectory, { recursive: true });
+  await ensureGitignoreEntry(process.cwd(), ".oac/");
 
   const summary: InitSummary = {
     configPath,
@@ -207,6 +208,7 @@ async function runInteractiveInit(
 
   await writeFile(configPath, configContent, "utf8");
   await mkdir(trackingDirectory, { recursive: true });
+  await ensureGitignoreEntry(process.cwd(), ".oac/");
 
   const summary: InitSummary = {
     configPath,
@@ -300,4 +302,25 @@ async function pathExists(path: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/**
+ * Ensures a given entry (e.g. ".oac/") exists in the project's .gitignore.
+ * Creates the file if it doesn't exist; appends the entry if missing.
+ */
+async function ensureGitignoreEntry(dir: string, entry: string): Promise<void> {
+  const gitignorePath = resolve(dir, ".gitignore");
+  let content = "";
+  try {
+    content = await readFile(gitignorePath, "utf8");
+  } catch {
+    // .gitignore doesn't exist yet — will be created
+  }
+
+  if (content.split("\n").some((line) => line.trim() === entry)) {
+    return;
+  }
+
+  const separator = content.length > 0 && !content.endsWith("\n") ? "\n" : "";
+  await writeFile(gitignorePath, `${content}${separator}${entry}\n`, "utf8");
 }

@@ -108,6 +108,7 @@ async function fetchOpenIssues(
         Authorization: `Bearer ${token}`,
         Accept: "application/vnd.github.v3+json",
       },
+      signal: AbortSignal.timeout(30_000),
     });
 
     if (!response.ok) {
