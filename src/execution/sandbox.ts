@@ -16,7 +16,7 @@ export interface SandboxContext {
 let worktreeLock = Promise.resolve();
 
 function withWorktreeLock<T>(fn: () => Promise<T>): Promise<T> {
-  const next = worktreeLock.then(fn, fn);
+  const next = worktreeLock.catch(() => {}).then(fn);
   worktreeLock = next.then(
     () => {},
     () => {},

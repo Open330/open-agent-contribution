@@ -1,13 +1,12 @@
-import { spawn } from "node:child_process";
-import { EventEmitter } from "node:events";
-
 import { Command } from "commander";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createDoctorCommand } from "../../src/cli/commands/doctor.js";
 
-vi.mock("node:child_process", () => ({
-  spawn: vi.fn(),
+const mockedExeca = vi.fn();
+
+vi.mock("execa", () => ({
+  execa: (...args: unknown[]) => mockedExeca(...args),
 }));
 
 interface DoctorCheck {
@@ -21,25 +20,13 @@ interface DoctorPayload {
   allPassed: boolean;
 }
 
-interface MockSpawnResult {
+interface MockCommandResult {
   stdout?: string;
   stderr?: string;
   exitCode?: number | null;
   error?: NodeJS.ErrnoException;
 }
 
-class MockStream extends EventEmitter {
-  setEncoding(_encoding: BufferEncoding): this {
-    return this;
-  }
-}
-
-type MockChildProcess = EventEmitter & {
-  stdout: MockStream;
-  stderr: MockStream;
-};
-
-const mockedSpawn = vi.mocked(spawn);
 const originalNodeVersion = process.versions.node;
 const originalGithubToken = process.env.GITHUB_TOKEN;
 
@@ -51,45 +38,28 @@ function setNodeVersion(version: string): void {
   });
 }
 
-function createMockChildProcess(result: MockSpawnResult): ReturnType<typeof spawn> {
-  const child = new EventEmitter() as MockChildProcess;
-  child.stdout = new MockStream();
-  child.stderr = new MockStream();
-
-  queueMicrotask(() => {
-    if (typeof result.stdout === "string" && result.stdout.length > 0) {
-      child.stdout.emit("data", result.stdout);
-    }
-
-    if (typeof result.stderr === "string" && result.stderr.length > 0) {
-      child.stderr.emit("data", result.stderr);
-    }
-
-    if (result.error) {
-      child.emit("error", result.error);
-      return;
-    }
-
-    child.emit("close", result.exitCode ?? 0);
-  });
-
-  return child as unknown as ReturnType<typeof spawn>;
-}
-
-function mockCommandResults(results: Record<string, MockSpawnResult>): void {
-  mockedSpawn.mockImplementation((command: string) => {
+function mockCommandResults(results: Record<string, MockCommandResult>): void {
+  mockedExeca.mockImplementation((command: string) => {
     const result = results[command];
     if (!result) {
       throw new Error(`Unexpected command call: ${command}`);
     }
 
-    return createMockChildProcess(result);
+    if (result.error) {
+      throw result.error;
+    }
+
+    return {
+      exitCode: result.exitCode ?? 0,
+      stdout: result.stdout ?? "",
+      stderr: result.stderr ?? "",
+    };
   });
 }
 
 function passingCommandResults(
-  overrides: Partial<Record<string, MockSpawnResult>> = {},
-): Record<string, MockSpawnResult> {
+  overrides: Partial<Record<string, MockCommandResult>> = {},
+): Record<string, MockCommandResult> {
   return {
     git: { stdout: "git version 2.43.0\n", exitCode: 0 },
     gh: { stdout: "Logged in to github.com", exitCode: 0 },
@@ -127,7 +97,7 @@ function getCheck(payload: DoctorPayload, id: string): DoctorCheck {
 
 beforeEach(() => {
   vi.restoreAllMocks();
-  mockedSpawn.mockReset();
+  mockedExeca.mockReset();
   setNodeVersion(originalNodeVersion);
 
   if (originalGithubToken === undefined) {
@@ -243,7 +213,7 @@ describe("maskToken behavior through github-auth check", () => {
     const githubAuthCheck = getCheck(payload, "github-auth");
 
     expect(githubAuthCheck.value).toBe("env:ab****");
-    expect(mockedSpawn.mock.calls.map((call) => call[0])).not.toContain("gh");
+    expect(mockedExeca.mock.calls.map((call) => call[0])).not.toContain("gh");
   });
 
   it('masks long token "ghp_abcd1234xy" as "ghp_****xy"', async () => {
@@ -255,6 +225,6 @@ describe("maskToken behavior through github-auth check", () => {
     const githubAuthCheck = getCheck(payload, "github-auth");
 
     expect(githubAuthCheck.value).toBe("env:ghp_****xy");
-    expect(mockedSpawn.mock.calls.map((call) => call[0])).not.toContain("gh");
+    expect(mockedExeca.mock.calls.map((call) => call[0])).not.toContain("gh");
   });
 });

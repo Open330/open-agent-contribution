@@ -1,5 +1,3 @@
-import { spawn } from "node:child_process";
-
 import chalk, { Chalk, type ChalkInstance } from "chalk";
 import { Command } from "commander";
 
@@ -253,57 +251,29 @@ function isVersionAtLeast(version: string, minimum: string): boolean {
   return true;
 }
 
-function runCommand(command: string, args: string[]): Promise<CommandResult> {
-  return new Promise((resolvePromise) => {
-    const child = spawn(command, args, {
-      stdio: ["ignore", "pipe", "pipe"],
-      env: process.env,
+async function runCommand(command: string, args: string[]): Promise<CommandResult> {
+  try {
+    const { execa } = await import("execa");
+    const result = await execa(command, args, {
+      reject: false,
+      timeout: 30_000,
+      stdin: "ignore",
     });
-
-    let stdout = "";
-    let stderr = "";
-    let resolved = false;
-
-    child.stdout?.setEncoding("utf8");
-    child.stderr?.setEncoding("utf8");
-
-    child.stdout?.on("data", (chunk: string) => {
-      stdout += chunk;
-    });
-
-    child.stderr?.on("data", (chunk: string) => {
-      stderr += chunk;
-    });
-
-    child.once("error", (error) => {
-      if (resolved) {
-        return;
-      }
-
-      resolved = true;
-      const errorWithCode = error as NodeJS.ErrnoException;
-      resolvePromise({
-        ok: false,
-        exitCode: null,
-        stdout,
-        stderr,
-        errorCode: errorWithCode.code,
-        errorMessage: error.message,
-      });
-    });
-
-    child.once("close", (exitCode) => {
-      if (resolved) {
-        return;
-      }
-
-      resolved = true;
-      resolvePromise({
-        ok: exitCode === 0,
-        exitCode,
-        stdout,
-        stderr,
-      });
-    });
-  });
+    return {
+      ok: result.exitCode === 0,
+      exitCode: result.exitCode,
+      stdout: result.stdout,
+      stderr: result.stderr,
+    };
+  } catch (error) {
+    const nodeError = error as NodeJS.ErrnoException;
+    return {
+      ok: false,
+      exitCode: null,
+      stdout: "",
+      stderr: "",
+      errorCode: nodeError.code,
+      errorMessage: nodeError.message,
+    };
+  }
 }

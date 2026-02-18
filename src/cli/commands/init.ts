@@ -165,12 +165,14 @@ function buildConfigFile(input: {
   budgetTokens: number;
   repo: string;
 }): string {
-  const enabledProviders = input.providers.map((provider) => `'${provider}'`).join(", ");
+  const enabledProviders = input.providers.map((provider) => `"${provider}"`).join(", ");
 
-  return `export default {
-  repos: ['${input.repo}'],
+  return `import { defineConfig } from "@open330/oac";
+
+export default defineConfig({
+  repos: ["${input.repo}"],
   provider: {
-    id: '${input.provider}',
+    id: "${input.provider}",
     options: {
       enabledProviders: [${enabledProviders}],
     },
@@ -178,7 +180,7 @@ function buildConfigFile(input: {
   budget: {
     totalTokens: ${input.budgetTokens},
   },
-};
+});
 `;
 }
 

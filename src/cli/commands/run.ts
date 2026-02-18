@@ -380,8 +380,7 @@ function makeStubEstimate(taskId: string, providerId: string, tokens: number): T
 async function executeEpicEntry(
   entry: { epic: Epic; estimatedTokens: number },
   params: {
-    adapter: AgentProvider | null;
-    useRealExecution: boolean;
+    adapter: AgentProvider;
     resolvedRepo: Awaited<ReturnType<typeof resolveRepo>>;
     providerId: string;
     timeoutSeconds: number;
@@ -389,28 +388,19 @@ async function executeEpicEntry(
     ghToken?: string;
   },
 ): Promise<TaskRunResult> {
-  const { adapter, useRealExecution, resolvedRepo, providerId, timeoutSeconds, mode, ghToken } =
-    params;
+  const { adapter, resolvedRepo, providerId, timeoutSeconds, mode, ghToken } = params;
   const task = epicAsTask(entry.epic);
   const estimate = makeStubEstimate(task.id, providerId, entry.estimatedTokens);
 
-  let execution: ExecutionOutcome;
-  let sandbox: SandboxInfo | undefined;
-
-  if (useRealExecution && adapter) {
-    const result = await executeWithAgent({
-      task,
-      estimate,
-      adapter,
-      repoPath: resolvedRepo.localPath,
-      baseBranch: resolvedRepo.meta.defaultBranch,
-      timeoutSeconds,
-    });
-    execution = result.execution;
-    sandbox = result.sandbox;
-  } else {
-    execution = await simulateExecution(task, estimate);
-  }
+  const result = await executeWithAgent({
+    task,
+    estimate,
+    adapter,
+    repoPath: resolvedRepo.localPath,
+    baseBranch: resolvedRepo.meta.defaultBranch,
+    timeoutSeconds,
+  });
+  const { execution, sandbox } = result;
 
   let pr: TaskRunResult["pr"];
   if (mode !== "direct-commit" && execution.success && sandbox) {
@@ -482,7 +472,7 @@ async function runEpicPipeline(
   }
 
   // Execute each selected epic
-  const { adapter, useRealExecution } = await resolveAdapter(providerId);
+  const { adapter } = await resolveAdapter(providerId);
   const allTaskResults: TaskRunResult[] = [];
 
   for (const entry of epicPlan.selectedEpics) {
@@ -496,7 +486,6 @@ async function runEpicPipeline(
 
     const result = await executeEpicEntry(entry, {
       adapter,
-      useRealExecution,
       resolvedRepo,
       providerId,
       timeoutSeconds,
@@ -758,17 +747,13 @@ async function executePlan(
   },
 ): Promise<TaskRunResult[]> {
   const { plan, providerId, resolvedRepo, concurrency, timeoutSeconds, mode, ghToken } = params;
-  const { adapter, useRealExecution } = await resolveAdapter(providerId);
+  const { adapter } = await resolveAdapter(providerId);
 
   if (!ctx.outputJson && ctx.globalOptions.verbose) {
-    if (useRealExecution && adapter) {
-      const avail = await adapter.checkAvailability();
-      console.log(
-        ctx.ui.green(`[oac] Using ${adapter.name} v${avail.version ?? "unknown"} for execution.`),
-      );
-    } else {
-      console.log(ctx.ui.yellow("[oac] No agent CLI available. Using simulated execution."));
-    }
+    const avail = await adapter.checkAvailability();
+    console.log(
+      ctx.ui.green(`[oac] Using ${adapter.name} v${avail.version ?? "unknown"} for execution.`),
+    );
   }
 
   const executionSpinner = createSpinner(
@@ -781,23 +766,15 @@ async function executePlan(
     plan.selectedTasks,
     concurrency,
     async (entry): Promise<TaskRunResult> => {
-      let execution: ExecutionOutcome;
-      let sandbox: SandboxInfo | undefined;
-
-      if (useRealExecution && adapter) {
-        const result = await executeWithAgent({
-          task: entry.task,
-          estimate: entry.estimate,
-          adapter,
-          repoPath: resolvedRepo.localPath,
-          baseBranch: resolvedRepo.meta.defaultBranch,
-          timeoutSeconds,
-        });
-        execution = result.execution;
-        sandbox = result.sandbox;
-      } else {
-        execution = await simulateExecution(entry.task, entry.estimate);
-      }
+      const result = await executeWithAgent({
+        task: entry.task,
+        estimate: entry.estimate,
+        adapter,
+        repoPath: resolvedRepo.localPath,
+        baseBranch: resolvedRepo.meta.defaultBranch,
+        timeoutSeconds,
+      });
+      const { execution, sandbox } = result;
 
       completedCount += 1;
       if (executionSpinner) {
@@ -1030,7 +1007,7 @@ function resolveRepoInput(repoOption: string | undefined, config: OacConfig | nu
 
 async function resolveAdapter(
   providerId: string,
-): Promise<{ adapter: AgentProvider | null; useRealExecution: boolean }> {
+): Promise<{ adapter: AgentProvider }> {
   // Normalize legacy ID
   const normalizedId = providerId === "codex-cli" ? "codex" : providerId;
 
@@ -1041,15 +1018,23 @@ async function resolveAdapter(
 
   const factory = adapters[normalizedId];
   if (!factory) {
-    return { adapter: null, useRealExecution: false };
+    throw new Error(
+      `Unknown provider "${providerId}". Supported providers: codex, claude-code.\n` +
+        `Run \`oac doctor\` to check your environment setup.`,
+    );
   }
 
   const adapter = factory();
   const availability = await adapter.checkAvailability();
-  return {
-    adapter: availability.available ? adapter : null,
-    useRealExecution: availability.available,
-  };
+  if (!availability.available) {
+    throw new Error(
+      `Agent CLI "${normalizedId}" is not available: ${availability.reason ?? "unknown reason"}.\n` +
+        `Install the ${normalizedId} CLI or switch providers.\n` +
+        `Run \`oac doctor\` for setup instructions.`,
+    );
+  }
+
+  return { adapter };
 }
 
 function resolveProviderId(providerOption: string | undefined, config: OacConfig | null): string {
@@ -1353,23 +1338,6 @@ async function createPullRequest(input: {
   }
 }
 
-async function simulateExecution(task: Task, estimate: TokenEstimate): Promise<ExecutionOutcome> {
-  const start = Date.now();
-  const delayMs = Math.min(1_500, Math.max(150, Math.round(estimate.totalEstimatedTokens / 40)));
-  await sleep(delayMs);
-
-  return {
-    success: true,
-    exitCode: 0,
-    totalTokensUsed: Math.max(1, Math.round(estimate.totalEstimatedTokens * 0.9)),
-    filesChanged:
-      task.targetFiles.length > 0
-        ? task.targetFiles.slice(0, Math.min(task.targetFiles.length, 4))
-        : [],
-    duration: (Date.now() - start) / 1_000,
-  };
-}
-
 async function commitSandboxChanges(
   sandboxPath: string,
   task: Task,
@@ -1643,12 +1611,6 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T
         rejectPromise(error);
       },
     );
-  });
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolvePromise) => {
-    setTimeout(resolvePromise, ms);
   });
 }
 

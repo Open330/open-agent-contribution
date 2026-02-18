@@ -47,7 +47,7 @@ export function createStatusCommand(): Command {
         return;
       }
 
-      setInterval(() => {
+      const intervalId = setInterval(() => {
         console.clear();
         void render().catch((error) => {
           const message = error instanceof Error ? error.message : String(error);
@@ -55,6 +55,12 @@ export function createStatusCommand(): Command {
           process.exitCode = 1;
         });
       }, WATCH_INTERVAL_MS);
+
+      process.on("SIGINT", () => {
+        clearInterval(intervalId);
+        console.log("\nWatch mode stopped.");
+        process.exit(0);
+      });
     });
 
   return command;

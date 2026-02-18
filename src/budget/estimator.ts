@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { isAbsolute, resolve } from "node:path";
 
+import PQueue from "p-queue";
 import type { Epic } from "../core/types.js";
 import { analyzeTaskComplexity } from "./complexity.js";
 import { ClaudeTokenCounter } from "./providers/claude-counter.js";
@@ -180,8 +181,11 @@ export async function estimateTokens(
   const counter = getTokenCounter(provider);
   const uniqueTargetFiles = [...new Set(task.targetFiles)];
 
+  const fileQueue = new PQueue({ concurrency: 50 });
   const fileResults = await Promise.all(
-    uniqueTargetFiles.map((targetFile) => readContextFile(targetFile, counter)),
+    uniqueTargetFiles.map((targetFile) =>
+      fileQueue.add(() => readContextFile(targetFile, counter)) as Promise<ContextFileResult>,
+    ),
   );
 
   const repoStructureSeed = uniqueTargetFiles.join("\n");
@@ -263,8 +267,11 @@ export async function estimateEpicTokens(epic: Epic, provider: AgentProviderId):
     return 0;
   }
 
+  const epicQueue = new PQueue({ concurrency: 10 });
   const subtaskEstimates = await Promise.all(
-    epic.subtasks.map((task) => estimateTokens(task, provider)),
+    epic.subtasks.map((task) =>
+      epicQueue.add(() => estimateTokens(task, provider)) as Promise<TokenEstimate>,
+    ),
   );
 
   const subtaskTotal = subtaskEstimates.reduce(
