@@ -22,7 +22,13 @@ import {
 } from "./task.js";
 import { writeTracking } from "./tracking.js";
 import type { PipelineContext, RunCommandOptions, RunMode } from "./types.js";
-import { DEFAULT_CONCURRENCY, DEFAULT_TIMEOUT_SECONDS, formatBudgetDisplay } from "./types.js";
+import {
+  ConfigError,
+  DEFAULT_CONCURRENCY,
+  DEFAULT_TIMEOUT_SECONDS,
+  formatBudgetDisplay,
+  resolveExitCode,
+} from "./types.js";
 
 export async function runPipeline(
   options: RunCommandOptions,
@@ -62,7 +68,7 @@ export async function runPipeline(
 
   // ── Retry-failed shortcut ──────────────────────────────────
   if (options.retryFailed) {
-    await runRetryPipeline(ctx, {
+    const retryResults = await runRetryPipeline(ctx, {
       resolvedRepo,
       providerId,
       totalBudget,
@@ -71,6 +77,7 @@ export async function runPipeline(
       mode,
       ghToken,
     });
+    process.exitCode = resolveExitCode(retryResults);
     return;
   }
 
@@ -89,7 +96,7 @@ export async function runPipeline(
   });
 
   if (epics && epics.length > 0) {
-    await runEpicPipeline(ctx, {
+    const epicResults = await runEpicPipeline(ctx, {
       epics,
       resolvedRepo,
       config,
@@ -101,6 +108,7 @@ export async function runPipeline(
       ghToken,
       contextDir,
     });
+    process.exitCode = resolveExitCode(epicResults);
     return;
   }
 
@@ -142,6 +150,8 @@ export async function runPipeline(
     totalBudget,
     completedTasks,
   });
+
+  process.exitCode = resolveExitCode(completedTasks);
 }
 
 
@@ -179,15 +189,15 @@ function printRunHeader(ctx: PipelineContext, totalBudget: number, concurrency: 
 
 export function validateRunOptions(options: RunCommandOptions): void {
   if (typeof options.concurrency === "number" && options.concurrency <= 0) {
-    throw new Error("--concurrency must be greater than zero.");
+    throw new ConfigError("--concurrency must be greater than zero.");
   }
 
   if (typeof options.timeout === "number" && options.timeout <= 0) {
-    throw new Error("--timeout must be greater than zero.");
+    throw new ConfigError("--timeout must be greater than zero.");
   }
 
   if (typeof options.maxTasks === "number" && options.maxTasks <= 0) {
-    throw new Error("--max-tasks must be greater than zero when provided.");
+    throw new ConfigError("--max-tasks must be greater than zero when provided.");
   }
 }
 
@@ -197,7 +207,7 @@ function resolveMode(modeOption: string | undefined, config: OacConfig | null): 
     return candidate;
   }
 
-  throw new Error(`Invalid --mode value "${candidate}".`);
+  throw new ConfigError(`Invalid --mode value "${candidate}".`);
 }
 
 function resolveConcurrency(
@@ -210,7 +220,7 @@ function resolveConcurrency(
       : (config?.execution.concurrency ?? DEFAULT_CONCURRENCY);
 
   if (!Number.isFinite(configuredConcurrency) || configuredConcurrency <= 0) {
-    throw new Error("Concurrency must be a positive integer.");
+    throw new ConfigError("Concurrency must be a positive integer.");
   }
 
   return Math.floor(configuredConcurrency);
@@ -223,7 +233,7 @@ function resolveTimeout(timeoutOption: number | undefined, config: OacConfig | n
       : (config?.execution.taskTimeout ?? DEFAULT_TIMEOUT_SECONDS);
 
   if (!Number.isFinite(configuredTimeout) || configuredTimeout <= 0) {
-    throw new Error("Timeout must be a positive integer.");
+    throw new ConfigError("Timeout must be a positive integer.");
   }
 
   return Math.floor(configuredTimeout);

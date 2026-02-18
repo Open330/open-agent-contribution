@@ -79,7 +79,16 @@ export async function discoverTasks(
   );
   const estimates =
     candidateTasks.length > 0
-      ? await estimateTaskMap(candidateTasks, resolveProviderId(options.provider, config))
+      ? await estimateTaskMap(
+          candidateTasks,
+          resolveProviderId(options.provider, config),
+          (done, total) => {
+            if (estimateSpinner) {
+              const pct = Math.round((done / total) * 100);
+              estimateSpinner.text = `Estimating tokens... (${done}/${total} — ${pct}%)`;
+            }
+          },
+        )
       : new Map<string, TokenEstimate>();
   if (candidateTasks.length > 0) estimateSpinner?.succeed("Token estimation completed");
   else estimateSpinner?.stop();
@@ -190,7 +199,9 @@ export async function executePlan(
 
         completedCount += 1;
         if (executionSpinner) {
-          executionSpinner.text = `Executing tasks... (${completedCount}/${plan.selectedTasks.length})`;
+          const total = plan.selectedTasks.length;
+          const pct = Math.round((completedCount / total) * 100);
+          executionSpinner.text = `Executing tasks... (${completedCount}/${total} — ${pct}%)`;
         }
 
         return { task: entry.task, estimate: entry.estimate, execution, sandbox };

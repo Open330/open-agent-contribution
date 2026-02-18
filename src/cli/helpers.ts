@@ -140,10 +140,16 @@ export function resolveBudget(
 export async function estimateTaskMap(
   tasks: Task[],
   providerId: string,
+  onProgress?: (completed: number, total: number) => void,
 ): Promise<Map<string, TokenEstimate>> {
+  let completed = 0;
+  const total = tasks.length;
+
   const entries = await Promise.all(
     tasks.map(async (task) => {
       const estimate = await estimateTokens(task, providerId);
+      completed += 1;
+      onProgress?.(completed, total);
       return [task.id, estimate] as const;
     }),
   );

@@ -49,6 +49,8 @@ export interface TokenCounter {
   countTokens(text: string): number;
   readonly invocationOverhead: number;
   readonly maxContextTokens: number;
+  /** Free any cached resources (e.g. tiktoken encoders). Optional. */
+  reset?(): void;
 }
 
 interface TokenCountResult {
@@ -86,6 +88,15 @@ const COMPLEXITY_ORDER: Record<TaskComplexity, number> = {
 
 const claudeCounter = new ClaudeTokenCounter();
 const codexCounter = new CodexTokenCounter();
+
+/**
+ * Free cached tiktoken encoders held by the module-level counter singletons.
+ * Useful for reclaiming memory in long-lived processes or between test runs.
+ */
+export function resetCounters(): void {
+  claudeCounter.reset();
+  codexCounter.reset();
+}
 
 function getTokenCounter(provider: AgentProviderId): TokenCounter {
   if (provider === "claude-code") {

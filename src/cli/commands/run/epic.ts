@@ -179,7 +179,7 @@ export async function runEpicPipeline(
     ghToken?: string;
     contextDir: string;
   },
-): Promise<void> {
+): Promise<TaskRunResult[]> {
   const {
     epics,
     resolvedRepo,
@@ -197,9 +197,15 @@ export async function runEpicPipeline(
     ctx.suppressOutput,
     `Estimating tokens for ${epics.length} epic(s)...`,
   );
+  let estimatedCount = 0;
   for (const epic of epics) {
     if (epic.estimatedTokens === 0) {
       epic.estimatedTokens = await estimateEpicTokens(epic, providerId);
+    }
+    estimatedCount += 1;
+    if (estimateSpinner) {
+      const pct = Math.round((estimatedCount / epics.length) * 100);
+      estimateSpinner.text = `Estimating epic tokens... (${estimatedCount}/${epics.length} — ${pct}%)`;
     }
   }
   estimateSpinner?.succeed("Epic token estimation completed");
@@ -216,11 +222,18 @@ export async function runEpicPipeline(
 
   if (ctx.options.dryRun) {
     printEpicDryRun(ctx, epicPlan, totalBudget);
-    return;
+    return [];
   }
 
   // Execute selected epics concurrently
   const { adapter } = await resolveAdapter(providerId);
+
+  let epicCompletedCount = 0;
+  const epicTotal = epicPlan.selectedEpics.length;
+  const executionSpinner = createSpinner(
+    ctx.suppressOutput,
+    `Executing ${epicTotal} epic(s)...`,
+  );
 
   const epicQueue = new PQueue({ concurrency });
   const allTaskResults = await Promise.all(
@@ -243,6 +256,12 @@ export async function runEpicPipeline(
           ghToken,
         });
 
+        epicCompletedCount += 1;
+        if (executionSpinner) {
+          const pct = Math.round((epicCompletedCount / epicTotal) * 100);
+          executionSpinner.text = `Executing epics... (${epicCompletedCount}/${epicTotal} — ${pct}%)`;
+        }
+
         if (!ctx.suppressOutput) {
           const icon = result.execution.success ? ctx.ui.green("[OK]") : ctx.ui.red("[X]");
           console.log(`${icon} ${entry.epic.title}`);
@@ -253,6 +272,7 @@ export async function runEpicPipeline(
       }) as Promise<TaskRunResult>,
     ),
   );
+  executionSpinner?.succeed("Epic execution finished");
 
   // Update backlog with completed epics
   const completedIds = allTaskResults.filter((r) => r.execution.success).map((r) => r.task.id);
@@ -271,6 +291,8 @@ export async function runEpicPipeline(
   });
 
   printEpicSummary(ctx, epicPlan, allTaskResults, resolvedRepo.fullName, providerId, totalBudget);
+
+  return allTaskResults;
 }
 
 function printEpicDryRun(

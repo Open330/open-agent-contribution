@@ -19,6 +19,7 @@ export function createRunCommand(): Command {
   const command = new Command("run");
 
   command
+    .alias("r")
     .description(
       "Run the full OAC pipeline — analyze, plan, and execute in one command",
     )
@@ -52,7 +53,14 @@ Examples:
   $ oac run --repo owner/repo --provider codex --concurrency 4
   $ oac run --repo owner/repo --dry-run
   $ oac run --repo owner/repo --source lint --max-tasks 10
-  $ oac run --repo owner/repo --retry-failed`,
+  $ oac run --repo owner/repo --retry-failed
+
+Exit Codes:
+  0   All tasks/epics completed successfully (or dry-run)
+  1   Unexpected / unhandled error
+  2   Configuration or validation error (bad flags, missing repo)
+  3   All selected tasks/epics failed
+  4   Partial success — some tasks succeeded, others failed`,
   );
 
   return command;

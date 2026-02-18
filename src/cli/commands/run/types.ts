@@ -68,6 +68,40 @@ export const DEFAULT_CONCURRENCY = 2;
 /** Timeout for git push / gh pr create operations (2 minutes). */
 export const PR_CREATION_TIMEOUT_MS = 120_000;
 
+// ── Config / validation error ────────────────────────────────
+
+/** Thrown for configuration or validation problems so the CLI can set a distinct exit code. */
+export class ConfigError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ConfigError";
+  }
+}
+
+// ── Exit codes ───────────────────────────────────────────────
+/** All tasks/epics completed successfully (or dry-run / nothing to do). */
+export const EXIT_SUCCESS = 0;
+/** Unhandled / unexpected error. */
+export const EXIT_GENERAL_ERROR = 1;
+/** Configuration or validation error (invalid flags, missing repo, bad config). */
+export const EXIT_CONFIG_ERROR = 2;
+/** Every selected task/epic failed. */
+export const EXIT_ALL_FAILED = 3;
+/** At least one task/epic succeeded but others failed. */
+export const EXIT_PARTIAL_SUCCESS = 4;
+
+/**
+ * Derive the appropriate exit code from a set of execution results.
+ * Returns EXIT_SUCCESS when there are no results (dry-run, empty discovery).
+ */
+export function resolveExitCode(results: TaskRunResult[]): number {
+  if (results.length === 0) return EXIT_SUCCESS;
+  const succeeded = results.filter((r) => r.execution.success).length;
+  if (succeeded === results.length) return EXIT_SUCCESS;
+  if (succeeded === 0) return EXIT_ALL_FAILED;
+  return EXIT_PARTIAL_SUCCESS;
+}
+
 export interface PipelineContext {
   options: RunCommandOptions;
   globalOptions: Required<GlobalCliOptions>;

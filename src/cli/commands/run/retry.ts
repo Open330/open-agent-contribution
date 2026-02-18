@@ -12,7 +12,7 @@ import {
 import { createSpinner, estimateTaskMap, formatInteger } from "../../helpers.js";
 import { executePlan, printFinalSummary } from "./task.js";
 import { writeTracking } from "./tracking.js";
-import type { PipelineContext, RunMode } from "./types.js";
+import type { PipelineContext, RunMode, TaskRunResult } from "./types.js";
 
 async function readMostRecentContributionLog(
   repoPath: string,
@@ -69,7 +69,7 @@ export async function runRetryPipeline(
     mode: RunMode;
     ghToken?: string;
   },
-): Promise<void> {
+): Promise<TaskRunResult[]> {
   const { resolvedRepo, providerId, totalBudget, concurrency, timeoutSeconds, mode, ghToken } =
     params;
 
@@ -81,13 +81,13 @@ export async function runRetryPipeline(
     if (!ctx.suppressOutput) {
       console.log(ctx.ui.yellow("[oac] Run the pipeline at least once before using --retry-failed."));
     }
-    return;
+    return [];
   }
 
   const failedEntries = log.tasks.filter((t) => t.status === "failed");
   if (failedEntries.length === 0) {
     retrySpinner?.succeed("No failed tasks in the most recent run — nothing to retry.");
-    return;
+    return [];
   }
 
   retrySpinner?.succeed(
@@ -102,7 +102,7 @@ export async function runRetryPipeline(
     if (!ctx.suppressOutput) {
       console.log(ctx.ui.yellow("[oac] No retry tasks could be selected within the budget."));
     }
-    return;
+    return [];
   }
 
   if (!ctx.suppressOutput) {
@@ -138,5 +138,7 @@ export async function runRetryPipeline(
     totalBudget,
     completedTasks,
   });
+
+  return completedTasks;
 }
 

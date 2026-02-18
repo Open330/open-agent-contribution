@@ -38,4 +38,13 @@ export class CodexTokenCounter {
   countTokens(text: string): number {
     return getEncoder().encode(text).length;
   }
+
+  /** Free the cached tiktoken encoder so it can be re-created on next use. */
+  reset(): void {
+    if (encoder) {
+      encoder.free();
+      encoder = undefined;
+    }
+    selectedEncoding = undefined;
+  }
 }
