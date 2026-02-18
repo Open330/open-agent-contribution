@@ -1,6 +1,7 @@
 import { Command } from "commander";
 
 import { createAnalyzeCommand } from "./commands/analyze.js";
+import { createCompletionCommand } from "./commands/completion.js";
 import { createDoctorCommand } from "./commands/doctor.js";
 import { createInitCommand } from "./commands/init.js";
 import { createLeaderboardCommand } from "./commands/leaderboard.js";
@@ -30,6 +31,7 @@ function registerCommands(program: Command): void {
   program.addCommand(createLogCommand());
   program.addCommand(createLeaderboardCommand());
   program.addCommand(createStatusCommand());
+  program.addCommand(createCompletionCommand());
 }
 
 export async function createCliProgram(): Promise<Command> {

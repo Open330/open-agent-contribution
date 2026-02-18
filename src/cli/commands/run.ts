@@ -1,9 +1,12 @@
 import { randomUUID } from "node:crypto";
+import { readFile, readdir } from "node:fs/promises";
+import { resolve } from "node:path";
 
 import type { ChalkInstance } from "chalk";
 import Table from "cli-table3";
 import { Command } from "commander";
 import { execa } from "execa";
+import PQueue from "p-queue";
 import {
   buildEpicExecutionPlan,
   buildExecutionPlan,
@@ -45,7 +48,12 @@ import {
   executeTask as workerExecuteTask,
 } from "../../execution/index.js";
 import { cloneRepo, resolveRepo } from "../../repo/index.js";
-import { type ContributionLog, writeContributionLog } from "../../tracking/index.js";
+import {
+  type ContributionLog,
+  type ContributionTask,
+  contributionLogSchema,
+  writeContributionLog,
+} from "../../tracking/index.js";
 
 import {
   type GlobalCliOptions,
@@ -73,6 +81,7 @@ interface RunCommandOptions {
   maxTasks?: number;
   timeout?: number;
   source?: string;
+  retryFailed?: boolean;
 }
 
 interface SandboxInfo {
@@ -123,6 +132,8 @@ interface RunSummaryOutput {
 
 const DEFAULT_TIMEOUT_SECONDS = 300;
 const DEFAULT_CONCURRENCY = 2;
+/** Timeout for git push / gh pr create operations (2 minutes). */
+const PR_CREATION_TIMEOUT_MS = 120_000;
 
 export function createRunCommand(): Command {
   const command = new Command("run");
@@ -138,6 +149,7 @@ export function createRunCommand(): Command {
     .option("--max-tasks <number>", "Maximum number of discovered tasks to consider", parseInteger)
     .option("--timeout <seconds>", "Per-task timeout in seconds", parseInteger)
     .option("--source <source>", "Filter tasks by source: lint, todo, github-issue, test-gap")
+    .option("--retry-failed", "Re-run only failed tasks from the most recent run", false)
     .action(async (options: RunCommandOptions, cmd) => {
       const globalOptions = getGlobalOptions(cmd);
       const ui = createUi(globalOptions);
@@ -151,7 +163,8 @@ export function createRunCommand(): Command {
   $ oac run --repo owner/repo --tokens 50000
   $ oac run --repo owner/repo --provider codex --concurrency 4
   $ oac run --repo owner/repo --dry-run
-  $ oac run --repo owner/repo --source lint --max-tasks 10`,
+  $ oac run --repo owner/repo --source lint --max-tasks 10
+  $ oac run --repo owner/repo --retry-failed`,
   );
 
   return command;
@@ -203,6 +216,20 @@ async function runPipeline(
   const cloneSpinner = createSpinner(ctx.suppressOutput, "Preparing local clone...");
   await cloneRepo(resolvedRepo);
   cloneSpinner?.succeed(`Repository ready at ${resolvedRepo.localPath}`);
+
+  // ── Retry-failed shortcut ──────────────────────────────────
+  if (options.retryFailed) {
+    await runRetryPipeline(ctx, {
+      resolvedRepo,
+      providerId,
+      totalBudget,
+      concurrency,
+      timeoutSeconds,
+      mode,
+      ghToken,
+    });
+    return;
+  }
 
   // ── Try epic-based execution (auto-analyze if needed) ────
   const autoAnalyze = config?.analyze?.autoAnalyze ?? true;
@@ -497,10 +524,10 @@ async function runEpicPipeline(
   // Execute selected epics concurrently
   const { adapter } = await resolveAdapter(providerId);
 
-  const allTaskResults = await runWithConcurrency(
-    epicPlan.selectedEpics,
-    concurrency,
-    async (entry): Promise<TaskRunResult> => {
+  const epicQueue = new PQueue({ concurrency });
+  const allTaskResults = await Promise.all(
+    epicPlan.selectedEpics.map((entry) =>
+      epicQueue.add(async (): Promise<TaskRunResult> => {
       if (!ctx.suppressOutput) {
         console.log(
           ctx.ui.blue(
@@ -524,8 +551,9 @@ async function runEpicPipeline(
         if (result.pr) console.log(`    PR #${result.pr.number}: ${result.pr.url}`);
       }
 
-      return result;
-    },
+        return result;
+      }) as Promise<TaskRunResult>,
+    ),
   );
 
   // Update backlog with completed epics
@@ -800,49 +828,51 @@ async function executePlan(
   );
   let completedCount = 0;
 
-  const executedTasks = await runWithConcurrency(
-    plan.selectedTasks,
-    concurrency,
-    async (entry): Promise<TaskRunResult> => {
-      const result = await executeWithAgent({
-        task: entry.task,
-        estimate: entry.estimate,
-        adapter,
-        repoPath: resolvedRepo.localPath,
-        baseBranch: resolvedRepo.meta.defaultBranch,
-        timeoutSeconds,
-      });
-      const { execution, sandbox } = result;
+  const taskQueue = new PQueue({ concurrency });
+  const executedTasks = await Promise.all(
+    plan.selectedTasks.map((entry) =>
+      taskQueue.add(async (): Promise<TaskRunResult> => {
+        const result = await executeWithAgent({
+          task: entry.task,
+          estimate: entry.estimate,
+          adapter,
+          repoPath: resolvedRepo.localPath,
+          baseBranch: resolvedRepo.meta.defaultBranch,
+          timeoutSeconds,
+        });
+        const { execution, sandbox } = result;
 
-      completedCount += 1;
-      if (executionSpinner) {
-        executionSpinner.text = `Executing tasks... (${completedCount}/${plan.selectedTasks.length})`;
-      }
+        completedCount += 1;
+        if (executionSpinner) {
+          executionSpinner.text = `Executing tasks... (${completedCount}/${plan.selectedTasks.length})`;
+        }
 
-      return { task: entry.task, estimate: entry.estimate, execution, sandbox };
-    },
+        return { task: entry.task, estimate: entry.estimate, execution, sandbox };
+      }) as Promise<TaskRunResult>,
+    ),
   );
 
   executionSpinner?.succeed("Execution stage finished");
 
   const completionSpinner = createSpinner(ctx.suppressOutput, "Completing task outputs...");
-  const completedTasks = await runWithConcurrency(
-    executedTasks,
-    concurrency,
-    async (result): Promise<TaskRunResult> => {
-      if (mode === "direct-commit" || !result.execution.success) return result;
+  const completionQueue = new PQueue({ concurrency });
+  const completedTasks = await Promise.all(
+    executedTasks.map((result) =>
+      completionQueue.add(async (): Promise<TaskRunResult> => {
+        if (mode === "direct-commit" || !result.execution.success) return result;
 
-      const pr = await createPullRequest({
-        task: result.task,
-        execution: result.execution,
-        sandbox: result.sandbox,
-        repoFullName: resolvedRepo.fullName,
-        baseBranch: resolvedRepo.meta.defaultBranch,
-        ghToken,
-      });
+        const pr = await createPullRequest({
+          task: result.task,
+          execution: result.execution,
+          sandbox: result.sandbox,
+          repoFullName: resolvedRepo.fullName,
+          baseBranch: resolvedRepo.meta.defaultBranch,
+          ghToken,
+        });
 
-      return pr ? { ...result, pr } : result;
-    },
+        return pr ? { ...result, pr } : result;
+      }) as Promise<TaskRunResult>,
+    ),
   );
   completionSpinner?.succeed("Completion stage finished");
 
@@ -1214,6 +1244,7 @@ async function createPullRequest(input: {
     await execa("git", ["push", "--set-upstream", "origin", branchName], {
       cwd: sandboxPath,
       env: ghEnv,
+      timeout: PR_CREATION_TIMEOUT_MS,
     });
 
     // Create PR using gh CLI
@@ -1267,7 +1298,7 @@ async function createPullRequest(input: {
         "--base",
         input.baseBranch,
       ],
-      { cwd: sandboxPath, env: ghEnv },
+      { cwd: sandboxPath, env: ghEnv, timeout: PR_CREATION_TIMEOUT_MS },
     );
 
     // Parse PR URL from gh output
@@ -1514,34 +1545,133 @@ function renderTaskResults(ui: ChalkInstance, taskResults: TaskRunResult[]): voi
   }
 }
 
-async function runWithConcurrency<T, R>(
-  items: T[],
-  concurrency: number,
-  worker: (item: T, index: number) => Promise<R>,
-): Promise<R[]> {
-  if (items.length === 0) {
-    return [];
+
+// ── Retry-failed helpers ─────────────────────────────────────────────────
+
+async function readMostRecentContributionLog(
+  repoPath: string,
+): Promise<ContributionLog | undefined> {
+  const contributionsPath = resolve(repoPath, ".oac", "contributions");
+
+  let entries: string[];
+  try {
+    const dirEntries = await readdir(contributionsPath, { withFileTypes: true, encoding: "utf8" });
+    entries = dirEntries
+      .filter((e) => e.isFile() && e.name.endsWith(".json"))
+      .map((e) => e.name)
+      .sort((a, b) => b.localeCompare(a)); // most recent first (filenames are timestamped)
+  } catch {
+    return undefined;
   }
 
-  const results: R[] = new Array(items.length);
-  let nextIndex = 0;
-
-  const runWorker = async (): Promise<void> => {
-    while (true) {
-      const currentIndex = nextIndex;
-      nextIndex += 1;
-      if (currentIndex >= items.length) {
-        return;
-      }
-
-      results[currentIndex] = await worker(items[currentIndex], currentIndex);
+  for (const fileName of entries) {
+    try {
+      const content = await readFile(resolve(contributionsPath, fileName), "utf8");
+      const parsed = contributionLogSchema.safeParse(JSON.parse(content));
+      if (parsed.success) return parsed.data;
+    } catch {
+      continue;
     }
+  }
+
+  return undefined;
+}
+
+function taskFromContributionEntry(entry: ContributionTask): Task {
+  return {
+    id: entry.taskId,
+    source: entry.source as Task["source"],
+    title: entry.title,
+    description: `Retry of failed task: ${entry.title}`,
+    targetFiles: entry.filesChanged,
+    priority: 100, // high priority — user explicitly chose to retry
+    complexity: entry.complexity as Task["complexity"],
+    executionMode: "new-pr",
+    metadata: { retryOf: entry.taskId },
+    discoveredAt: new Date().toISOString(),
   };
+}
 
-  const workerCount = Math.min(concurrency, items.length);
-  await Promise.all(Array.from({ length: workerCount }, () => runWorker()));
+async function runRetryPipeline(
+  ctx: PipelineContext,
+  params: {
+    resolvedRepo: Awaited<ReturnType<typeof resolveRepo>>;
+    providerId: string;
+    totalBudget: number;
+    concurrency: number;
+    timeoutSeconds: number;
+    mode: RunMode;
+    ghToken?: string;
+  },
+): Promise<void> {
+  const { resolvedRepo, providerId, totalBudget, concurrency, timeoutSeconds, mode, ghToken } =
+    params;
 
-  return results;
+  const retrySpinner = createSpinner(ctx.suppressOutput, "Loading most recent contribution log...");
+  const log = await readMostRecentContributionLog(resolvedRepo.localPath);
+
+  if (!log) {
+    retrySpinner?.fail("No contribution logs found in .oac/contributions/");
+    if (!ctx.suppressOutput) {
+      console.log(ctx.ui.yellow("[oac] Run the pipeline at least once before using --retry-failed."));
+    }
+    return;
+  }
+
+  const failedEntries = log.tasks.filter((t) => t.status === "failed");
+  if (failedEntries.length === 0) {
+    retrySpinner?.succeed("No failed tasks in the most recent run — nothing to retry.");
+    return;
+  }
+
+  retrySpinner?.succeed(
+    `Found ${failedEntries.length} failed task(s) from run ${log.runId.slice(0, 8)}`,
+  );
+
+  const retryTasks = failedEntries.map(taskFromContributionEntry);
+  const estimates = await estimateTaskMap(retryTasks, providerId);
+  const plan = buildExecutionPlan(retryTasks, estimates, totalBudget);
+
+  if (plan.selectedTasks.length === 0) {
+    if (!ctx.suppressOutput) {
+      console.log(ctx.ui.yellow("[oac] No retry tasks could be selected within the budget."));
+    }
+    return;
+  }
+
+  if (!ctx.suppressOutput) {
+    console.log(
+      ctx.ui.blue(
+        `\n[oac] Retrying ${plan.selectedTasks.length} failed task(s) (budget: ${formatInteger(totalBudget)} tokens)`,
+      ),
+    );
+  }
+
+  const completedTasks = await executePlan(ctx, {
+    plan,
+    providerId,
+    resolvedRepo,
+    concurrency,
+    timeoutSeconds,
+    mode,
+    ghToken,
+  });
+
+  await writeTracking(ctx, {
+    resolvedRepo,
+    providerId,
+    totalBudget,
+    candidateTasks: retryTasks,
+    completedTasks,
+  });
+
+  printFinalSummary(ctx, {
+    plan,
+    resolvedRepo,
+    providerId,
+    totalBudget,
+    completedTasks,
+  });
 }
 
 function formatDuration(seconds: number): string {

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { execa } from "execa";
+import PQueue from "p-queue";
 import { buildExecutionPlan, estimateTokens } from "../budget/index.js";
 import { type Task, type TokenEstimate, createEventBus } from "../core/index.js";
 import {
@@ -445,10 +446,10 @@ export async function executePipeline(
     const codexAvailability = await codexAdapter.checkAvailability();
     const useRealExecution = config.provider.includes("codex") && codexAvailability.available;
 
-    const taskResults = await runWithConcurrency(
-      plan.selectedTasks,
-      concurrency,
-      async (entry): Promise<TaskResult> => {
+    const taskQueue = new PQueue({ concurrency });
+    const taskResults = await Promise.all(
+      plan.selectedTasks.map((entry) =>
+        taskQueue.add(async (): Promise<TaskResult> => {
         emit({ type: "run:task-start", taskId: entry.task.id, title: entry.task.title });
         progress.currentTask = entry.task.title;
         emit({ type: "run:progress", progress: { ...progress } });
@@ -519,8 +520,9 @@ export async function executePipeline(
         });
         emit({ type: "run:progress", progress: { ...progress } });
 
-        return result;
-      },
+          return result;
+        }) as Promise<TaskResult>,
+      ),
     );
 
     // 8. Write contribution log
@@ -589,30 +591,4 @@ export async function executePipeline(
   }
 }
 
-// ---------------------------------------------------------------------------
-// Concurrency helper
-// ---------------------------------------------------------------------------
 
-async function runWithConcurrency<T, R>(
-  items: T[],
-  concurrency: number,
-  worker: (item: T, index: number) => Promise<R>,
-): Promise<R[]> {
-  if (items.length === 0) return [];
-
-  const results: R[] = new Array(items.length);
-  let nextIndex = 0;
-
-  const runWorker = async (): Promise<void> => {
-    while (true) {
-      const currentIndex = nextIndex;
-      nextIndex += 1;
-      if (currentIndex >= items.length) return;
-      results[currentIndex] = await worker(items[currentIndex], currentIndex);
-    }
-  };
-
-  const workerCount = Math.min(concurrency, items.length);
-  await Promise.all(Array.from({ length: workerCount }, () => runWorker()));
-  return results;
-}
