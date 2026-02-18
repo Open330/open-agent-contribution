@@ -14,10 +14,10 @@
 
 [![npm](https://img.shields.io/npm/v/@open330/oac?label=npm&color=CB3837&logo=npm)](https://www.npmjs.com/package/@open330/oac)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D22-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D24-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-3178C6?logo=typescript&logoColor=white)](https://typescriptlang.org/)
 
-[Getting Started](#-getting-started) · [How It Works](#-how-it-works) · [Commands](#-commands) · [Architecture](#-architecture) · [Contributing](#-contributing)
+[Getting Started](#-getting-started) · [How It Works](#-how-it-works) · [Commands](#commands) · [Configuration](#configuration) · [Architecture](#architecture) · [Contributing](#contributing)
 
 </div>
 
@@ -80,9 +80,12 @@ npx @open330/oac run --repo facebook/react --tokens unlimited
 | **Scan** | Task Discovery | Finds TODOs, lint issues, test gaps, dead code, and open GitHub issues |
 | **Budget** | Token Estimation | Per-provider token counting with knapsack-optimized task selection |
 | **Run** | Parallel Execution | Run 2-3 agents simultaneously in isolated git worktrees |
-| **Ship** | PR Automation | Creates PRs, links issues, notifies Linear/Jira via webhooks |
+| **Retry** | Resume Failed | `--retry-failed` re-runs only tasks that failed in the previous run |
+| **Ship** | PR Automation | Creates PRs with timeout protection, links issues, notifies webhooks |
 | **Track** | Contribution Logs | Git-native audit trail in `.oac/` — who contributed what, with how many tokens |
 | **Rank** | Leaderboard | See who's recycling the most tokens across your team |
+| **Explain** | Task Inspector | `oac explain <id>` shows why a task was selected and what the agent will do |
+| **Complete** | Shell Integration | Tab-completion for bash, zsh, and fish shells |
 
 ---
 
@@ -90,7 +93,7 @@ npx @open330/oac run --repo facebook/react --tokens unlimited
 
 ### Prerequisites
 
-- **Node.js** >= 24
+- **Node.js** >= 24 (see `engines` in package.json)
 - **git** installed
 - At least one AI agent CLI: [Claude Code](https://claude.ai/code), [Codex](https://github.com/openai/codex), or [OpenCode](https://github.com/opencode-ai/opencode)
 
@@ -115,6 +118,9 @@ pnpm build
 ```bash
 # Interactive setup wizard
 oac init
+
+# Or quick start without wizard
+oac init --minimal --repo owner/repo
 ```
 
 ```
@@ -160,15 +166,17 @@ oac doctor
 
 | Command | Description |
 |---------|-------------|
-| `oac init` | Interactive setup wizard — creates `oac.config.ts` |
+| `oac init` | Interactive setup wizard — creates `oac.config.ts` (`--minimal` for quick start) |
 | `oac doctor` | Verify environment (Node, git, agents, auth) |
-| `oac analyze` | Deep codebase analysis — builds context, groups findings into epics |
-| `oac scan` | Quick task discovery without grouping or context |
+| `oac analyze` | Deep codebase analysis — builds module context, groups findings into epics |
+| `oac scan` | Quick task discovery — finds actionable items without building full context |
 | `oac plan` | Show execution plan with token budget breakdown |
-| `oac run` | Full pipeline: analyze → group epics → execute → PR → track |
+| `oac run` (alias: `oac r`) | **Primary command.** Full pipeline: analyze → plan → execute → PR → track |
 | `oac status` | Show running/recent job status |
 | `oac log` | View contribution history |
 | `oac leaderboard` | Show contribution rankings |
+| `oac completion` | Generate shell tab-completion scripts (bash/zsh/fish) |
+| `oac explain <id>` | Show why a task/epic was selected and what the agent will do |
 
 ### `oac analyze` — Deep Codebase Analysis
 
@@ -187,13 +195,26 @@ oac run \
   --provider claude-code \  # AI agent to use (claude-code or codex)
   --concurrency 2 \         # Parallel agents (default: 2)
   --mode new-pr \           # Create PRs (or: direct-commit)
-  --dry-run                 # Preview without executing
+  --dry-run \               # Preview without executing (with colored diff)
+  --quiet \                 # Suppress spinner/progress output (for CI)
+  --retry-failed            # Re-run only previously failed tasks
 
 # Run with unlimited budget
 oac run --repo owner/repo --tokens unlimited --provider codex
 
 # Auto-analyzes if no context exists (or use --force to re-analyze)
+# Shorthand alias: oac r
 ```
+
+**Exit Codes:**
+
+| Code | Meaning |
+|------|---------|
+| `0` | All tasks/epics completed successfully (or dry-run) |
+| `1` | Unexpected / unhandled error |
+| `2` | Configuration or validation error |
+| `3` | All selected tasks/epics failed |
+| `4` | Partial success — some tasks succeeded, others failed |
 
 ### `oac scan` — Quick Task Discovery
 
@@ -251,6 +272,8 @@ export default defineConfig({
 });
 ```
 
+> 📖 **Full reference**: See [docs/config-reference.md](docs/config-reference.md) for every option, type, default, and constraint — auto-generated from the Zod schema.
+
 ---
 
 ## Architecture
@@ -289,14 +312,14 @@ Published as a single package `@open330/oac`:
 
 | Module | Path | Description |
 |--------|------|-------------|
-| Core | `src/core/` | Event bus, config (Zod), types, errors |
+| Core | `src/core/` | Event bus, config (Zod), types, errors, memory pressure monitoring |
 | Repo | `src/repo/` | GitHub repo resolution, shallow cloning, metadata cache |
-| Discovery | `src/discovery/` | Codebase analyzer, epic grouper, backlog, scanners (lint, TODO, test-gap, GitHub issues) |
-| Budget | `src/budget/` | Token estimation (tiktoken), complexity analysis, execution planner |
+| Discovery | `src/discovery/` | Codebase analyzer (streaming for large files), epic grouper, backlog, scanners (lint, TODO, test-gap, GitHub issues) |
+| Budget | `src/budget/` | Token estimation (tiktoken), complexity analysis, execution planner, resettable counters |
 | Execution | `src/execution/` | Agent adapters (Claude Code, Codex), worktree sandbox, worker |
-| Completion | `src/completion/` | PR creation (Octokit), diff validation, issue linking |
+| Completion | `src/completion/` | PR creation (Octokit) with timeout protection, diff validation, issue linking |
 | Tracking | `src/tracking/` | Contribution logs, leaderboard, JSON schema |
-| CLI | `src/cli/` | Commander.js commands: init, doctor, analyze, scan, plan, run, status, log, leaderboard |
+| CLI | `src/cli/` | 11 commands: init, doctor, analyze, scan, plan, run, status, log, leaderboard, completion, explain. Run module decomposed into 8 focused sub-modules |
 
 ### Tech Stack
 
@@ -305,6 +328,8 @@ Published as a single package `@open330/oac`:
 | Runtime | Node.js 24+, TypeScript 5.7+, ESM |
 | Build | pnpm, tsup |
 | CLI | Commander.js, chalk, ora, cli-table3 |
+| Concurrency | p-queue for bounded parallelism, memory pressure monitoring |
+| Process | execa for child process management |
 | Git | simple-git, git worktrees for isolation |
 | GitHub | @octokit/rest |
 | AI Agents | Claude Code (`claude-code`), Codex CLI (`codex`) — pluggable via `AgentProvider` |
@@ -435,7 +460,8 @@ export class MyAgentAdapter implements AgentProvider {
 - [x] **2026.2.17** — Core engine, CLI, 5 scanners, parallel execution, npm publish
 - [x] **2026.2.18** — Context-first architecture: codebase analyzer, epic grouper, incremental analysis, backlog persistence, enhanced prompts with module context
 - [x] **2026.4.x** — Claude Code + Codex CLI adapters, token usage reporting, auto-detect sourceDir
-- [ ] **Next** — OpenCode adapter, multi-agent routing, localhost dashboard
+- [x] **2026.4.x** — 9-wave quality cycle: performance fixes, UX polish, run module decomposition, shell completion, retry, exit codes, memory monitoring, streaming analysis, config reference docs
+- [ ] **Next** — OpenCode adapter, multi-agent routing, localhost dashboard, daemon mode
 - [ ] **Future** — Linear/Jira webhooks, plugin system, sparse checkout for monorepos
 
 ---

@@ -4,9 +4,26 @@ All notable changes to OAC (Open Agent Contribution) are documented here.
 
 ## [Unreleased]
 
-### Wave 8 — Final UX Polish
+_No unreleased changes._
+
+---
+
+## [2026.4.3] — 2026-02-18
+
+### Wave 9 — Final P3/T3 Polish (`f8ff2ae`)
+- **feat**: `oac init --minimal` for quick, non-interactive setup
+- **feat**: `oac explain <task-id>` command — inspect why a task/epic was selected
+- **feat**: Colored diff output in `--dry-run` mode (source files, complexity, scanner)
+- **docs**: Comprehensive troubleshooting section in README
+- **perf**: Streaming file reads in analyzer for large files (>1MB threshold)
+- **perf**: Memory pressure monitoring — PQueue auto-throttles when heap usage exceeds 85%
+
+### Wave 8 — Final UX Polish (`806a170`)
 - **docs**: Auto-generated config reference from Zod schema (`docs/config-reference.md`)
-- **docs**: Added this CHANGELOG
+- **docs**: Added CHANGELOG
+
+### Maintenance
+- **chore**: Temporarily removed CI/CD workflows during dev phase (`cb90214`)
 
 ---
 
