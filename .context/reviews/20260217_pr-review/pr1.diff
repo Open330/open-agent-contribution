@@ -1,0 +1,395 @@
+diff --git a/packages/budget/tests/claude-counter.test.ts b/packages/budget/tests/claude-counter.test.ts
+new file mode 100644
+index 0000000..d61554a
+--- /dev/null
++++ b/packages/budget/tests/claude-counter.test.ts
+@@ -0,0 +1,35 @@
++import { describe, expect, it } from "vitest";
++
++import { ClaudeTokenCounter } from "../src/providers/claude-counter.js";
++
++describe("ClaudeTokenCounter", () => {
++  it("countTokens returns a positive number for non-empty text", () => {
++    const counter = new ClaudeTokenCounter();
++
++    expect(counter.countTokens("This is a non-empty string.")).toBeGreaterThan(0);
++  });
++
++  it("countTokens returns 0 for empty string", () => {
++    const counter = new ClaudeTokenCounter();
++
++    expect(counter.countTokens("")).toBe(0);
++  });
++
++  it("invocationOverhead is 1500", () => {
++    const counter = new ClaudeTokenCounter();
++
++    expect(counter.invocationOverhead).toBe(1_500);
++  });
++
++  it("maxContextTokens is 200000", () => {
++    const counter = new ClaudeTokenCounter();
++
++    expect(counter.maxContextTokens).toBe(200_000);
++  });
++
++  it('encoding is "cl100k_base"', () => {
++    const counter = new ClaudeTokenCounter();
++
++    expect(counter.encoding).toBe("cl100k_base");
++  });
++});
+diff --git a/packages/budget/tests/codex-counter.test.ts b/packages/budget/tests/codex-counter.test.ts
+new file mode 100644
+index 0000000..114ea82
+--- /dev/null
++++ b/packages/budget/tests/codex-counter.test.ts
+@@ -0,0 +1,35 @@
++import { describe, expect, it } from "vitest";
++
++import { CodexTokenCounter } from "../src/providers/codex-counter.js";
++
++describe("CodexTokenCounter", () => {
++  it("countTokens returns a positive number for non-empty text", () => {
++    const counter = new CodexTokenCounter();
++
++    expect(counter.countTokens("This is a non-empty string.")).toBeGreaterThan(0);
++  });
++
++  it("countTokens returns 0 for empty string", () => {
++    const counter = new CodexTokenCounter();
++
++    expect(counter.countTokens("")).toBe(0);
++  });
++
++  it("invocationOverhead is 1000", () => {
++    const counter = new CodexTokenCounter();
++
++    expect(counter.invocationOverhead).toBe(1_000);
++  });
++
++  it("maxContextTokens is 200000", () => {
++    const counter = new CodexTokenCounter();
++
++    expect(counter.maxContextTokens).toBe(200_000);
++  });
++
++  it("encoding returns a valid encoding name", () => {
++    const counter = new CodexTokenCounter();
++
++    expect(["o200k_base", "cl100k_base"]).toContain(counter.encoding);
++  });
++});
+diff --git a/packages/budget/tests/complexity.test.ts b/packages/budget/tests/complexity.test.ts
+new file mode 100644
+index 0000000..2c955ef
+--- /dev/null
++++ b/packages/budget/tests/complexity.test.ts
+@@ -0,0 +1,116 @@
++import { describe, expect, it } from "vitest";
++
++import { analyzeTaskComplexity, estimateLocChanges } from "../src/complexity.js";
++import type { Task } from "../src/estimator.js";
++
++function makeTask(overrides: Partial<Task> = {}): Task {
++  return {
++    id: "test-task-1",
++    source: "todo",
++    title: "Test task",
++    description: "A test task",
++    targetFiles: [],
++    priority: 50,
++    complexity: "simple",
++    executionMode: "new-pr",
++    metadata: {},
++    discoveredAt: new Date().toISOString(),
++    ...overrides,
++  };
++}
++
++describe("estimateLocChanges", () => {
++  it("returns metadata estimate when estimatedLoc is in metadata", () => {
++    const task = makeTask({
++      metadata: { estimatedLoc: 42 },
++    });
++
++    expect(estimateLocChanges(task)).toBe(42);
++  });
++
++  it("reads from nested metadata.metrics.estimatedLoc", () => {
++    const task = makeTask({
++      metadata: { metrics: { estimatedLoc: 57 } },
++    });
++
++    expect(estimateLocChanges(task)).toBe(57);
++  });
++
++  it("falls back to source baseline when no metadata", () => {
++    const task = makeTask({
++      source: "lint",
++      metadata: {},
++      targetFiles: [],
++    });
++
++    expect(estimateLocChanges(task)).toBe(8);
++  });
++
++  it("uses file count adjustment when target files are many", () => {
++    const task = makeTask({
++      source: "lint",
++      metadata: {},
++      targetFiles: Array.from({ length: 10 }, (_, index) => `src/file-${index}.ts`),
++    });
++
++    expect(estimateLocChanges(task)).toBe(80);
++  });
++
++  it("handles string numeric values in metadata", () => {
++    const task = makeTask({
++      metadata: { estimatedLoc: "37.4" },
++    });
++
++    expect(estimateLocChanges(task)).toBe(37);
++  });
++});
++
++describe("analyzeTaskComplexity", () => {
++  it('returns "trivial" for simple lint tasks with 1 file', () => {
++    const task = makeTask({
++      source: "lint",
++      targetFiles: ["src/lint-target.ts"],
++      complexity: "trivial",
++    });
++
++    expect(analyzeTaskComplexity(task)).toBe("trivial");
++  });
++
++  it('returns "simple" for todo tasks with few files', () => {
++    const task = makeTask({
++      source: "todo",
++      targetFiles: ["src/a.ts", "src/b.ts", "src/c.ts"],
++    });
++
++    expect(analyzeTaskComplexity(task)).toBe("simple");
++  });
++
++  it('returns "moderate" for test-gap tasks', () => {
++    const task = makeTask({
++      source: "test-gap",
++      targetFiles: ["src/a.ts", "src/b.ts", "src/c.ts", "src/d.ts"],
++      complexity: "moderate",
++    });
++
++    expect(analyzeTaskComplexity(task)).toBe("moderate");
++  });
++
++  it('returns "complex" for github-issue tasks with many files and high LOC', () => {
++    const task = makeTask({
++      source: "github-issue",
++      complexity: "complex",
++      targetFiles: [
++        "src/a.ts",
++        "src/b.ts",
++        "src/c.ts",
++        "src/d.ts",
++        "src/e.ts",
++        "src/f.ts",
++        "src/g.ts",
++      ],
++      metadata: { estimatedLoc: 320 },
++    });
++
++    expect(analyzeTaskComplexity(task)).toBe("complex");
++  });
++});
+diff --git a/packages/budget/tests/estimator.test.ts b/packages/budget/tests/estimator.test.ts
+new file mode 100644
+index 0000000..1c401df
+--- /dev/null
++++ b/packages/budget/tests/estimator.test.ts
+@@ -0,0 +1,185 @@
++import { mkdtemp, rm, writeFile } from "node:fs/promises";
++import { tmpdir } from "node:os";
++import { join } from "node:path";
++import { afterEach, describe, expect, it, vi } from "vitest";
++
++import { estimateTokens } from "../src/estimator.js";
++import type { Task } from "../src/estimator.js";
++import { ClaudeTokenCounter } from "../src/providers/claude-counter.js";
++import { CodexTokenCounter } from "../src/providers/codex-counter.js";
++
++const tempDirs: string[] = [];
++
++function makeTask(overrides: Partial<Task> = {}): Task {
++  return {
++    id: "test-task-1",
++    source: "todo",
++    title: "Test task",
++    description: "A test task",
++    targetFiles: [],
++    priority: 50,
++    complexity: "simple",
++    executionMode: "new-pr",
++    metadata: {},
++    discoveredAt: new Date().toISOString(),
++    ...overrides,
++  };
++}
++
++async function makeTempFile(content: string): Promise<string> {
++  const directory = await mkdtemp(join(tmpdir(), "oac-budget-estimator-"));
++  const filePath = join(directory, "fixture.ts");
++  tempDirs.push(directory);
++  await writeFile(filePath, content, "utf8");
++  return filePath;
++}
++
++afterEach(async () => {
++  vi.restoreAllMocks();
++  await Promise.all(
++    tempDirs.splice(0).map((directory) => rm(directory, { recursive: true, force: true })),
++  );
++});
++
++describe("estimateTokens", () => {
++  it("returns token estimate for a simple task with no target files", async () => {
++    const task = makeTask({
++      source: "todo",
++      complexity: "trivial",
++      targetFiles: [],
++    });
++
++    const estimate = await estimateTokens(task, "claude-code");
++
++    expect(estimate.taskId).toBe(task.id);
++    expect(estimate.providerId).toBe("claude-code");
++    expect(estimate.contextTokens).toBe(0);
++    expect(estimate.promptTokens).toBeGreaterThan(0);
++    expect(estimate.totalEstimatedTokens).toBeGreaterThan(0);
++    expect(estimate.feasible).toBe(true);
++  });
++
++  it("returns token estimate for a task with target files that exist", async () => {
++    const filePath = await makeTempFile("export const value = 42;\n".repeat(20));
++    const task = makeTask({
++      source: "todo",
++      complexity: "trivial",
++      targetFiles: [filePath],
++    });
++
++    const estimate = await estimateTokens(task, "claude-code");
++
++    expect(estimate.contextTokens).toBeGreaterThan(0);
++    expect(estimate.totalEstimatedTokens).toBeGreaterThan(estimate.promptTokens);
++    expect(estimate.feasible).toBe(true);
++  });
++
++  it("returns feasible=false when estimated tokens exceed max context", async () => {
++    vi.spyOn(ClaudeTokenCounter.prototype, "countTokens").mockReturnValue(100_000);
++    const task = makeTask({
++      source: "todo",
++      complexity: "trivial",
++      targetFiles: [],
++    });
++
++    const estimate = await estimateTokens(task, "claude-code");
++
++    expect(estimate.totalEstimatedTokens).toBeGreaterThan(200_000);
++    expect(estimate.feasible).toBe(false);
++  });
++
++  it('uses claude counter when provider is "claude-code"', async () => {
++    const claudeSpy = vi.spyOn(ClaudeTokenCounter.prototype, "countTokens");
++    const codexSpy = vi.spyOn(CodexTokenCounter.prototype, "countTokens");
++
++    await estimateTokens(makeTask(), "claude-code");
++
++    expect(claudeSpy).toHaveBeenCalled();
++    expect(codexSpy).not.toHaveBeenCalled();
++  });
++
++  it('uses codex counter when provider is "codex-cli"', async () => {
++    const claudeSpy = vi.spyOn(ClaudeTokenCounter.prototype, "countTokens");
++    const codexSpy = vi.spyOn(CodexTokenCounter.prototype, "countTokens");
++
++    await estimateTokens(makeTask(), "codex-cli");
++
++    expect(codexSpy).toHaveBeenCalled();
++    expect(claudeSpy).not.toHaveBeenCalled();
++  });
++
++  it("confidence is reduced when files are missing", async () => {
++    const existingFile = await makeTempFile("const value = 1;\n");
++    const missingFile = `${existingFile}.missing`;
++
++    const withExistingFile = await estimateTokens(
++      makeTask({
++        source: "todo",
++        complexity: "trivial",
++        targetFiles: [existingFile],
++      }),
++      "claude-code",
++    );
++
++    const withMissingFile = await estimateTokens(
++      makeTask({
++        source: "todo",
++        complexity: "trivial",
++        targetFiles: [missingFile],
++      }),
++      "claude-code",
++    );
++
++    expect(withMissingFile.confidence).toBeLessThan(withExistingFile.confidence);
++  });
++
++  it("confidence is reduced when no target files", async () => {
++    const existingFile = await makeTempFile("const value = 1;\n");
++
++    const withFile = await estimateTokens(
++      makeTask({
++        source: "todo",
++        complexity: "trivial",
++        targetFiles: [existingFile],
++      }),
++      "claude-code",
++    );
++
++    const withoutFiles = await estimateTokens(
++      makeTask({
++        source: "todo",
++        complexity: "trivial",
++        targetFiles: [],
++      }),
++      "claude-code",
++    );
++
++    expect(withoutFiles.confidence).toBeLessThan(withFile.confidence);
++  });
++
++  it("confidence is reduced when declared and analyzed complexity differ", async () => {
++    const fileA = await makeTempFile("export const a = 1;\n");
++    const fileB = await makeTempFile("export const b = 2;\n");
++    const fileC = await makeTempFile("export const c = 3;\n");
++
++    const matchedComplexity = await estimateTokens(
++      makeTask({
++        source: "todo",
++        complexity: "simple",
++        targetFiles: [fileA, fileB, fileC],
++      }),
++      "claude-code",
++    );
++
++    const mismatchedComplexity = await estimateTokens(
++      makeTask({
++        source: "todo",
++        complexity: "simple",
++        targetFiles: [fileA],
++      }),
++      "claude-code",
++    );
++
++    expect(mismatchedComplexity.confidence).toBeLessThan(matchedComplexity.confidence);
++  });
++});

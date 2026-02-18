@@ -1,0 +1,15 @@
+diff --git a/README.md b/README.md
+index c9430ef..fcdb97e 100644
+--- a/README.md
++++ b/README.md
+@@ -12,8 +12,9 @@
+ 
+ **Put your spare AI tokens to work. Contribute to open source — automatically.**
+ 
++[![CI](https://img.shields.io/github/actions/workflow/status/Open330/open-agent-contribution/ci.yml?branch=main&label=CI)](https://github.com/Open330/open-agent-contribution/actions/workflows/ci.yml)
+ [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+-[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D24-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
++[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D22-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+ [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-3178C6?logo=typescript&logoColor=white)](https://typescriptlang.org/)
+ [![pnpm](https://img.shields.io/badge/pnpm-9.15+-F69220?logo=pnpm&logoColor=white)](https://pnpm.io/)
+ 

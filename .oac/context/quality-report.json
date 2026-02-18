@@ -1,0 +1,384 @@
+{
+  "version": 1,
+  "generatedAt": "2026-02-17T16:17:59.730Z",
+  "repoFullName": "Open330/BurstPick",
+  "findings": [
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "web/src/lib/supabase/client.ts",
+      "module": "root",
+      "title": "Add tests for client.ts",
+      "description": "Add test coverage for `web/src/lib/supabase/client.ts`, including: `createSupabaseBrowserClient`.",
+      "severity": "info",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "web/src/lib/supabase/client.ts",
+        "lineCount": 9,
+        "fileSizeBytes": 229,
+        "complexityBucket": "small",
+        "estimatedTokens": 1500,
+        "symbols": [
+          "createSupabaseBrowserClient"
+        ]
+      },
+      "discoveredAt": "2026-02-17T16:17:59.798Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "web/src/lib/constants.ts",
+      "module": "root",
+      "title": "Add tests for constants.ts",
+      "description": "Add initial test coverage for `web/src/lib/constants.ts`. No named functions or classes were detected.",
+      "severity": "info",
+      "complexity": "moderate",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "web/src/lib/constants.ts",
+        "lineCount": 57,
+        "fileSizeBytes": 1831,
+        "complexityBucket": "medium",
+        "estimatedTokens": 4000,
+        "symbols": []
+      },
+      "discoveredAt": "2026-02-17T16:17:59.798Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "web/src/lib/supabase/middleware.ts",
+      "module": "root",
+      "title": "Add tests for middleware.ts",
+      "description": "Add test coverage for `web/src/lib/supabase/middleware.ts`, including: `updateSession`.",
+      "severity": "info",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "web/src/lib/supabase/middleware.ts",
+        "lineCount": 33,
+        "fileSizeBytes": 925,
+        "complexityBucket": "small",
+        "estimatedTokens": 1500,
+        "symbols": [
+          "updateSession"
+        ]
+      },
+      "discoveredAt": "2026-02-17T16:17:59.798Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "web/src/middleware.ts",
+      "module": "root",
+      "title": "Add tests for middleware.ts",
+      "description": "Add test coverage for `web/src/middleware.ts`, including: `middleware`.",
+      "severity": "info",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "web/src/middleware.ts",
+        "lineCount": 31,
+        "fileSizeBytes": 885,
+        "complexityBucket": "small",
+        "estimatedTokens": 1500,
+        "symbols": [
+          "middleware"
+        ]
+      },
+      "discoveredAt": "2026-02-17T16:17:59.798Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "web/src/i18n/request.ts",
+      "module": "root",
+      "title": "Add tests for request.ts",
+      "description": "Add initial test coverage for `web/src/i18n/request.ts`. No named functions or classes were detected.",
+      "severity": "info",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "web/src/i18n/request.ts",
+        "lineCount": 14,
+        "fileSizeBytes": 402,
+        "complexityBucket": "small",
+        "estimatedTokens": 1500,
+        "symbols": []
+      },
+      "discoveredAt": "2026-02-17T16:17:59.798Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "web/src/app/robots.ts",
+      "module": "root",
+      "title": "Add tests for robots.ts",
+      "description": "Add test coverage for `web/src/app/robots.ts`, including: `robots`.",
+      "severity": "info",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "web/src/app/robots.ts",
+        "lineCount": 12,
+        "fileSizeBytes": 229,
+        "complexityBucket": "small",
+        "estimatedTokens": 1500,
+        "symbols": [
+          "robots"
+        ]
+      },
+      "discoveredAt": "2026-02-17T16:17:59.798Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "web/src/app/api/auth/device/authorize/route.ts",
+      "module": "root",
+      "title": "Add tests for route.ts",
+      "description": "Add test coverage for `web/src/app/api/auth/device/authorize/route.ts`, including: `POST`.",
+      "severity": "info",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "web/src/app/api/auth/device/authorize/route.ts",
+        "lineCount": 35,
+        "fileSizeBytes": 1127,
+        "complexityBucket": "small",
+        "estimatedTokens": 1500,
+        "symbols": [
+          "POST"
+        ]
+      },
+      "discoveredAt": "2026-02-17T16:17:59.798Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "web/src/app/api/auth/me/route.ts",
+      "module": "root",
+      "title": "Add tests for route.ts",
+      "description": "Add test coverage for `web/src/app/api/auth/me/route.ts`, including: `GET`.",
+      "severity": "info",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "web/src/app/api/auth/me/route.ts",
+        "lineCount": 42,
+        "fileSizeBytes": 1344,
+        "complexityBucket": "small",
+        "estimatedTokens": 1500,
+        "symbols": [
+          "GET"
+        ]
+      },
+      "discoveredAt": "2026-02-17T16:17:59.798Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "web/src/app/api/auth/token/exchange/route.ts",
+      "module": "root",
+      "title": "Add tests for route.ts",
+      "description": "Add test coverage for `web/src/app/api/auth/token/exchange/route.ts`, including: `POST`.",
+      "severity": "info",
+      "complexity": "moderate",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "web/src/app/api/auth/token/exchange/route.ts",
+        "lineCount": 79,
+        "fileSizeBytes": 2564,
+        "complexityBucket": "medium",
+        "estimatedTokens": 4000,
+        "symbols": [
+          "POST"
+        ]
+      },
+      "discoveredAt": "2026-02-17T16:17:59.798Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "web/src/app/api/auth/token/refresh/route.ts",
+      "module": "root",
+      "title": "Add tests for route.ts",
+      "description": "Add test coverage for `web/src/app/api/auth/token/refresh/route.ts`, including: `POST`.",
+      "severity": "info",
+      "complexity": "moderate",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "web/src/app/api/auth/token/refresh/route.ts",
+        "lineCount": 73,
+        "fileSizeBytes": 2411,
+        "complexityBucket": "medium",
+        "estimatedTokens": 4000,
+        "symbols": [
+          "POST"
+        ]
+      },
+      "discoveredAt": "2026-02-17T16:17:59.798Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "web/src/app/api/auth/token/revoke/route.ts",
+      "module": "root",
+      "title": "Add tests for route.ts",
+      "description": "Add test coverage for `web/src/app/api/auth/token/revoke/route.ts`, including: `POST`.",
+      "severity": "info",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "web/src/app/api/auth/token/revoke/route.ts",
+        "lineCount": 26,
+        "fileSizeBytes": 916,
+        "complexityBucket": "small",
+        "estimatedTokens": 1500,
+        "symbols": [
+          "POST"
+        ]
+      },
+      "discoveredAt": "2026-02-17T16:17:59.798Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "web/src/i18n/routing.ts",
+      "module": "root",
+      "title": "Add tests for routing.ts",
+      "description": "Add initial test coverage for `web/src/i18n/routing.ts`. No named functions or classes were detected.",
+      "severity": "info",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "web/src/i18n/routing.ts",
+        "lineCount": 7,
+        "fileSizeBytes": 143,
+        "complexityBucket": "small",
+        "estimatedTokens": 1500,
+        "symbols": []
+      },
+      "discoveredAt": "2026-02-17T16:17:59.798Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "web/src/lib/supabase/server.ts",
+      "module": "root",
+      "title": "Add tests for server.ts",
+      "description": "Add test coverage for `web/src/lib/supabase/server.ts`, including: `createSupabaseServerClient`.",
+      "severity": "info",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "web/src/lib/supabase/server.ts",
+        "lineCount": 28,
+        "fileSizeBytes": 684,
+        "complexityBucket": "small",
+        "estimatedTokens": 1500,
+        "symbols": [
+          "createSupabaseServerClient"
+        ]
+      },
+      "discoveredAt": "2026-02-17T16:17:59.798Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "web/src/app/sitemap.ts",
+      "module": "root",
+      "title": "Add tests for sitemap.ts",
+      "description": "Add test coverage for `web/src/app/sitemap.ts`, including: `sitemap`.",
+      "severity": "info",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "web/src/app/sitemap.ts",
+        "lineCount": 15,
+        "fileSizeBytes": 783,
+        "complexityBucket": "small",
+        "estimatedTokens": 1500,
+        "symbols": [
+          "sitemap"
+        ]
+      },
+      "discoveredAt": "2026-02-17T16:17:59.798Z"
+    },
+    {
+      "scannerId": "todo",
+      "source": "todo",
+      "filePath": "./Sources/BurstPickWin/Auth/LicenseValidator.swift",
+      "module": "root",
+      "title": "Address TODO comments in ./Sources/BurstPickWin/Auth/LicenseValidator.swift:36",
+      "description": "Resolve TODO-style markers in `./Sources/BurstPickWin/Auth/LicenseValidator.swift`.\n\nMarkers discovered:\n\n- TODO at line 36: // TODO: Implement Ed25519 verification when swift-crypto is added",
+      "severity": "info",
+      "complexity": "simple",
+      "line": 36,
+      "metadata": {
+        "scannerId": "todo",
+        "filePath": "./Sources/BurstPickWin/Auth/LicenseValidator.swift",
+        "startLine": 36,
+        "endLine": 36,
+        "functionName": null,
+        "keywordSet": [
+          "TODO"
+        ],
+        "matchCount": 1,
+        "matches": [
+          {
+            "line": 36,
+            "column": 12,
+            "keyword": "TODO",
+            "text": "// TODO: Implement Ed25519 verification when swift-crypto is added"
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-17T16:17:59.770Z"
+    },
+    {
+      "scannerId": "todo",
+      "source": "todo",
+      "filePath": "./Sources/BurstPickWin/UI/AppState+Catalog.swift",
+      "module": "root",
+      "title": "Address TODO comments in ./Sources/BurstPickWin/UI/AppState+Catalog.swift:244",
+      "description": "Resolve TODO-style markers in `./Sources/BurstPickWin/UI/AppState+Catalog.swift`.\n\nMarkers discovered:\n\n- TODO at line 244: // TODO: Implement ReadDirectoryChangesW-based file watching on Windows",
+      "severity": "info",
+      "complexity": "trivial",
+      "line": 244,
+      "metadata": {
+        "scannerId": "todo",
+        "filePath": "./Sources/BurstPickWin/UI/AppState+Catalog.swift",
+        "startLine": 244,
+        "endLine": 244,
+        "functionName": null,
+        "keywordSet": [
+          "TODO"
+        ],
+        "matchCount": 1,
+        "matches": [
+          {
+            "line": 244,
+            "column": 12,
+            "keyword": "TODO",
+            "text": "// TODO: Implement ReadDirectoryChangesW-based file watching on Windows"
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-17T16:17:59.770Z"
+    }
+  ],
+  "summary": {
+    "totalFindings": 16,
+    "bySource": {
+      "test-gap": 14,
+      "todo": 2
+    },
+    "byModule": {
+      "root": 16
+    },
+    "bySeverity": {
+      "info": 16
+    }
+  }
+}

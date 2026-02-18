@@ -1,0 +1,13 @@
+diff --git a/packages/discovery/package.json b/packages/discovery/package.json
+index 24d2f06..07131da 100644
+--- a/packages/discovery/package.json
++++ b/packages/discovery/package.json
+@@ -1,7 +1,7 @@
+ {
+   "name": "@open330/oac-discovery",
+   "version": "2026.2.17",
+-  "description": "Task discovery scanners (lint, TODO, GitHub issues) for OAC",
++  "description": "Task discovery scanners (lint, to-do comments, GitHub issues) for OAC",
+   "license": "MIT",
+   "repository": {
+     "type": "git",
