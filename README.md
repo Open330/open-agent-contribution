@@ -466,6 +466,92 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ---
 
+## Troubleshooting
+
+<details>
+<summary><strong>Agent not found / command not found</strong></summary>
+
+OAC dispatches work to external agents (`claude`, `codex`). Make sure the agent CLI is installed and on your `PATH`:
+
+```bash
+# Verify agents are reachable
+oac doctor
+
+# Check individual agents
+which claude   # Claude Code
+which codex    # Codex CLI
+```
+
+If `oac doctor` reports a missing agent, install it following the agent's own documentation, then re-run `oac doctor`.
+</details>
+
+<details>
+<summary><strong>Token budget exceeded / nothing was executed</strong></summary>
+
+The planner reserves 10% of your budget as a safety margin. If every discovered task exceeds the effective budget, nothing will be selected.
+
+```bash
+# Check what would be selected
+oac run --dry-run --repo owner/repo
+
+# Increase the budget
+oac run --tokens 200000 --repo owner/repo
+
+# Or set it in oac.config.ts
+export default defineConfig({
+  budget: { totalTokens: 200_000 },
+});
+```
+</details>
+
+<details>
+<summary><strong>Config file errors</strong></summary>
+
+```bash
+# Validate your config
+oac doctor
+
+# Regenerate a minimal config
+oac init --minimal --repo owner/repo
+```
+
+Common issues:
+- Missing `repos` array — at least one repo is required.
+- Invalid provider ID — must be `"claude-code"` or `"codex"`.
+- `budget.totalTokens` must be a positive number.
+
+See [docs/config-reference.md](docs/config-reference.md) for all options.
+</details>
+
+<details>
+<summary><strong>Permission denied / GitHub auth errors</strong></summary>
+
+OAC uses `gh` (GitHub CLI) for PR creation and issue access. Make sure you're authenticated:
+
+```bash
+gh auth status
+gh auth login   # if not authenticated
+```
+
+For private repos, ensure your token has `repo` scope.
+</details>
+
+<details>
+<summary><strong>Sandbox / worktree errors</strong></summary>
+
+OAC creates git worktrees in a temporary directory for each task. If a previous run crashed, stale worktrees may remain:
+
+```bash
+# List worktrees
+git worktree list
+
+# Clean up stale entries
+git worktree prune
+```
+</details>
+
+---
+
 ## Philosophy
 
 > **"Don't let your tokens go to waste."**

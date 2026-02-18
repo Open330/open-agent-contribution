@@ -151,7 +151,49 @@ export function printDryRunSummary(
   } else {
     renderSelectedPlanTable(ctx.ui, plan, totalBudget);
     console.log("");
+    renderDryRunDiff(ctx.ui, plan);
     console.log(ctx.ui.blue("Dry run complete. No tasks were executed."));
+  }
+}
+
+function renderDryRunDiff(
+  ui: ChalkInstance,
+  plan: ReturnType<typeof buildExecutionPlan>,
+): void {
+  if (plan.selectedTasks.length === 0) return;
+
+  console.log(ui.bold("Planned changes:"));
+  console.log("");
+
+  for (const entry of plan.selectedTasks) {
+    const { task } = entry;
+    const sourceLabel = task.source.replace(/-/g, " ");
+    const complexityColor =
+      task.complexity === "trivial" || task.complexity === "simple"
+        ? ui.green
+        : task.complexity === "moderate"
+          ? ui.yellow
+          : ui.red;
+
+    console.log(`${ui.green("+")} ${ui.bold(task.title)}`);
+    console.log(`  ${ui.dim(`source: ${sourceLabel}  complexity: `)}${complexityColor(task.complexity)}`);
+
+    if (task.targetFiles.length > 0) {
+      for (const file of task.targetFiles.slice(0, 5)) {
+        console.log(`  ${ui.yellow("~")} ${file}`);
+      }
+      if (task.targetFiles.length > 5) {
+        console.log(`  ${ui.dim(`  ... and ${task.targetFiles.length - 5} more files`)}`);
+      }
+    }
+
+    if (task.description) {
+      const preview = task.description.length > 120
+        ? `${task.description.slice(0, 117)}...`
+        : task.description;
+      console.log(`  ${ui.dim(preview)}`);
+    }
+    console.log("");
   }
 }
 

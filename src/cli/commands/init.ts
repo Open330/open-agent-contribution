@@ -31,120 +31,201 @@ const OWNER_REPO_PATTERN = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+(?:\.git)?$/;
 export function createInitCommand(): Command {
   const command = new Command("init");
 
-  command.description("Initialize OAC in the current directory").action(async (_options, cmd) => {
-    const globalOptions = getGlobalOptions(cmd);
-    const ui = createUi(globalOptions);
+  command
+    .description("Initialize OAC in the current directory")
+    .option("--minimal", "Generate a bare-bones config without the interactive wizard")
+    .option("--repo <owner/repo>", "Repository in owner/repo format (required with --minimal)")
+    .action(async (options: { minimal?: boolean; repo?: string }, cmd) => {
+      const globalOptions = getGlobalOptions(cmd);
+      const ui = createUi(globalOptions);
 
-    if (!globalOptions.json) {
-      console.log(ui.blue(OAC_LOGO));
-      console.log(ui.bold("Welcome to Open Agent Contribution."));
-      console.log("");
-    }
-
-    const selectedProviders = await checkbox<ProviderId>({
-      message: "Select AI provider(s):",
-      choices: [
-        { name: "Claude Code", value: "claude-code", checked: true },
-        { name: "Codex CLI", value: "codex" },
-        { name: "OpenCode (coming soon)", value: "opencode", disabled: true },
-      ],
-      validate: (value) => (value.length > 0 ? true : "Select at least one provider to continue."),
-    });
-
-    const budgetInput = await input({
-      message: "Monthly token budget:",
-      default: "100000",
-      validate: (value) => {
-        const parsed = Number.parseInt(value, 10);
-        if (!Number.isFinite(parsed) || parsed <= 0) {
-          return "Enter a positive integer.";
-        }
-
-        return true;
-      },
-    });
-
-    const firstRepoInput = await input({
-      message: "Add your first repo (owner/repo or GitHub URL):",
-      validate: (value) => {
-        if (isValidRepoInput(value)) {
-          return true;
-        }
-
-        return "Enter a valid GitHub repo like owner/repo.";
-      },
-    });
-
-    const repo = normalizeRepoInput(firstRepoInput);
-    const budgetTokens = Number.parseInt(budgetInput, 10);
-    const provider = selectedProviders[0] ?? "claude-code";
-
-    const configPath = resolve(process.cwd(), "oac.config.ts");
-    const trackingDirectory = resolve(process.cwd(), ".oac");
-
-    if (await pathExists(configPath)) {
-      const shouldOverwrite = await confirm({
-        message: "oac.config.ts already exists. Overwrite it?",
-        default: false,
-      });
-
-      if (!shouldOverwrite) {
-        if (globalOptions.json) {
-          console.log(
-            JSON.stringify(
-              {
-                cancelled: true,
-                reason: "oac.config.ts exists and overwrite was declined",
-              },
-              null,
-              2,
-            ),
-          );
-          return;
-        }
-
-        console.log(ui.yellow("Initialization cancelled."));
+      if (options.minimal) {
+        await runMinimalInit(options, globalOptions, ui);
         return;
       }
-    }
 
-    const configContent = buildConfigFile({
-      provider,
-      providers: selectedProviders,
-      budgetTokens,
-      repo,
+      await runInteractiveInit(globalOptions, ui);
     });
-
-    await writeFile(configPath, configContent, "utf8");
-    await mkdir(trackingDirectory, { recursive: true });
-
-    const summary: InitSummary = {
-      configPath,
-      trackingDirectory,
-      provider,
-      providers: selectedProviders,
-      budgetTokens,
-      repo,
-    };
-
-    if (globalOptions.json) {
-      console.log(JSON.stringify(summary, null, 2));
-      return;
-    }
-
-    console.log(ui.green("Created: oac.config.ts"));
-    console.log(ui.green("Created: .oac/"));
-    console.log("");
-    console.log("Run `oac run` to start the full pipeline, or `oac doctor` to verify setup.");
-  });
 
   command.addHelpText(
     "after",
     `\nExamples:
-  $ oac init`,
+  $ oac init                              Interactive wizard
+  $ oac init --minimal --repo owner/repo  Quick start with defaults`,
   );
 
   return command;
+}
+
+async function runMinimalInit(
+  options: { repo?: string },
+  globalOptions: Required<GlobalCliOptions>,
+  ui: ChalkInstance,
+): Promise<void> {
+  const repoInput = options.repo?.trim();
+  if (!repoInput || !isValidRepoInput(repoInput)) {
+    const message = "--repo is required with --minimal (e.g. --repo owner/repo)";
+    if (globalOptions.json) {
+      console.log(JSON.stringify({ error: message }, null, 2));
+    } else {
+      console.error(ui.red(message));
+    }
+    process.exitCode = 1;
+    return;
+  }
+
+  const repo = normalizeRepoInput(repoInput);
+  const provider: ProviderId = "claude-code";
+  const budgetTokens = 100_000;
+
+  const configPath = resolve(process.cwd(), "oac.config.ts");
+  const trackingDirectory = resolve(process.cwd(), ".oac");
+
+  if (await pathExists(configPath)) {
+    const message = "oac.config.ts already exists. Remove it first or run `oac init` without --minimal.";
+    if (globalOptions.json) {
+      console.log(JSON.stringify({ cancelled: true, reason: message }, null, 2));
+    } else {
+      console.log(ui.yellow(message));
+    }
+    return;
+  }
+
+  const configContent = buildConfigFile({
+    provider,
+    providers: [provider],
+    budgetTokens,
+    repo,
+  });
+
+  await writeFile(configPath, configContent, "utf8");
+  await mkdir(trackingDirectory, { recursive: true });
+
+  const summary: InitSummary = {
+    configPath,
+    trackingDirectory,
+    provider,
+    providers: [provider],
+    budgetTokens,
+    repo,
+  };
+
+  if (globalOptions.json) {
+    console.log(JSON.stringify(summary, null, 2));
+    return;
+  }
+
+  console.log(ui.green("Created: oac.config.ts"));
+  console.log(ui.green("Created: .oac/"));
+  console.log("");
+  console.log("Run `oac run` to start the full pipeline, or `oac doctor` to verify setup.");
+}
+
+async function runInteractiveInit(
+  globalOptions: Required<GlobalCliOptions>,
+  ui: ChalkInstance,
+): Promise<void> {
+  if (!globalOptions.json) {
+    console.log(ui.blue(OAC_LOGO));
+    console.log(ui.bold("Welcome to Open Agent Contribution."));
+    console.log("");
+  }
+
+  const selectedProviders = await checkbox<ProviderId>({
+    message: "Select AI provider(s):",
+    choices: [
+      { name: "Claude Code", value: "claude-code", checked: true },
+      { name: "Codex CLI", value: "codex" },
+      { name: "OpenCode (coming soon)", value: "opencode", disabled: true },
+    ],
+    validate: (value) => (value.length > 0 ? true : "Select at least one provider to continue."),
+  });
+
+  const budgetInput = await input({
+    message: "Monthly token budget:",
+    default: "100000",
+    validate: (value) => {
+      const parsed = Number.parseInt(value, 10);
+      if (!Number.isFinite(parsed) || parsed <= 0) {
+        return "Enter a positive integer.";
+      }
+
+      return true;
+    },
+  });
+
+  const firstRepoInput = await input({
+    message: "Add your first repo (owner/repo or GitHub URL):",
+    validate: (value) => {
+      if (isValidRepoInput(value)) {
+        return true;
+      }
+
+      return "Enter a valid GitHub repo like owner/repo.";
+    },
+  });
+
+  const repo = normalizeRepoInput(firstRepoInput);
+  const budgetTokens = Number.parseInt(budgetInput, 10);
+  const provider = selectedProviders[0] ?? "claude-code";
+
+  const configPath = resolve(process.cwd(), "oac.config.ts");
+  const trackingDirectory = resolve(process.cwd(), ".oac");
+
+  if (await pathExists(configPath)) {
+    const shouldOverwrite = await confirm({
+      message: "oac.config.ts already exists. Overwrite it?",
+      default: false,
+    });
+
+    if (!shouldOverwrite) {
+      if (globalOptions.json) {
+        console.log(
+          JSON.stringify(
+            {
+              cancelled: true,
+              reason: "oac.config.ts exists and overwrite was declined",
+            },
+            null,
+            2,
+          ),
+        );
+        return;
+      }
+
+      console.log(ui.yellow("Initialization cancelled."));
+      return;
+    }
+  }
+
+  const configContent = buildConfigFile({
+    provider,
+    providers: selectedProviders,
+    budgetTokens,
+    repo,
+  });
+
+  await writeFile(configPath, configContent, "utf8");
+  await mkdir(trackingDirectory, { recursive: true });
+
+  const summary: InitSummary = {
+    configPath,
+    trackingDirectory,
+    provider,
+    providers: selectedProviders,
+    budgetTokens,
+    repo,
+  };
+
+  if (globalOptions.json) {
+    console.log(JSON.stringify(summary, null, 2));
+    return;
+  }
+
+  console.log(ui.green("Created: oac.config.ts"));
+  console.log(ui.green("Created: .oac/"));
+  console.log("");
+  console.log("Run `oac run` to start the full pipeline, or `oac doctor` to verify setup.");
 }
 
 function buildConfigFile(input: {

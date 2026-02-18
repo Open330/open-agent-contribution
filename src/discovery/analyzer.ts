@@ -1,9 +1,12 @@
 import type { Dirent } from "node:fs";
+import { createReadStream } from "node:fs";
 import { mkdir, readFile, readdir, rename, stat, unlink, writeFile } from "node:fs/promises";
+import { createInterface } from "node:readline";
 import { dirname, extname, join, relative, resolve } from "node:path";
 
 import PQueue from "p-queue";
 
+import { createMemoryMonitor } from "../core/memory.js";
 import type { Task, TaskSource } from "../core/types.js";
 import type { CodebaseMap, FileInfo, ModuleInfo, QualityReport } from "./context-types.js";
 import { CompositeScanner } from "./scanner.js";
@@ -43,6 +46,9 @@ const DEFAULT_EXCLUDE_SUFFIXES = [
 
 const DEFAULT_MAX_AGE_MS = 86_400_000; // 24 hours
 
+/** Files larger than this are analyzed via streaming to avoid excessive heap allocation. */
+const LARGE_FILE_THRESHOLD_BYTES = 1_048_576; // 1 MB
+
 const CONTEXT_DIR_NAME = ".oac/context";
 const CODEBASE_MAP_FILE = "codebase-map.json";
 const QUALITY_REPORT_FILE = "quality-report.json";
@@ -63,8 +69,28 @@ export async function analyzeCodebase(
   // ── 1. Walk file tree ──────────────────────────────────────
   const allFiles = await walkSourceFiles(srcRoot, userExclude);
 
-  // ── 2. Analyze each file (bounded concurrency) ────────────
-  const analysisQueue = new PQueue({ concurrency: 50 });
+  // ── 2. Analyze each file (bounded concurrency + memory monitoring)
+  const MAX_CONCURRENCY = 50;
+  const MIN_CONCURRENCY = 4;
+  const analysisQueue = new PQueue({ concurrency: MAX_CONCURRENCY });
+
+  const memoryMonitor = createMemoryMonitor({
+    intervalMs: 3_000,
+    pressureRatio: 0.85,
+    onPressure: () => {
+      // Reduce concurrency when memory is tight
+      const current = analysisQueue.concurrency;
+      const reduced = Math.max(MIN_CONCURRENCY, Math.floor(current / 2));
+      if (reduced < current) analysisQueue.concurrency = reduced;
+    },
+    onRelief: () => {
+      // Restore concurrency when pressure drops
+      const current = analysisQueue.concurrency;
+      const restored = Math.min(MAX_CONCURRENCY, current * 2);
+      if (restored > current) analysisQueue.concurrency = restored;
+    },
+  });
+
   const fileInfos = (await Promise.all(
     allFiles.map((absPath) =>
       analysisQueue.add(async () => {
@@ -74,6 +100,8 @@ export async function analyzeCodebase(
       }),
     ),
   )) as Array<FileInfo & { _absolutePath: string }>;
+
+  memoryMonitor.stop();
 
   // ── 3. Detect modules ─────────────────────────────────────
   const moduleMap = buildModuleMap(fileInfos, sourceDir);
@@ -260,11 +288,18 @@ async function walkSourceFiles(dirPath: string, userExclude: string[]): Promise<
 // ── Internal: single-file analysis ───────────────────────────
 
 async function analyzeFile(absolutePath: string, relativePath: string): Promise<FileInfo> {
-  const [content, fileStat] = await Promise.all([
-    readFile(absolutePath, "utf-8"),
-    stat(absolutePath),
-  ]);
+  const fileStat = await stat(absolutePath);
 
+  // For large files, stream line-by-line to avoid holding the entire file in memory.
+  // Export/import extraction is skipped for these files since regex over multi-MB
+  // strings is expensive and the information is low-value for very large files
+  // (usually generated / vendored code).
+  if (fileStat.size > LARGE_FILE_THRESHOLD_BYTES) {
+    const loc = await countLinesStreaming(absolutePath);
+    return { path: relativePath, loc, sizeBytes: fileStat.size, exports: [], imports: [] };
+  }
+
+  const content = await readFile(absolutePath, "utf-8");
   const lines = content.split("\n");
   const loc = lines.filter((line) => line.trim().length > 0).length;
   const exports = extractExports(content);
@@ -277,6 +312,25 @@ async function analyzeFile(absolutePath: string, relativePath: string): Promise<
     exports,
     imports,
   };
+}
+
+/**
+ * Count non-empty lines using a streaming readline interface.
+ * This avoids loading the entire file into a single V8 string.
+ */
+async function countLinesStreaming(absolutePath: string): Promise<number> {
+  return new Promise<number>((resolve, reject) => {
+    let loc = 0;
+    const rl = createInterface({
+      input: createReadStream(absolutePath, { encoding: "utf-8" }),
+      crlfDelay: Number.POSITIVE_INFINITY,
+    });
+    rl.on("line", (line) => {
+      if (line.trim().length > 0) loc += 1;
+    });
+    rl.on("close", () => resolve(loc));
+    rl.on("error", reject);
+  });
 }
 
 // ── Internal: export extraction ──────────────────────────────

@@ -43,8 +43,8 @@ describe("createCliProgram", () => {
     expect(typeof program.version()).toBe("string");
   });
 
-  it("has 10 subcommands", async () => {
+  it("has 11 subcommands", async () => {
     const program = await createCliProgram();
-    expect(program.commands).toHaveLength(10);
+    expect(program.commands).toHaveLength(11);
   });
 });

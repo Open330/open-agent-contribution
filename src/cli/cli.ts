@@ -3,6 +3,7 @@ import { Command } from "commander";
 import { createAnalyzeCommand } from "./commands/analyze.js";
 import { createCompletionCommand } from "./commands/completion.js";
 import { createDoctorCommand } from "./commands/doctor.js";
+import { createExplainCommand } from "./commands/explain.js";
 import { createInitCommand } from "./commands/init.js";
 import { createLeaderboardCommand } from "./commands/leaderboard.js";
 import { createLogCommand } from "./commands/log.js";
@@ -32,6 +33,7 @@ function registerCommands(program: Command): void {
   program.addCommand(createLeaderboardCommand());
   program.addCommand(createStatusCommand());
   program.addCommand(createCompletionCommand());
+  program.addCommand(createExplainCommand());
 }
 
 export async function createCliProgram(): Promise<Command> {
