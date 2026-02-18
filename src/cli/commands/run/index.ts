@@ -19,7 +19,9 @@ export function createRunCommand(): Command {
   const command = new Command("run");
 
   command
-    .description("Run the full OAC pipeline")
+    .description(
+      "Run the full OAC pipeline — analyze, plan, and execute in one command",
+    )
     .option("--repo <owner/repo>", "Target repository (owner/repo or GitHub URL)")
     .option("--tokens <value>", 'Token budget (number or "unlimited")', parseTokens)
     .option("--provider <id>", "Agent provider id")
@@ -39,7 +41,13 @@ export function createRunCommand(): Command {
 
   command.addHelpText(
     "after",
-    `\nExamples:
+    `\nThis is the primary command. It auto-analyzes the codebase, groups findings
+into epics, and executes them — no separate scan/analyze step required.
+
+If no oac.config.ts exists, pass --repo to get started immediately:
+  $ oac run --repo owner/repo
+
+Examples:
   $ oac run --repo owner/repo --tokens 50000
   $ oac run --repo owner/repo --provider codex --concurrency 4
   $ oac run --repo owner/repo --dry-run

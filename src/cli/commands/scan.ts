@@ -40,7 +40,7 @@ export function createScanCommand(): Command {
   const command = new Command("scan");
 
   command
-    .description("Discover tasks in a repository")
+    .description("Quick task discovery — list individual issues ranked by priority")
     .option("--repo <owner/repo>", "Target repository (owner/repo or GitHub URL)")
     .option("--scanners <names>", "Comma-separated scanner filter (lint,todo)")
     .option("--min-priority <number>", "Minimum priority threshold (0-100)", parseInteger, 20)
@@ -141,7 +141,11 @@ export function createScanCommand(): Command {
 
   command.addHelpText(
     "after",
-    `\nExamples:
+    `\nScan runs lightweight scanners and outputs a flat list of ranked tasks.
+For deeper analysis that groups findings into epics, use \`oac analyze\`.
+To run the full pipeline (analyze + execute), use \`oac run\`.
+
+Examples:
   $ oac scan --repo owner/repo
   $ oac scan --repo owner/repo --scanners lint,todo
   $ oac scan --repo owner/repo --min-priority 50 --format json`,

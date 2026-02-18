@@ -104,7 +104,11 @@ export function resolveRepoInput(repoOption: string | undefined, config: OacConf
     return firstConfiguredRepo.name;
   }
 
-  throw new Error("No repository specified. Use --repo or configure repos in oac.config.ts.");
+  throw new Error(
+    "No repository specified.\n\n" +
+      "  Quick start:  oac run --repo owner/repo\n" +
+      "  With config:  oac init   (creates oac.config.ts, then just run `oac run`)\n",
+  );
 }
 
 export function resolveProviderId(

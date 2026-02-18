@@ -135,7 +135,7 @@ export function createInitCommand(): Command {
     console.log(ui.green("Created: oac.config.ts"));
     console.log(ui.green("Created: .oac/"));
     console.log("");
-    console.log("Run `oac doctor` to verify or `oac scan` to discover tasks.");
+    console.log("Run `oac run` to start the full pipeline, or `oac doctor` to verify setup.");
   });
 
   command.addHelpText(

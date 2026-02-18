@@ -38,7 +38,9 @@ export function createAnalyzeCommand(): Command {
   const command = new Command("analyze");
 
   command
-    .description("Analyze repository and build context for epic-based planning")
+    .description(
+      "Deep codebase analysis — build module graph and group findings into epics",
+    )
     .option("--repo <owner/repo>", "Target repository (owner/repo or GitHub URL)")
     .option("--force", "Force re-analysis even if context is fresh", false)
     .option("--format <format>", "Output format: table|json", "table")
@@ -144,7 +146,13 @@ export function createAnalyzeCommand(): Command {
 
   command.addHelpText(
     "after",
-    `\nExamples:
+    `\nAnalyze walks the source tree, builds a module dependency graph, runs all
+scanners, and groups findings into epics persisted to .oac/context/.
+For a quick flat task list without persistence, use \`oac scan\`.
+\`oac run\` auto-analyzes by default — you only need this command to
+inspect or force-refresh the analysis independently.
+
+Examples:
   $ oac analyze --repo owner/repo
   $ oac analyze --repo owner/repo --force
   $ oac analyze --repo owner/repo --format json`,
