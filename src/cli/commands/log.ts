@@ -81,6 +81,14 @@ export function createLogCommand(): Command {
       console.log(table.toString());
     });
 
+  command.addHelpText(
+    "after",
+    `\nExamples:
+  $ oac log
+  $ oac log --limit 10 --repo owner/repo
+  $ oac log --source lint --since 2025-01-01`,
+  );
+
   return command;
 }
 

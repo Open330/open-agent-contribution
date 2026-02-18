@@ -55,6 +55,12 @@ export function createDoctorCommand(): Command {
     }
   });
 
+  command.addHelpText(
+    "after",
+    `\nExamples:
+  $ oac doctor`,
+  );
+
   return command;
 }
 

@@ -145,6 +145,15 @@ export function createRunCommand(): Command {
       await runPipeline(options, globalOptions, ui);
     });
 
+  command.addHelpText(
+    "after",
+    `\nExamples:
+  $ oac run --repo owner/repo --tokens 50000
+  $ oac run --repo owner/repo --provider codex --concurrency 4
+  $ oac run --repo owner/repo --dry-run
+  $ oac run --repo owner/repo --source lint --max-tasks 10`,
+  );
+
   return command;
 }
 
@@ -153,6 +162,8 @@ interface PipelineContext {
   globalOptions: Required<GlobalCliOptions>;
   ui: ChalkInstance;
   outputJson: boolean;
+  /** True when interactive output should be suppressed (--json or --quiet). */
+  suppressOutput: boolean;
   runId: string;
   runStartedAt: number;
 }
@@ -167,6 +178,7 @@ async function runPipeline(
     globalOptions,
     ui,
     outputJson: globalOptions.json,
+    suppressOutput: globalOptions.json || globalOptions.quiet,
     runId: randomUUID(),
     runStartedAt: Date.now(),
   };
@@ -184,11 +196,11 @@ async function runPipeline(
 
   const repoInput = resolveRepoInput(options.repo, config);
 
-  const resolveSpinner = createSpinner(ctx.outputJson, "Resolving repository...");
+  const resolveSpinner = createSpinner(ctx.suppressOutput, "Resolving repository...");
   const resolvedRepo = await resolveRepo(repoInput);
   resolveSpinner?.succeed(`Resolved ${resolvedRepo.fullName}`);
 
-  const cloneSpinner = createSpinner(ctx.outputJson, "Preparing local clone...");
+  const cloneSpinner = createSpinner(ctx.suppressOutput, "Preparing local clone...");
   await cloneRepo(resolvedRepo);
   cloneSpinner?.succeed(`Repository ready at ${resolvedRepo.localPath}`);
 
@@ -264,7 +276,7 @@ async function runPipeline(
 }
 
 function printGitHubAuthWarnings(ctx: PipelineContext, ghToken: string | undefined): void {
-  if (ctx.outputJson) return;
+  if (ctx.suppressOutput) return;
 
   if (!ghToken) {
     console.log(
@@ -287,7 +299,7 @@ function printGitHubAuthWarnings(ctx: PipelineContext, ghToken: string | undefin
 }
 
 function printRunHeader(ctx: PipelineContext, totalBudget: number, concurrency: number): void {
-  if (ctx.outputJson) return;
+  if (ctx.suppressOutput) return;
   console.log(
     ctx.ui.blue(
       `Starting OAC run (budget: ${formatBudgetDisplay(totalBudget)} tokens, concurrency: ${concurrency})`,
@@ -318,7 +330,7 @@ async function tryLoadOrAnalyzeEpics(
       // Verify context is not stale
       const context = await loadContext(resolvedRepo.localPath, contextDir);
       if (context && !isContextStale(context.codebaseMap, staleAfterMs)) {
-        if (!ctx.outputJson) {
+        if (!ctx.suppressOutput) {
           console.log(ctx.ui.blue(`[oac] Loaded ${pending.length} pending epic(s) from backlog.`));
         }
         return pending;
@@ -331,7 +343,7 @@ async function tryLoadOrAnalyzeEpics(
     return null;
   }
 
-  const analyzeSpinner = createSpinner(ctx.outputJson, "Auto-analyzing codebase...");
+  const analyzeSpinner = createSpinner(ctx.suppressOutput, "Auto-analyzing codebase...");
 
   const scanners = buildScannerList(config, Boolean(ghToken));
   const { codebaseMap, qualityReport } = await analyzeCodebase(resolvedRepo.localPath, {
@@ -349,12 +361,12 @@ async function tryLoadOrAnalyzeEpics(
     return null;
   }
 
-  const groupSpinner = createSpinner(ctx.outputJson, "Grouping findings into epics...");
+  const groupSpinner = createSpinner(ctx.suppressOutput, "Grouping findings into epics...");
   const epics = groupFindingsIntoEpics(qualityReport.findings, { codebaseMap });
   groupSpinner?.succeed(`Created ${epics.length} epic(s)`);
 
   // Persist context and backlog
-  const persistSpinner = createSpinner(ctx.outputJson, "Persisting context...");
+  const persistSpinner = createSpinner(ctx.suppressOutput, "Persisting context...");
   await persistContext(resolvedRepo.localPath, codebaseMap, qualityReport, contextDir);
   const backlog = createBacklog(resolvedRepo.fullName, resolvedRepo.git.headSha, epics);
   await persistBacklog(resolvedRepo.localPath, backlog, contextDir);
@@ -448,6 +460,7 @@ async function runEpicPipeline(
     resolvedRepo,
     providerId,
     totalBudget,
+    concurrency,
     timeoutSeconds,
     mode,
     ghToken,
@@ -456,7 +469,7 @@ async function runEpicPipeline(
 
   // Estimate tokens for each epic
   const estimateSpinner = createSpinner(
-    ctx.outputJson,
+    ctx.suppressOutput,
     `Estimating tokens for ${epics.length} epic(s)...`,
   );
   for (const epic of epics) {
@@ -468,7 +481,7 @@ async function runEpicPipeline(
 
   const epicPlan = buildEpicExecutionPlan(epics, totalBudget);
 
-  if (!ctx.outputJson) {
+  if (!ctx.suppressOutput) {
     console.log(
       ctx.ui.blue(
         `[oac] Selected ${epicPlan.selectedEpics.length} epic(s) for execution, ${epicPlan.deferredEpics.length} deferred.`,
@@ -481,35 +494,39 @@ async function runEpicPipeline(
     return;
   }
 
-  // Execute each selected epic
+  // Execute selected epics concurrently
   const { adapter } = await resolveAdapter(providerId);
-  const allTaskResults: TaskRunResult[] = [];
 
-  for (const entry of epicPlan.selectedEpics) {
-    if (!ctx.outputJson) {
-      console.log(
-        ctx.ui.blue(
-          `\n[oac] Executing epic: ${entry.epic.title} (${entry.epic.subtasks.length} subtasks)`,
-        ),
-      );
-    }
+  const allTaskResults = await runWithConcurrency(
+    epicPlan.selectedEpics,
+    concurrency,
+    async (entry): Promise<TaskRunResult> => {
+      if (!ctx.suppressOutput) {
+        console.log(
+          ctx.ui.blue(
+            `\n[oac] Executing epic: ${entry.epic.title} (${entry.epic.subtasks.length} subtasks)`,
+          ),
+        );
+      }
 
-    const result = await executeEpicEntry(entry, {
-      adapter,
-      resolvedRepo,
-      providerId,
-      timeoutSeconds,
-      mode,
-      ghToken,
-    });
-    allTaskResults.push(result);
+      const result = await executeEpicEntry(entry, {
+        adapter,
+        resolvedRepo,
+        providerId,
+        timeoutSeconds,
+        mode,
+        ghToken,
+      });
 
-    if (!ctx.outputJson) {
-      const icon = result.execution.success ? ctx.ui.green("[OK]") : ctx.ui.red("[X]");
-      console.log(`${icon} ${entry.epic.title}`);
-      if (result.pr) console.log(`    PR #${result.pr.number}: ${result.pr.url}`);
-    }
-  }
+      if (!ctx.suppressOutput) {
+        const icon = result.execution.success ? ctx.ui.green("[OK]") : ctx.ui.red("[X]");
+        console.log(`${icon} ${entry.epic.title}`);
+        if (result.pr) console.log(`    PR #${result.pr.number}: ${result.pr.url}`);
+      }
+
+      return result;
+    },
+  );
 
   // Update backlog with completed epics
   const completedIds = allTaskResults.filter((r) => r.execution.success).map((r) => r.task.id);
@@ -599,6 +616,17 @@ function printEpicSummary(
     `  Tokens used:     ${formatInteger(tokensUsed)} / ${formatBudgetDisplay(totalBudget)}`,
   );
   console.log(`  Duration:        ${formatDuration(duration)}`);
+
+  // Surface failed epic details without requiring --verbose
+  const failedEpics = results.filter((t) => !t.execution.success);
+  if (failedEpics.length > 0) {
+    console.log("");
+    console.log(ctx.ui.red(`Failed Epics (${failedEpics.length}):`));
+    for (const t of failedEpics) {
+      const reason = t.execution.error ? `: ${truncate(t.execution.error, 120)}` : "";
+      console.log(`  ${ctx.ui.red("✗")} ${truncate(t.task.title, 60)}${reason}`);
+    }
+  }
 }
 
 function renderEpicPlanTable(
@@ -653,7 +681,7 @@ async function discoverTasks(
   const maxTasks = options.maxTasks ?? undefined;
 
   const scanSpinner = createSpinner(
-    ctx.outputJson,
+    ctx.suppressOutput,
     `Running scanners: ${scannerSelection.enabled.join(", ")}`,
   );
   const scannedTasks = await scannerSelection.scanner.scan(resolvedRepo.localPath, {
@@ -672,7 +700,7 @@ async function discoverTasks(
   }
 
   const estimateSpinner = createSpinner(
-    ctx.outputJson,
+    ctx.suppressOutput,
     `Estimating tokens for ${candidateTasks.length} task(s)...`,
   );
   const estimates =
@@ -759,7 +787,7 @@ async function executePlan(
   const { plan, providerId, resolvedRepo, concurrency, timeoutSeconds, mode, ghToken } = params;
   const { adapter } = await resolveAdapter(providerId);
 
-  if (!ctx.outputJson && ctx.globalOptions.verbose) {
+  if (!ctx.suppressOutput && ctx.globalOptions.verbose) {
     const avail = await adapter.checkAvailability();
     console.log(
       ctx.ui.green(`[oac] Using ${adapter.name} v${avail.version ?? "unknown"} for execution.`),
@@ -767,7 +795,7 @@ async function executePlan(
   }
 
   const executionSpinner = createSpinner(
-    ctx.outputJson,
+    ctx.suppressOutput,
     `Executing ${plan.selectedTasks.length} planned task(s)...`,
   );
   let completedCount = 0;
@@ -797,7 +825,7 @@ async function executePlan(
 
   executionSpinner?.succeed("Execution stage finished");
 
-  const completionSpinner = createSpinner(ctx.outputJson, "Completing task outputs...");
+  const completionSpinner = createSpinner(ctx.suppressOutput, "Completing task outputs...");
   const completedTasks = await runWithConcurrency(
     executedTasks,
     concurrency,
@@ -847,14 +875,14 @@ async function writeTracking(
     taskResults: completedTasks,
   });
 
-  const trackingSpinner = createSpinner(ctx.outputJson, "Writing contribution log...");
+  const trackingSpinner = createSpinner(ctx.suppressOutput, "Writing contribution log...");
   try {
     const logPath = await writeContributionLog(contributionLog, resolvedRepo.localPath);
     trackingSpinner?.succeed(`Contribution log written: ${logPath}`);
     return logPath;
   } catch (error) {
     trackingSpinner?.fail("Failed to write contribution log");
-    if (ctx.globalOptions.verbose && !ctx.outputJson) {
+    if (ctx.globalOptions.verbose && !ctx.suppressOutput) {
       const message = error instanceof Error ? error.message : String(error);
       console.warn(ctx.ui.yellow(`[oac] Tracking failed: ${message}`));
     }
@@ -900,7 +928,9 @@ function printFinalSummary(
     return;
   }
 
-  renderTaskResults(ctx.ui, completedTasks);
+  if (!ctx.globalOptions.quiet) {
+    renderTaskResults(ctx.ui, completedTasks);
+  }
   console.log("");
   console.log(ctx.ui.bold("Run Summary"));
   console.log(`  Tasks completed: ${tasksCompleted}/${completedTasks.length}`);
@@ -912,6 +942,17 @@ function printFinalSummary(
   console.log(`  Duration:        ${formatDuration(runDurationSeconds)}`);
   if (params.logPath) {
     console.log(`  Log:             ${params.logPath}`);
+  }
+
+  // Surface failed task details without requiring --verbose
+  const failedTasks = completedTasks.filter((t) => !t.execution.success);
+  if (failedTasks.length > 0) {
+    console.log("");
+    console.log(ctx.ui.red(`Failed Tasks (${failedTasks.length}):`));
+    for (const t of failedTasks) {
+      const reason = t.execution.error ? `: ${truncate(t.execution.error, 120)}` : "";
+      console.log(`  ${ctx.ui.red("✗")} ${truncate(t.task.title, 60)}${reason}`);
+    }
   }
 }
 

@@ -139,6 +139,14 @@ export function createScanCommand(): Command {
       );
     });
 
+  command.addHelpText(
+    "after",
+    `\nExamples:
+  $ oac scan --repo owner/repo
+  $ oac scan --repo owner/repo --scanners lint,todo
+  $ oac scan --repo owner/repo --min-priority 50 --format json`,
+  );
+
   return command;
 }
 

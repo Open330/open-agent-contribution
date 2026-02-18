@@ -63,6 +63,13 @@ export function createStatusCommand(): Command {
       });
     });
 
+  command.addHelpText(
+    "after",
+    `\nExamples:
+  $ oac status
+  $ oac status --watch`,
+  );
+
   return command;
 }
 

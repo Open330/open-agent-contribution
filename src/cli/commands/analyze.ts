@@ -142,6 +142,14 @@ export function createAnalyzeCommand(): Command {
       );
     });
 
+  command.addHelpText(
+    "after",
+    `\nExamples:
+  $ oac analyze --repo owner/repo
+  $ oac analyze --repo owner/repo --force
+  $ oac analyze --repo owner/repo --format json`,
+  );
+
   return command;
 }
 

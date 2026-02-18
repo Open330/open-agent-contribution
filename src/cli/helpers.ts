@@ -16,6 +16,7 @@ export function getGlobalOptions(command: Command): Required<GlobalCliOptions> {
   return {
     config: options.config ?? "oac.config.ts",
     verbose: options.verbose === true,
+    quiet: options.quiet === true,
     json: options.json === true,
     color: options.color !== false,
   };
@@ -31,8 +32,8 @@ export function createUi(options: Required<GlobalCliOptions>): ChalkInstance {
 }
 
 /**
- * Creates a spinner when output is interactive (non-JSON).
- * Pass `true` to suppress the spinner (e.g. in JSON output mode).
+ * Creates a spinner when output is interactive (non-JSON / non-quiet).
+ * Pass `true` to suppress the spinner (e.g. in JSON output or quiet mode).
  */
 export function createSpinner(suppress: boolean, text: string): Ora | null {
   if (suppress) {

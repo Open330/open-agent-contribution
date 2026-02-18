@@ -15,6 +15,7 @@ declare const __OAC_VERSION__: string;
 export interface GlobalCliOptions {
   config?: string;
   verbose?: boolean;
+  quiet?: boolean;
   json?: boolean;
   color?: boolean;
 }
@@ -41,6 +42,7 @@ export async function createCliProgram(): Promise<Command> {
     .version(version)
     .option("--config <path>", "Config file path", "oac.config.ts")
     .option("--verbose", "Enable verbose logging", false)
+    .option("--quiet", "Suppress non-error output", false)
     .option("--json", "Output machine-readable JSON", false)
     .option("--no-color", "Disable ANSI colors");
 

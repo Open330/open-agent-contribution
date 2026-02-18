@@ -138,6 +138,12 @@ export function createInitCommand(): Command {
     console.log("Run `oac doctor` to verify or `oac scan` to discover tasks.");
   });
 
+  command.addHelpText(
+    "after",
+    `\nExamples:
+  $ oac init`,
+  );
+
   return command;
 }
 

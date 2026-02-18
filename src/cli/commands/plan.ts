@@ -113,6 +113,13 @@ export function createPlanCommand(): Command {
       });
     });
 
+  command.addHelpText(
+    "after",
+    `\nExamples:
+  $ oac plan --repo owner/repo --tokens 100000
+  $ oac plan --repo owner/repo --provider codex`,
+  );
+
   return command;
 }
 

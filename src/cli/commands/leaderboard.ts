@@ -80,6 +80,13 @@ export function createLeaderboardCommand(): Command {
       console.log(table.toString());
     });
 
+  command.addHelpText(
+    "after",
+    `\nExamples:
+  $ oac leaderboard
+  $ oac leaderboard --limit 20 --sort tokens`,
+  );
+
   return command;
 }
 
