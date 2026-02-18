@@ -2,6 +2,8 @@ import type { Dirent } from "node:fs";
 import { mkdir, readFile, readdir, rename, stat, unlink, writeFile } from "node:fs/promises";
 import { dirname, extname, join, relative, resolve } from "node:path";
 
+import PQueue from "p-queue";
+
 import type { Task, TaskSource } from "../core/types.js";
 import type { CodebaseMap, FileInfo, ModuleInfo, QualityReport } from "./context-types.js";
 import { CompositeScanner } from "./scanner.js";
@@ -61,13 +63,17 @@ export async function analyzeCodebase(
   // ── 1. Walk file tree ──────────────────────────────────────
   const allFiles = await walkSourceFiles(srcRoot, userExclude);
 
-  // ── 2. Analyze each file ───────────────────────────────────
-  const fileInfos: Array<FileInfo & { _absolutePath: string }> = [];
-  for (const absPath of allFiles) {
-    const relPath = relative(resolvedRepoPath, absPath);
-    const info = await analyzeFile(absPath, relPath);
-    fileInfos.push({ ...info, _absolutePath: absPath });
-  }
+  // ── 2. Analyze each file (bounded concurrency) ────────────
+  const analysisQueue = new PQueue({ concurrency: 50 });
+  const fileInfos = (await Promise.all(
+    allFiles.map((absPath) =>
+      analysisQueue.add(async () => {
+        const relPath = relative(resolvedRepoPath, absPath);
+        const info = await analyzeFile(absPath, relPath);
+        return { ...info, _absolutePath: absPath };
+      }),
+    ),
+  )) as Array<FileInfo & { _absolutePath: string }>;
 
   // ── 3. Detect modules ─────────────────────────────────────
   const moduleMap = buildModuleMap(fileInfos, sourceDir);
@@ -235,13 +241,15 @@ async function walkSourceFiles(dirPath: string, userExclude: string[]): Promise<
       return;
     }
 
+    const subdirs: Promise<void>[] = [];
     for (const entry of entries) {
       if (entry.isDirectory() && !isExcludedDir(entry.name)) {
-        await walk(join(dir, entry.name));
+        subdirs.push(walk(join(dir, entry.name)));
       } else if (entry.isFile() && !isExcludedFile(entry.name)) {
         results.push(join(dir, entry.name));
       }
     }
+    await Promise.all(subdirs);
   }
 
   await walk(dirPath);

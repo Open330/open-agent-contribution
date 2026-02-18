@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 
 import { Command } from "commander";
 
-import type { GlobalCliOptions } from "../cli.js";
+import { getGlobalOptions } from "../helpers.js";
 
 interface StatusCommandOptions {
   watch?: boolean;
@@ -64,17 +64,6 @@ export function createStatusCommand(): Command {
     });
 
   return command;
-}
-
-function getGlobalOptions(command: Command): Required<GlobalCliOptions> {
-  const options = command.optsWithGlobals<GlobalCliOptions>();
-
-  return {
-    config: options.config ?? "oac.config.ts",
-    verbose: options.verbose === true,
-    json: options.json === true,
-    color: options.color !== false,
-  };
 }
 
 async function readRunStatus(repoPath: string): Promise<RunStatus | null> {

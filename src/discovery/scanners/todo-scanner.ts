@@ -434,6 +434,7 @@ async function collectFiles(rootDir: string, excludes: string[]): Promise<string
       return;
     }
 
+    const subdirs: Promise<void>[] = [];
     for (const entry of entries) {
       const entryName = String(entry.name);
       const relPath = normalizeRelativePath(
@@ -444,7 +445,7 @@ async function collectFiles(rootDir: string, excludes: string[]): Promise<string
       }
 
       if (entry.isDirectory()) {
-        await walk(relPath);
+        subdirs.push(walk(relPath));
         continue;
       }
 
@@ -452,6 +453,7 @@ async function collectFiles(rootDir: string, excludes: string[]): Promise<string
         files.push(relPath);
       }
     }
+    await Promise.all(subdirs);
   }
 
   await walk("");

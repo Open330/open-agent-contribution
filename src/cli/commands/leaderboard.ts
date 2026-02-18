@@ -6,7 +6,7 @@ import Table from "cli-table3";
 import { Command } from "commander";
 import { type ContributionLog, contributionLogSchema } from "../../tracking/index.js";
 
-import type { GlobalCliOptions } from "../cli.js";
+import { formatInteger, getGlobalOptions, parseInteger } from "../helpers.js";
 
 interface LeaderboardCommandOptions {
   limit: number;
@@ -81,17 +81,6 @@ export function createLeaderboardCommand(): Command {
     });
 
   return command;
-}
-
-function getGlobalOptions(command: Command): Required<GlobalCliOptions> {
-  const options = command.optsWithGlobals<GlobalCliOptions>();
-
-  return {
-    config: options.config ?? "oac.config.ts",
-    verbose: options.verbose === true,
-    json: options.json === true,
-    color: options.color !== false,
-  };
 }
 
 async function loadLeaderboardEntries(repoPath: string): Promise<LeaderboardEntry[]> {
@@ -266,19 +255,6 @@ function sortValue(entry: LeaderboardEntry, field: SortField): number {
     return entry.totalTokensDonated;
   }
   return entry.totalPRsCreated;
-}
-
-function parseInteger(value: string): number {
-  const parsed = Number.parseInt(value, 10);
-  if (!Number.isFinite(parsed)) {
-    throw new Error(`Expected an integer but received "${value}".`);
-  }
-
-  return parsed;
-}
-
-function formatInteger(value: number): string {
-  return new Intl.NumberFormat("en-US").format(value);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

@@ -1,7 +1,7 @@
-import chalk, { Chalk, type ChalkInstance } from "chalk";
+import type { ChalkInstance } from "chalk";
 import { Command } from "commander";
 
-import type { GlobalCliOptions } from "../cli.js";
+import { createUi, getGlobalOptions } from "../helpers.js";
 
 type DoctorStatus = "pass" | "warn" | "fail";
 
@@ -145,24 +145,6 @@ async function checkGithubAuth(): Promise<DoctorCheck> {
     status: "fail",
     message: "No GitHub authentication detected. Set GITHUB_TOKEN or run `gh auth login`.",
   };
-}
-
-function getGlobalOptions(command: Command): Required<GlobalCliOptions> {
-  const options = command.optsWithGlobals<GlobalCliOptions>();
-
-  return {
-    config: options.config ?? "oac.config.ts",
-    verbose: options.verbose === true,
-    json: options.json === true,
-    color: options.color !== false,
-  };
-}
-
-function createUi(options: Required<GlobalCliOptions>): ChalkInstance {
-  const noColorEnv = Object.prototype.hasOwnProperty.call(process.env, "NO_COLOR");
-  const colorEnabled = options.color && !noColorEnv;
-
-  return new Chalk({ level: colorEnabled ? chalk.level : 0 });
 }
 
 function renderDoctorOutput(ui: ChalkInstance, checks: DoctorCheck[], allPassed: boolean): void {

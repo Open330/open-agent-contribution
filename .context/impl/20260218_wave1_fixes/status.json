@@ -1,0 +1,40 @@
+{
+  "session": "20260218_wave1_fixes",
+  "created": "2026-02-18T15:55:00+09:00",
+  "status": "running",
+  "agents": {
+    "agent-a": {
+      "provider": "codex",
+      "task": "01-agent-a-perf-critical.md",
+      "description": "T0-1 withWorktreeLock fix + T0-2 bounded Promise.all",
+      "files": ["src/execution/sandbox.ts", "src/budget/estimator.ts"],
+      "worktree": "/tmp/oac-worktree-agent-a",
+      "status": "pending"
+    },
+    "agent-b": {
+      "provider": "codex",
+      "task": "02-agent-b-cli-ux.md",
+      "description": "P0-2 init config + P0-3 help text + T2-4 SIGINT handler",
+      "files": ["src/cli/commands/init.ts", "src/cli/cli.ts", "src/cli/commands/status.ts"],
+      "worktree": "/tmp/oac-worktree-agent-b",
+      "status": "pending"
+    },
+    "agent-c": {
+      "provider": "opencode",
+      "task": "03-agent-c-doctor-execa.md",
+      "description": "T2-3 Replace spawn with execa in doctor.ts",
+      "files": ["src/cli/commands/doctor.ts"],
+      "worktree": "/tmp/oac-worktree-agent-c",
+      "status": "pending"
+    },
+    "agent-d": {
+      "provider": "codex",
+      "task": "04-agent-d-simulation-removal.md",
+      "description": "P0-1 Remove silent simulation fallback",
+      "files": ["src/cli/commands/run.ts"],
+      "worktree": "/tmp/oac-worktree-agent-d",
+      "status": "pending"
+    }
+  }
+}
+

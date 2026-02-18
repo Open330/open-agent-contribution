@@ -1,9 +1,8 @@
-import chalk, { Chalk, type ChalkInstance } from "chalk";
+import type { ChalkInstance } from "chalk";
 import Table from "cli-table3";
 import { Command } from "commander";
-import ora, { type Ora } from "ora";
-import { buildExecutionPlan, estimateTokens } from "../../budget/index.js";
-import type { OacConfig, Task } from "../../core/index.js";
+import { buildExecutionPlan } from "../../budget/index.js";
+import type { OacConfig } from "../../core/index.js";
 import {
   CompositeScanner,
   LintScanner,
@@ -14,8 +13,19 @@ import {
 import { cloneRepo, resolveRepo } from "../../repo/index.js";
 import { ensureGitHubAuth } from "../github-auth.js";
 
-import type { GlobalCliOptions } from "../cli.js";
-import { loadOptionalConfigFile } from "../config-loader.js";
+import {
+  createSpinner,
+  createUi,
+  estimateTaskMap,
+  formatInteger,
+  getGlobalOptions,
+  loadOptionalConfig,
+  parseInteger,
+  resolveBudget,
+  resolveProviderId,
+  resolveRepoInput,
+  truncate,
+} from "../helpers.js";
 
 interface PlanCommandOptions {
   repo?: string;
@@ -106,96 +116,6 @@ export function createPlanCommand(): Command {
   return command;
 }
 
-function getGlobalOptions(command: Command): Required<GlobalCliOptions> {
-  const options = command.optsWithGlobals<GlobalCliOptions>();
-
-  return {
-    config: options.config ?? "oac.config.ts",
-    verbose: options.verbose === true,
-    json: options.json === true,
-    color: options.color !== false,
-  };
-}
-
-function createUi(options: Required<GlobalCliOptions>): ChalkInstance {
-  const noColorEnv = Object.prototype.hasOwnProperty.call(process.env, "NO_COLOR");
-  const colorEnabled = options.color && !noColorEnv;
-
-  return new Chalk({ level: colorEnabled ? chalk.level : 0 });
-}
-
-function createSpinner(enabled: boolean, text: string): Ora | null {
-  if (enabled) {
-    return null;
-  }
-
-  return ora({ text, color: "blue" }).start();
-}
-
-function parseInteger(value: string): number {
-  const parsed = Number.parseInt(value, 10);
-  if (!Number.isFinite(parsed)) {
-    throw new Error(`Expected an integer but received "${value}".`);
-  }
-
-  return parsed;
-}
-
-async function loadOptionalConfig(
-  configPath: string,
-  verbose: boolean,
-  ui: ChalkInstance,
-): Promise<OacConfig | null> {
-  return loadOptionalConfigFile(configPath, {
-    onWarning: verbose
-      ? (message) => {
-          console.warn(ui.yellow(`[oac] ${message}`));
-        }
-      : undefined,
-  });
-}
-
-function resolveRepoInput(repoOption: string | undefined, config: OacConfig | null): string {
-  const fromFlag = repoOption?.trim();
-  if (fromFlag) {
-    return fromFlag;
-  }
-
-  const firstConfiguredRepo = config?.repos[0];
-  if (typeof firstConfiguredRepo === "string") {
-    return firstConfiguredRepo;
-  }
-
-  if (
-    firstConfiguredRepo &&
-    typeof firstConfiguredRepo === "object" &&
-    "name" in firstConfiguredRepo &&
-    typeof firstConfiguredRepo.name === "string"
-  ) {
-    return firstConfiguredRepo.name;
-  }
-
-  throw new Error("No repository specified. Use --repo or configure repos in oac.config.ts.");
-}
-
-function resolveProviderId(providerOption: string | undefined, config: OacConfig | null): string {
-  const fromFlag = providerOption?.trim();
-  if (fromFlag) {
-    return fromFlag;
-  }
-
-  return config?.provider.id ?? "claude-code";
-}
-
-function resolveBudget(tokensOption: number | undefined, config: OacConfig | null): number {
-  const budget = tokensOption ?? config?.budget.totalTokens ?? 100_000;
-  if (!Number.isFinite(budget) || budget <= 0) {
-    throw new Error("Token budget must be a positive number.");
-  }
-
-  return Math.floor(budget);
-}
-
 function selectScannersFromConfig(config: OacConfig | null): {
   enabled: SupportedScanner[];
   scanner: CompositeScanner;
@@ -223,20 +143,6 @@ function selectScannersFromConfig(config: OacConfig | null): {
     enabled: uniqueEnabled,
     scanner: new CompositeScanner(scannerInstances),
   };
-}
-
-async function estimateTaskMap(
-  tasks: Task[],
-  providerId: string,
-): Promise<Map<string, Awaited<ReturnType<typeof estimateTokens>>>> {
-  const entries = await Promise.all(
-    tasks.map(async (task) => {
-      const estimate = await estimateTokens(task, providerId);
-      return [task.id, estimate] as const;
-    }),
-  );
-
-  return new Map(entries);
 }
 
 function renderPlan(
@@ -299,14 +205,4 @@ function renderPlan(
   }
 }
 
-function formatInteger(value: number): string {
-  return new Intl.NumberFormat("en-US").format(value);
-}
 
-function truncate(value: string, maxLength: number): string {
-  if (value.length <= maxLength) {
-    return value;
-  }
-
-  return `${value.slice(0, Math.max(0, maxLength - 3))}...`;
-}

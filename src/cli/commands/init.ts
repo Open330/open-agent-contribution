@@ -3,10 +3,10 @@ import { access, mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 import { checkbox, confirm, input } from "@inquirer/prompts";
-import chalk, { Chalk, type ChalkInstance } from "chalk";
+import type { ChalkInstance } from "chalk";
 import { Command } from "commander";
 
-import type { GlobalCliOptions } from "../cli.js";
+import { createUi, getGlobalOptions } from "../helpers.js";
 
 type ProviderId = "claude-code" | "codex" | "opencode";
 
@@ -139,24 +139,6 @@ export function createInitCommand(): Command {
   });
 
   return command;
-}
-
-function getGlobalOptions(command: Command): Required<GlobalCliOptions> {
-  const options = command.optsWithGlobals<GlobalCliOptions>();
-
-  return {
-    config: options.config ?? "oac.config.ts",
-    verbose: options.verbose === true,
-    json: options.json === true,
-    color: options.color !== false,
-  };
-}
-
-function createUi(options: Required<GlobalCliOptions>): ChalkInstance {
-  const noColorEnv = Object.prototype.hasOwnProperty.call(process.env, "NO_COLOR");
-  const colorEnabled = options.color && !noColorEnv;
-
-  return new Chalk({ level: colorEnabled ? chalk.level : 0 });
 }
 
 function buildConfigFile(input: {

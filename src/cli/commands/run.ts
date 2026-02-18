@@ -1,15 +1,13 @@
 import { randomUUID } from "node:crypto";
 
-import chalk, { Chalk, type ChalkInstance } from "chalk";
+import type { ChalkInstance } from "chalk";
 import Table from "cli-table3";
 import { Command } from "commander";
 import { execa } from "execa";
-import ora, { type Ora } from "ora";
 import {
   buildEpicExecutionPlan,
   buildExecutionPlan,
   estimateEpicTokens,
-  estimateTokens,
 } from "../../budget/index.js";
 import {
   type Epic,
@@ -49,8 +47,20 @@ import {
 import { cloneRepo, resolveRepo } from "../../repo/index.js";
 import { type ContributionLog, writeContributionLog } from "../../tracking/index.js";
 
-import type { GlobalCliOptions } from "../cli.js";
-import { loadOptionalConfigFile } from "../config-loader.js";
+import {
+  type GlobalCliOptions,
+  createSpinner,
+  createUi,
+  estimateTaskMap,
+  formatInteger,
+  getGlobalOptions,
+  loadOptionalConfig,
+  parseInteger,
+  resolveBudget,
+  resolveProviderId,
+  resolveRepoInput,
+  truncate,
+} from "../helpers.js";
 import { checkGitHubScopes, ensureGitHubAuth } from "../github-auth.js";
 
 interface RunCommandOptions {
@@ -905,40 +915,7 @@ function printFinalSummary(
   }
 }
 
-function getGlobalOptions(command: Command): Required<GlobalCliOptions> {
-  const options = command.optsWithGlobals<GlobalCliOptions>();
 
-  return {
-    config: options.config ?? "oac.config.ts",
-    verbose: options.verbose === true,
-    json: options.json === true,
-    color: options.color !== false,
-  };
-}
-
-function createUi(options: Required<GlobalCliOptions>): ChalkInstance {
-  const noColorEnv = Object.prototype.hasOwnProperty.call(process.env, "NO_COLOR");
-  const colorEnabled = options.color && !noColorEnv;
-
-  return new Chalk({ level: colorEnabled ? chalk.level : 0 });
-}
-
-function createSpinner(enabled: boolean, text: string): Ora | null {
-  if (enabled) {
-    return null;
-  }
-
-  return ora({ text, color: "blue" }).start();
-}
-
-function parseInteger(value: string): number {
-  const parsed = Number.parseInt(value, 10);
-  if (!Number.isFinite(parsed)) {
-    throw new Error(`Expected an integer but received "${value}".`);
-  }
-
-  return parsed;
-}
 
 function parseTokens(value: string): number {
   if (value.toLowerCase() === "unlimited") {
@@ -966,43 +943,6 @@ function validateRunOptions(options: RunCommandOptions): void {
   if (typeof options.maxTasks === "number" && options.maxTasks <= 0) {
     throw new Error("--max-tasks must be greater than zero when provided.");
   }
-}
-
-async function loadOptionalConfig(
-  configPath: string,
-  verbose: boolean,
-  ui: ChalkInstance,
-): Promise<OacConfig | null> {
-  return loadOptionalConfigFile(configPath, {
-    onWarning: verbose
-      ? (message) => {
-          console.warn(ui.yellow(`[oac] ${message}`));
-        }
-      : undefined,
-  });
-}
-
-function resolveRepoInput(repoOption: string | undefined, config: OacConfig | null): string {
-  const fromFlag = repoOption?.trim();
-  if (fromFlag) {
-    return fromFlag;
-  }
-
-  const firstConfiguredRepo = config?.repos[0];
-  if (typeof firstConfiguredRepo === "string") {
-    return firstConfiguredRepo;
-  }
-
-  if (
-    firstConfiguredRepo &&
-    typeof firstConfiguredRepo === "object" &&
-    "name" in firstConfiguredRepo &&
-    typeof firstConfiguredRepo.name === "string"
-  ) {
-    return firstConfiguredRepo.name;
-  }
-
-  throw new Error("No repository specified. Use --repo or configure repos in oac.config.ts.");
 }
 
 async function resolveAdapter(
@@ -1035,24 +975,6 @@ async function resolveAdapter(
   }
 
   return { adapter };
-}
-
-function resolveProviderId(providerOption: string | undefined, config: OacConfig | null): string {
-  const fromFlag = providerOption?.trim();
-  if (fromFlag) {
-    return fromFlag;
-  }
-
-  return config?.provider.id ?? "claude-code";
-}
-
-function resolveBudget(tokensOption: number | undefined, config: OacConfig | null): number {
-  const budget = tokensOption ?? config?.budget.totalTokens ?? 100_000;
-  if (!Number.isFinite(budget) || budget <= 0) {
-    throw new Error("Token budget must be a positive number.");
-  }
-
-  return Math.floor(budget);
 }
 
 function resolveMode(modeOption: string | undefined, config: OacConfig | null): RunMode {
@@ -1134,20 +1056,6 @@ function selectScannersFromConfig(
     enabled: uniqueEnabled,
     scanner: new CompositeScanner(scannerInstances),
   };
-}
-
-async function estimateTaskMap(
-  tasks: Task[],
-  providerId: string,
-): Promise<Map<string, TokenEstimate>> {
-  const entries = await Promise.all(
-    tasks.map(async (task) => {
-      const estimate = await estimateTokens(task, providerId);
-      return [task.id, estimate] as const;
-    }),
-  );
-
-  return new Map(entries);
 }
 
 async function executeWithAgent(input: {
@@ -1595,29 +1503,6 @@ async function runWithConcurrency<T, R>(
   return results;
 }
 
-async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
-  return await new Promise((resolvePromise, rejectPromise) => {
-    const timeout = setTimeout(() => {
-      rejectPromise(new Error(`Timed out after ${Math.round(timeoutMs / 1000)}s`));
-    }, timeoutMs);
-
-    promise.then(
-      (value) => {
-        clearTimeout(timeout);
-        resolvePromise(value);
-      },
-      (error) => {
-        clearTimeout(timeout);
-        rejectPromise(error);
-      },
-    );
-  });
-}
-
-function formatInteger(value: number): string {
-  return new Intl.NumberFormat("en-US").format(value);
-}
-
 function formatDuration(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds < 0) {
     return "0s";
@@ -1632,10 +1517,4 @@ function formatDuration(seconds: number): string {
   return `${minutes}m ${remainingSeconds}s`;
 }
 
-function truncate(value: string, maxLength: number): string {
-  if (value.length <= maxLength) {
-    return value;
-  }
 
-  return `${value.slice(0, Math.max(0, maxLength - 3))}...`;
-}

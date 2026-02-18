@@ -6,7 +6,7 @@ import Table from "cli-table3";
 import { Command } from "commander";
 import { type ContributionLog, contributionLogSchema } from "../../tracking/index.js";
 
-import type { GlobalCliOptions } from "../cli.js";
+import { formatInteger, getGlobalOptions, parseInteger } from "../helpers.js";
 
 interface LogCommandOptions {
   limit: number;
@@ -84,17 +84,6 @@ export function createLogCommand(): Command {
   return command;
 }
 
-function getGlobalOptions(command: Command): Required<GlobalCliOptions> {
-  const options = command.optsWithGlobals<GlobalCliOptions>();
-
-  return {
-    config: options.config ?? "oac.config.ts",
-    verbose: options.verbose === true,
-    json: options.json === true,
-    color: options.color !== false,
-  };
-}
-
 async function readContributionLogs(repoPath: string): Promise<ContributionLog[]> {
   const contributionsPath = resolve(repoPath, ".oac", "contributions");
 
@@ -132,15 +121,6 @@ async function readContributionLogs(repoPath: string): Promise<ContributionLog[]
   return logs.filter((log): log is ContributionLog => log !== null);
 }
 
-function parseInteger(value: string): number {
-  const parsed = Number.parseInt(value, 10);
-  if (!Number.isFinite(parsed)) {
-    throw new Error(`Expected an integer but received "${value}".`);
-  }
-
-  return parsed;
-}
-
 function parseSinceDate(value: string | undefined): Date | null {
   if (!value) {
     return null;
@@ -173,10 +153,6 @@ function formatDate(timestamp: string): string {
   }
 
   return date.toISOString();
-}
-
-function formatInteger(value: number): string {
-  return new Intl.NumberFormat("en-US").format(value);
 }
 
 function isFileNotFoundError(error: unknown): boolean {
