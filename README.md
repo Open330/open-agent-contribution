@@ -50,23 +50,25 @@ npx @open330/oac run --repo facebook/react --tokens unlimited
 ```
 
 ```
-  Scanning facebook/react...
-  Found 23 tasks (12 lint fixes, 6 TODOs, 5 test gaps)
+  ✔ Resolved facebook/react
+  ✔ Repository ready at ~/.oac/cache/repos/facebook/react
+  ✔ Analyzed 12 modules, 847 files, 23 findings
+  ✔ Created 4 epic(s)
+  ✔ Epic token estimation completed
+  [oac] Selected 3 epic(s) for execution, 1 deferred.
 
-  Budget: 50,000 tokens
-  Selected: 8 tasks (est. 42,300 tokens)
-  Reserve: 5,000 tokens (10%)
+  ✔ Improve test coverage for reconciler (1/3)
+      PR #1847: https://github.com/facebook/react/pull/1847
+  ✔ Fix lint warnings in scheduler (2/3)
+      PR #1848: https://github.com/facebook/react/pull/1848
+  ✔ Address TODO comments (3/3)
+      PR #1849: https://github.com/facebook/react/pull/1849
 
-  [Claude] ████████░░ 4/8 tasks completed
-  [Claude] ✔ PR #1847: Fix unused imports in scheduler
-  [Claude] ✔ PR #1848: Add tests for reconciler edge case
-  [Claude] ⠋ Resolving TODO in ReactFiberHooks.js...
-
-  ─────────────────────────────────────
-  Done! 7/8 tasks succeeded
-  PRs created: 7
-  Tokens used: 38,420 / 50,000
-  Contribution logged to .oac/contributions/
+  Run Summary (Epic Mode)
+    Epics completed: 3/3
+    PRs created:     3
+    Tokens used:     38,420 / 50,000
+    Duration:        8m 42s
 ```
 
 ---
@@ -88,7 +90,7 @@ npx @open330/oac run --repo facebook/react --tokens unlimited
 
 ### Prerequisites
 
-- **Node.js** >= 22
+- **Node.js** >= 24
 - **git** installed
 - At least one AI agent CLI: [Claude Code](https://claude.ai/code), [Codex](https://github.com/openai/codex), or [OpenCode](https://github.com/opencode-ai/opencode)
 
@@ -160,13 +162,21 @@ oac doctor
 |---------|-------------|
 | `oac init` | Interactive setup wizard — creates `oac.config.ts` |
 | `oac doctor` | Verify environment (Node, git, agents, auth) |
-| `oac scan` | Discover tasks in a repo without executing |
+| `oac analyze` | Deep codebase analysis — builds context, groups findings into epics |
+| `oac scan` | Quick task discovery without grouping or context |
 | `oac plan` | Show execution plan with token budget breakdown |
-| `oac run` | Full pipeline: scan → estimate → execute → PR → track |
+| `oac run` | Full pipeline: analyze → group epics → execute → PR → track |
 | `oac status` | Show running/recent job status |
 | `oac log` | View contribution history |
 | `oac leaderboard` | Show contribution rankings |
-| `oac dashboard` | Launch localhost web dashboard |
+
+### `oac analyze` — Deep Codebase Analysis
+
+```bash
+oac analyze --repo owner/repo [--force] [--format table|json]
+```
+
+Builds a full codebase map (modules, files, exports, dependencies), runs all scanners, groups findings into epics, and persists everything to `.oac/context/`. The analysis is cached — subsequent runs only re-analyze changed files (incremental via `git diff`).
 
 ### `oac run` — The Main Event
 
@@ -174,16 +184,18 @@ oac doctor
 oac run \
   --repo owner/repo \       # Target repository
   --tokens 50000 \          # Token budget (or "unlimited")
-  --provider claude-code \  # AI agent to use
+  --provider claude-code \  # AI agent to use (claude-code or codex)
   --concurrency 2 \         # Parallel agents (default: 2)
   --mode new-pr \           # Create PRs (or: direct-commit)
   --dry-run                 # Preview without executing
 
-# Run with unlimited budget (keeps going until rate-limited)
-oac run --repo owner/repo --tokens unlimited --concurrency 3
+# Run with unlimited budget
+oac run --repo owner/repo --tokens unlimited --provider codex
+
+# Auto-analyzes if no context exists (or use --force to re-analyze)
 ```
 
-### `oac scan` — See What's Out There
+### `oac scan` — Quick Task Discovery
 
 ```bash
 oac scan --repo owner/repo --format table
@@ -210,17 +222,17 @@ OAC uses a TypeScript config file:
 
 ```typescript
 // oac.config.ts
-export default {
-  repos: ['facebook/react', 'vercel/next.js'],
+import { defineConfig } from "@open330/oac";
 
-  provider: {
-    id: 'claude-code',
-    options: { model: 'opus' },
-  },
+export default defineConfig({
+  repos: ["facebook/react", "vercel/next.js"],
 
-  budget: {
-    totalTokens: 100_000,
-    reservePercent: 0.10,
+  execution: {
+    provider: "claude-code",  // or "codex"
+    concurrency: 2,
+    mode: "new-pr",
+    taskTimeout: 300,
+    tokenBudget: 100_000,     // or "unlimited"
   },
 
   discovery: {
@@ -228,18 +240,15 @@ export default {
       lint: true,
       todo: true,
       testGap: true,
-      deadCode: false,
-      githubIssues: true,
     },
-    issueLabels: ['good-first-issue', 'help-wanted', 'bug'],
+    issueLabels: ["good-first-issue", "help-wanted", "bug"],
   },
 
-  execution: {
-    concurrency: 2,
-    mode: 'new-pr',
-    taskTimeout: 300,
+  analyze: {
+    autoAnalyze: true,         // auto-analyze before run
+    staleAfterMs: 86_400_000,  // re-analyze after 24h
   },
-};
+});
 ```
 
 ---
@@ -274,28 +283,27 @@ export default {
            └───────────────────┘
 ```
 
-### Packages
+### Modules
 
-All packages are published under the `@open330` scope on npm:
+Published as a single package `@open330/oac`:
 
-| Package | npm | Description |
-|---------|-----|-------------|
-| [`@open330/oac`](packages/cli) | [![npm](https://img.shields.io/npm/v/@open330/oac?label=&color=CB3837)](https://www.npmjs.com/package/@open330/oac) | CLI — the main entry point |
-| [`@open330/oac-core`](packages/core) | [![npm](https://img.shields.io/npm/v/@open330/oac-core?label=&color=CB3837)](https://www.npmjs.com/package/@open330/oac-core) | Event bus, config, types, errors |
-| [`@open330/oac-repo`](packages/repo) | [![npm](https://img.shields.io/npm/v/@open330/oac-repo?label=&color=CB3837)](https://www.npmjs.com/package/@open330/oac-repo) | GitHub repo resolution, cloning, metadata |
-| [`@open330/oac-discovery`](packages/discovery) | [![npm](https://img.shields.io/npm/v/@open330/oac-discovery?label=&color=CB3837)](https://www.npmjs.com/package/@open330/oac-discovery) | Task scanners (lint, TODO, test-gap, issues) |
-| [`@open330/oac-budget`](packages/budget) | [![npm](https://img.shields.io/npm/v/@open330/oac-budget?label=&color=CB3837)](https://www.npmjs.com/package/@open330/oac-budget) | Token estimation, complexity analysis, planning |
-| [`@open330/oac-execution`](packages/execution) | [![npm](https://img.shields.io/npm/v/@open330/oac-execution?label=&color=CB3837)](https://www.npmjs.com/package/@open330/oac-execution) | Agent pool, job queue, worktree sandbox |
-| [`@open330/oac-completion`](packages/completion) | [![npm](https://img.shields.io/npm/v/@open330/oac-completion?label=&color=CB3837)](https://www.npmjs.com/package/@open330/oac-completion) | PR creation, issue linking |
-| [`@open330/oac-tracking`](packages/tracking) | [![npm](https://img.shields.io/npm/v/@open330/oac-tracking?label=&color=CB3837)](https://www.npmjs.com/package/@open330/oac-tracking) | Contribution logs, leaderboard |
-| [`@open330/oac-dashboard`](packages/dashboard) | [![npm](https://img.shields.io/npm/v/@open330/oac-dashboard?label=&color=CB3837)](https://www.npmjs.com/package/@open330/oac-dashboard) | Fastify web dashboard with SSE streaming |
+| Module | Path | Description |
+|--------|------|-------------|
+| Core | `src/core/` | Event bus, config (Zod), types, errors |
+| Repo | `src/repo/` | GitHub repo resolution, shallow cloning, metadata cache |
+| Discovery | `src/discovery/` | Codebase analyzer, epic grouper, backlog, scanners (lint, TODO, test-gap, GitHub issues) |
+| Budget | `src/budget/` | Token estimation (tiktoken), complexity analysis, execution planner |
+| Execution | `src/execution/` | Agent adapters (Claude Code, Codex), worktree sandbox, worker |
+| Completion | `src/completion/` | PR creation (Octokit), diff validation, issue linking |
+| Tracking | `src/tracking/` | Contribution logs, leaderboard, JSON schema |
+| CLI | `src/cli/` | Commander.js commands: init, doctor, analyze, scan, plan, run, status, log, leaderboard |
 
 ### Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| Runtime | Node.js 22+, TypeScript 5.7+, ESM |
-| Build | pnpm workspaces, Turborepo, tsup |
+| Runtime | Node.js 24+, TypeScript 5.7+, ESM |
+| Build | pnpm, tsup |
 | CLI | Commander.js, chalk, ora, cli-table3 |
 | Git | simple-git, git worktrees for isolation |
 | GitHub | @octokit/rest |
@@ -336,6 +344,8 @@ oac leaderboard
 
 ## How It Works
 
+OAC uses a **context-first architecture**: it first deeply analyzes the codebase, then groups related findings into coherent **epics** (not tiny per-file tasks), and executes each epic as a single unit with full module context.
+
 ```
 You run `oac run`
         │
@@ -346,18 +356,28 @@ You run `oac run`
    └────┬─────┘                                    │
         │                                          │
         ▼                                          ▼
-   ┌─────────┐     TODO, lint, test-gap,     ┌──────────┐
-   │  Scan   │──── GitHub issues ──────────▶│  Tasks   │
+   ┌─────────┐     Auto-detect src dir,      ┌──────────┐
+   │ Analyze │──── module map, exports, ────▶│ Context  │
+   └────┬────┘     LOC, dependencies         │ .oac/    │
+        │                                    └────┬─────┘
+        ▼                                         │
+   ┌─────────┐     TODO, lint, test-gap,     ┌────▼─────┐
+   │  Scan   │──── GitHub issues ──────────▶│ Findings │
    └────┬────┘                              └────┬─────┘
         │                                        │
         ▼                                        ▼
-   ┌─────────┐     tiktoken counting,       ┌──────────┐
-   │ Budget  │──── knapsack selection ─────▶│   Plan   │
-   └────┬────┘     (10% reserve)            └────┬─────┘
+   ┌─────────┐     Group by module+type,     ┌──────────┐
+   │  Group  │──── create coherent units ──▶│  Epics   │
+   └────┬────┘     (1 PR per epic)           └────┬─────┘
         │                                        │
         ▼                                        ▼
-   ┌─────────┐     git worktree per agent   ┌──────────┐
-   │Execute  │──── parallel sandboxes ─────▶│ Results  │
+   ┌─────────┐     Per-epic estimation,      ┌──────────┐
+   │ Budget  │──── priority-based select ──▶│   Plan   │
+   └────┬────┘                              └────┬─────┘
+        │                                        │
+        ▼                                        ▼
+   ┌─────────┐     git worktree per epic    ┌──────────┐
+   │Execute  │──── with module context ────▶│ Results  │
    └────┬────┘                              └────┬─────┘
         │                                        │
         ▼                                        ▼
@@ -368,8 +388,18 @@ You run `oac run`
         ▼                                        ▼
    ┌─────────┐     .oac/contributions/      ┌──────────┐
    │  Track  │──── JSON audit log ─────────▶│  Done!   │
-   └─────────┘                              └──────────┘
+   └─────────┘     update backlog           └──────────┘
 ```
+
+### Epic-Based Execution vs Per-Task
+
+| | Old (per-task) | New (epic-based) |
+|---|---|---|
+| Unit | 1 task = 1 file change | 1 epic = N related changes |
+| Context | Agent sees only target file | Agent sees full module context |
+| PR | 1 PR per file | 1 PR per epic (multi-file) |
+| Persistence | None — re-scans every run | Backlog persisted in `.oac/context/` |
+| Incremental | Full re-scan | Only re-analyzes git-changed files |
 
 ---
 
@@ -402,9 +432,10 @@ export class MyAgentAdapter implements AgentProvider {
 
 ## Roadmap
 
-- [x] **2026.2.17** — Core engine, CLI, 5 scanners, parallel execution, dashboard, npm publish
-- [x] **2026.3.x** — Claude Code + Codex CLI adapters (both supported)
-- [ ] **Next** — OpenCode adapter, multi-agent routing (run multiple agents simultaneously)
+- [x] **2026.2.17** — Core engine, CLI, 5 scanners, parallel execution, npm publish
+- [x] **2026.2.18** — Context-first architecture: codebase analyzer, epic grouper, incremental analysis, backlog persistence, enhanced prompts with module context
+- [x] **2026.4.x** — Claude Code + Codex CLI adapters, token usage reporting, auto-detect sourceDir
+- [ ] **Next** — OpenCode adapter, multi-agent routing, localhost dashboard
 - [ ] **Future** — Linear/Jira webhooks, plugin system, sparse checkout for monorepos
 
 ---
