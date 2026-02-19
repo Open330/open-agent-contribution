@@ -14,7 +14,7 @@
 
 [![npm](https://img.shields.io/npm/v/@open330/oac?label=npm&color=CB3837&logo=npm)](https://www.npmjs.com/package/@open330/oac)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D24-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-3178C6?logo=typescript&logoColor=white)](https://typescriptlang.org/)
 
 [Getting Started](#-getting-started) · [How It Works](#-how-it-works) · [Commands](#commands) · [Configuration](#configuration) · [Architecture](#architecture) · [Contributing](#contributing)
@@ -93,7 +93,7 @@ npx @open330/oac run --repo facebook/react --tokens unlimited
 
 ### Prerequisites
 
-- **Node.js** >= 24 (see `engines` in package.json)
+- **Node.js** >= 20 (see `engines` in package.json)
 - **git** installed
 - At least one AI agent CLI: [Claude Code](https://claude.ai/code), [Codex](https://github.com/openai/codex), or [OpenCode](https://github.com/opencode-ai/opencode)
 

@@ -5,11 +5,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Open330/open-agent-contribution.git"
+    "url": "https://github.com/open330/open-agent-contribution.git"
   },
-  "homepage": "https://github.com/Open330/open-agent-contribution",
+  "homepage": "https://github.com/open330/open-agent-contribution",
   "bugs": {
-    "url": "https://github.com/Open330/open-agent-contribution/issues"
+    "url": "https://github.com/open330/open-agent-contribution/issues"
   },
   "type": "module",
   "main": "./dist/core/index.js",
@@ -23,12 +23,12 @@
       "types": "./dist/core/index.d.ts"
     }
   },
-  "files": ["dist", "README.md"],
+  "files": ["dist", "README.md", "LICENSE", "CHANGELOG.md", "docs"],
   "publishConfig": {
     "access": "public"
   },
   "engines": {
-    "node": ">=24.0.0"
+    "node": ">=20.0.0"
   },
   "packageManager": "pnpm@9.15.4",
   "scripts": {
@@ -40,7 +40,8 @@
     "format": "biome format --write .",
     "typecheck": "tsc --noEmit",
     "dev:dashboard": "tsx src/dashboard/dev.ts",
-    "clean": "rm -rf dist coverage"
+    "clean": "rm -rf dist coverage",
+    "prepublishOnly": "pnpm build && pnpm test"
   },
   "dependencies": {
     "@fastify/cors": "^10.0.2",
