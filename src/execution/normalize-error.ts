@@ -1,8 +1,5 @@
 import { OacError, executionError } from "../core/index.js";
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
+import { isRecord } from "../core/utils.js";
 
 function toErrorMessage(error: unknown): string {
   if (error instanceof Error) {

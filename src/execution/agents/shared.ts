@@ -91,9 +91,7 @@ export class AsyncEventQueue<T> implements AsyncIterable<T> {
 
 // ── Utility functions ───────────────────────────────────────
 
-export function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
+export { isRecord } from "../../core/utils.js";
 
 export function readNumber(value: unknown): number | undefined {
   if (typeof value !== "number" || !Number.isFinite(value)) {

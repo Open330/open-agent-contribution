@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 
 import Table from "cli-table3";
 import { Command } from "commander";
+import { isRecord } from "../../core/utils.js";
 import { type ContributionLog, contributionLogSchema } from "../../tracking/index.js";
 
 import { formatInteger, getGlobalOptions, parseInteger } from "../helpers.js";
@@ -262,10 +263,6 @@ function sortValue(entry: LeaderboardEntry, field: SortField): number {
     return entry.totalTokensDonated;
   }
   return entry.totalPRsCreated;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
 }
 
 function isFileNotFoundError(error: unknown): boolean {

@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { truncate } from "../../core/utils.js";
 import type { Task, TaskComplexity, TaskSource } from "../../core/index.js";
 import type { ScanOptions, Scanner } from "../types.js";
 
@@ -368,13 +369,7 @@ function readAuthor(user: unknown): string {
   return login;
 }
 
-function truncate(value: string, maxLength: number): string {
-  if (value.length <= maxLength) {
-    return value;
-  }
 
-  return `${value.slice(0, maxLength - 1)}…`;
-}
 
 function toIssueResponse(value: unknown): GitHubIssueResponse {
   if (value && typeof value === "object") {

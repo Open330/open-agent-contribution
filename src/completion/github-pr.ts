@@ -142,7 +142,7 @@ async function resolveDiffStats(
         linesAdded: summary.insertions,
         linesRemoved: summary.deletions,
       };
-    } catch {}
+    } catch {} // best-effort: diff stats are optional
   }
 
   return {

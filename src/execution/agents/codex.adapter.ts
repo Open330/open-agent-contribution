@@ -40,7 +40,7 @@ function parseJsonPayload(line: string): Record<string, unknown> | undefined {
     if (isRecord(parsed)) {
       return parsed;
     }
-  } catch {}
+  } catch {} // best-effort: agent output may not be valid JSON
 
   return undefined;
 }

@@ -2,6 +2,7 @@ import { basename } from "node:path";
 
 import { type SimpleGit, simpleGit } from "simple-git";
 import type { OacConfig } from "../core/index.js";
+import { truncate } from "../core/utils.js";
 
 const DEFAULT_MAX_DIFF_LINES = 500;
 const DEFAULT_FORBIDDEN_PATTERNS: RegExp[] = [
@@ -188,9 +189,4 @@ function globToRegex(glob: string): RegExp {
   return new RegExp(`^${escaped}$`);
 }
 
-function truncate(value: string, maxLength: number): string {
-  if (value.length <= maxLength) {
-    return value;
-  }
-  return `${value.slice(0, maxLength - 3)}...`;
-}
+

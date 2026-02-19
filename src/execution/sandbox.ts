@@ -17,6 +17,7 @@ export interface SandboxContext {
 let worktreeLock = Promise.resolve();
 
 function withWorktreeLock<T>(fn: () => Promise<T>): Promise<T> {
+  // intentional: swallow prior rejection to serialize worktree access
   const next = worktreeLock.catch(() => {}).then(fn);
   worktreeLock = next.then(
     () => {},

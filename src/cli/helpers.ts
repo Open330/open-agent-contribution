@@ -61,13 +61,7 @@ export function formatInteger(value: number): string {
   return new Intl.NumberFormat("en-US").format(value);
 }
 
-export function truncate(value: string, maxLength: number): string {
-  if (value.length <= maxLength) {
-    return value;
-  }
-
-  return `${value.slice(0, Math.max(0, maxLength - 3))}...`;
-}
+export { truncate } from "../core/utils.js";
 
 // ── Config helpers ──────────────────────────────────────────
 

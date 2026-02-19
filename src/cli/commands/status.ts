@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 
 import { Command } from "commander";
 
+import { isRecord } from "../../core/utils.js";
 import { getGlobalOptions } from "../helpers.js";
 
 interface StatusCommandOptions {
@@ -223,10 +224,6 @@ function formatTaskList(tasks: RunStatusTask[]): string {
   }
 
   return tasks.map((task) => `${task.taskId} (${task.title})`).join(", ");
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
 }
 
 function isFileNotFoundError(error: unknown): boolean {

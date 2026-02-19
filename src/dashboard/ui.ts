@@ -542,21 +542,21 @@ export function renderDashboardHtml(port: number): string {
           const data = JSON.parse(e.data);
           updateStage(data.stage);
           addEventLine(log, "stage", data.message || data.stage);
-        } catch {}
+        } catch {} // best-effort: SSE event data may be malformed
       });
 
       es.addEventListener("run:progress", (e) => {
         try {
           const data = JSON.parse(e.data);
           updateProgress(data.progress);
-        } catch {}
+        } catch {} // best-effort: SSE event data may be malformed
       });
 
       es.addEventListener("run:task-start", (e) => {
         try {
           const data = JSON.parse(e.data);
           addEventLine(log, "task", "Starting: " + data.title);
-        } catch {}
+        } catch {} // best-effort: SSE event data may be malformed
       });
 
       es.addEventListener("run:task-done", (e) => {
@@ -567,7 +567,7 @@ export function renderDashboardHtml(port: number): string {
           if (data.prUrl) msg += " - PR: " + data.prUrl;
           addEventLine(log, "task", msg);
           addTaskResult(data);
-        } catch {}
+        } catch {} // best-effort: SSE event data may be malformed
       });
 
       es.addEventListener("run:completed", (e) => {
@@ -575,7 +575,7 @@ export function renderDashboardHtml(port: number): string {
           addEventLine(log, "completed", "Run finished successfully");
           updateStage("completed");
           onRunCompleted(false);
-        } catch {}
+        } catch {} // best-effort: SSE event data may be malformed
       });
 
       es.addEventListener("run:error", (e) => {
@@ -583,7 +583,7 @@ export function renderDashboardHtml(port: number): string {
           const data = JSON.parse(e.data);
           addEventLine(log, "error", data.error);
           onRunError(data.error);
-        } catch {}
+        } catch {} // best-effort: SSE event data may be malformed
       });
 
       es.onerror = () => {
