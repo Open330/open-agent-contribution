@@ -12,8 +12,7 @@ import {
 } from "../../../discovery/index.js";
 import {
   type AgentProvider,
-  ClaudeCodeAdapter,
-  CodexAdapter,
+  adapterRegistry,
   createSandbox,
   executeTask as workerExecuteTask,
 } from "../../../execution/index.js";
@@ -462,18 +461,13 @@ async function commitSandboxChanges(
 export async function resolveAdapter(
   providerId: string,
 ): Promise<{ adapter: AgentProvider }> {
-  // Normalize legacy ID
-  const normalizedId = providerId === "codex-cli" ? "codex" : providerId;
+  const normalizedId = adapterRegistry.resolveId(providerId);
+  const factory = adapterRegistry.get(providerId);
 
-  const adapters: Record<string, () => AgentProvider> = {
-    codex: () => new CodexAdapter(),
-    "claude-code": () => new ClaudeCodeAdapter(),
-  };
-
-  const factory = adapters[normalizedId];
   if (!factory) {
+    const supported = adapterRegistry.registeredIds().join(", ");
     throw new Error(
-      `Unknown provider "${providerId}". Supported providers: codex, claude-code.\n` +
+      `Unknown provider "${providerId}". Supported providers: ${supported}.\n` +
         `Run \`oac doctor\` to check your environment setup.`,
     );
   }
@@ -482,7 +476,7 @@ export async function resolveAdapter(
   const availability = await adapter.checkAvailability();
   if (!availability.available) {
     throw new Error(
-      `Agent CLI "${normalizedId}" is not available: ${availability.reason ?? "unknown reason"}.\n` +
+      `Agent CLI "${normalizedId}" is not available: ${availability.error ?? "unknown reason"}.\n` +
         `Install the ${normalizedId} CLI or switch providers.\n` +
         `Run \`oac doctor\` for setup instructions.`,
     );

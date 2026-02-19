@@ -71,15 +71,15 @@ export function createExplainCommand(): Command {
         console.log(`  ${ui.blue("Scope:")}     ${epic.scope}`);
         console.log(`  ${ui.blue("Priority:")}  ${epic.priority}`);
         console.log(`  ${ui.blue("Status:")}    ${epic.status}`);
-        console.log(`  ${ui.blue("Tasks:")}     ${epic.taskIds.length}`);
+        console.log(`  ${ui.blue("Tasks:")}     ${epic.subtasks.length}`);
         console.log("");
         console.log(ui.dim("Description:"));
         console.log(`  ${epic.description}`);
-        if (epic.taskIds.length > 0) {
+        if (epic.subtasks.length > 0) {
           console.log("");
           console.log(ui.dim("Task IDs:"));
-          for (const taskId of epic.taskIds) {
-            console.log(`  - ${taskId}`);
+          for (const subtask of epic.subtasks) {
+            console.log(`  - ${subtask.id}`);
           }
         }
       }

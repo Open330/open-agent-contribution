@@ -6,7 +6,7 @@ import { checkbox, confirm, input } from "@inquirer/prompts";
 import type { ChalkInstance } from "chalk";
 import { Command } from "commander";
 
-import { createUi, getGlobalOptions } from "../helpers.js";
+import { type GlobalCliOptions, createUi, getGlobalOptions } from "../helpers.js";
 
 type ProviderId = "claude-code" | "codex" | "opencode";
 
@@ -137,7 +137,7 @@ async function runInteractiveInit(
     choices: [
       { name: "Claude Code", value: "claude-code", checked: true },
       { name: "Codex CLI", value: "codex" },
-      { name: "OpenCode (coming soon)", value: "opencode", disabled: true },
+      { name: "OpenCode", value: "opencode" },
     ],
     validate: (value) => (value.length > 0 ? true : "Select at least one provider to continue."),
   });

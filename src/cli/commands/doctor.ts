@@ -113,6 +113,17 @@ async function runDoctorChecks(): Promise<DoctorCheck[]> {
     message: codexResult.ok ? undefined : explainCommandFailure("codex", codexResult),
   });
 
+  const opencodeResult = await runCommand("opencode", ["--version"]);
+  const opencodeVersion = extractVersion(opencodeResult.stdout) ?? "--";
+  checks.push({
+    id: "opencode",
+    name: "OpenCode CLI",
+    requirement: "installed",
+    value: opencodeVersion,
+    status: opencodeResult.ok ? "pass" : "fail",
+    message: opencodeResult.ok ? undefined : explainCommandFailure("opencode", opencodeResult),
+  });
+
   return checks;
 }
 
@@ -249,7 +260,7 @@ async function runCommand(command: string, args: string[]): Promise<CommandResul
     });
     return {
       ok: result.exitCode === 0,
-      exitCode: result.exitCode,
+      exitCode: result.exitCode ?? null,
       stdout: result.stdout,
       stderr: result.stderr,
     };
