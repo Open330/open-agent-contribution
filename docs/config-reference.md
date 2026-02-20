@@ -1,7 +1,7 @@
 # OAC Configuration Reference
 
 > Auto-generated from the Zod schema in `src/core/config.ts`.
-> Version: **2026.4.3**
+> Version: **2026.2.5**
 
 OAC is configured via an `oac.config.ts` (or `.js` / `.json`) file at the project root. Use `defineConfig()` for type-safe authoring:
 

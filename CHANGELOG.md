@@ -8,7 +8,38 @@ _No unreleased changes._
 
 ---
 
-## [2026.4.3] — 2026-02-18
+## [2026.2.5] — 2026-02-20
+
+> **Note**: Versions `2026.3.x` and `2026.4.x` were published with an incorrect CalVer month.
+> This release corrects the version to `2026.2.5` (year=2026, month=February, patch=5th iteration).
+
+### Config Loader Fix (`fb57557`)
+- **fix**: Config loader now matches `@open330/oac` import (previously only matched `@open330/oac-core`)
+
+### OpenCode Provider Integration (`afdf725`)
+- **feat**: OpenCode adapter (`src/execution/agents/opencode.adapter.ts`)
+- **feat**: Adapter registry replacing hard-coded switch (`src/execution/agents/registry.ts`)
+- **fix**: 7 pre-existing typecheck errors resolved (`doctor.ts`, `explain.ts`, `init.ts`, `task.ts`)
+
+### Security & Quality Fixes (`55780e4`)
+- **security**: Fixed shell injection in dashboard browser opener (replaced `exec` with `open` library)
+- **security**: Sanitized branch names in `sandbox.ts` against path traversal
+- **security**: Replaced `sh -c` shell redirect with `execa` piping in `github-auth.ts`
+- **security**: Added `AbortSignal.timeout` to all GitHub API `fetch` calls
+- **security**: SHA-pinned all CI/CD workflow actions
+- **refactor**: Consolidated `truncate()` and `isRecord()` into `core/utils.ts`
+- **refactor**: Unified error normalization into shared `normalizeError` module
+- **refactor**: Extracted `AsyncEventQueue` into shared module for agent adapters
+- **refactor**: Created scanner factory to eliminate construction duplication
+- **chore**: Annotated all 10 empty catch blocks with `// best-effort` comments
+- **ci**: Added `pnpm audit --prod` to CI pipeline
+
+### Deploy Readiness (`91898c8`)
+- **chore**: Added `LICENSE`, `CHANGELOG.md`, `docs/` to npm `files` array
+- **chore**: Added `prepublishOnly` script (`pnpm build && pnpm test`)
+- **chore**: Restored CI/CD workflows (SHA-pinned actions)
+- **chore**: Lowered Node.js requirement from `>=24` to `>=20`
+- **chore**: Fixed repository URL in `package.json`
 
 ### Wave 9 — Final P3/T3 Polish (`f8ff2ae`)
 - **feat**: `oac init --minimal` for quick, non-interactive setup
@@ -27,7 +58,7 @@ _No unreleased changes._
 
 ---
 
-## [2026.4.2] — 2026-02-18
+## [2026.4.3] — 2026-02-18 _(deprecated — wrong CalVer month)_
 
 ### Wave 7 — Quick Wins Bundle (`7c179a0`)
 - **feat**: `oac r` alias for `oac run` (power-user shortcut)
