@@ -5,9 +5,9 @@ import { pathToFileURL } from "node:url";
 
 import { type OacConfig, loadConfig } from "../core/index.js";
 
-const LEGACY_DEFINE_CONFIG_IMPORT = /@(?:open330\/oac-core|oac\/core)/;
-const LEGACY_DEFINE_CONFIG_IMPORT_LINE =
-  /^\s*import\s*\{\s*defineConfig\s*\}\s*from\s*["']@(?:open330\/oac-core|oac\/core)["'];\s*$/m;
+const DEFINE_CONFIG_IMPORT = /@(?:open330\/oac(?:-core)?|oac\/core)/;
+const DEFINE_CONFIG_IMPORT_LINE =
+  /^\s*import\s*\{\s*defineConfig\s*\}\s*from\s*["']@(?:open330\/oac(?:-core)?|oac\/core)["'];\s*$/m;
 const LEGACY_DEFINE_CONFIG_EXPORT = /export\s+default\s+defineConfig\s*\(/;
 
 export interface ConfigLoaderOptions {
@@ -71,11 +71,11 @@ function shouldTryLegacyDefineConfigFallback(error: unknown): boolean {
     return false;
   }
 
-  return LEGACY_DEFINE_CONFIG_IMPORT.test(error.message);
+  return DEFINE_CONFIG_IMPORT.test(error.message);
 }
 
 function transformLegacyDefineConfigSource(source: string): string | null {
-  if (!LEGACY_DEFINE_CONFIG_IMPORT_LINE.test(source)) {
+  if (!DEFINE_CONFIG_IMPORT_LINE.test(source)) {
     return null;
   }
 
@@ -84,7 +84,7 @@ function transformLegacyDefineConfigSource(source: string): string | null {
   }
 
   return source
-    .replace(LEGACY_DEFINE_CONFIG_IMPORT_LINE, "")
+    .replace(DEFINE_CONFIG_IMPORT_LINE, "")
     .replace(LEGACY_DEFINE_CONFIG_EXPORT, "export default (");
 }
 
