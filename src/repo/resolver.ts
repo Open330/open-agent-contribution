@@ -89,6 +89,7 @@ export async function resolveRepo(input: string): Promise<ResolvedRepo> {
     git: {
       headSha,
       remoteUrl: repoData.clone_url ?? `https://github.com/${repoData.full_name}.git`,
+      sshUrl: repoData.ssh_url ?? `git@github.com:${repoData.full_name}.git`,
       isShallowClone: true,
     },
   };

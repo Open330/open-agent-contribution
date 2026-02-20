@@ -21,6 +21,7 @@ export interface ResolvedRepoMeta {
 export interface ResolvedRepoGitState {
   headSha: string;
   remoteUrl: string;
+  sshUrl?: string;
   isShallowClone: boolean;
 }
 

@@ -7,12 +7,13 @@ const fsMockState = vi.hoisted(() => ({
   mkdir: vi.fn(),
 }));
 
-const gitMockState = vi.hoisted(() => ({
-  simpleGit: vi.fn(),
-  rootGit: {
+const gitMockState = vi.hoisted(() => {
+  const makeEnv = (git: Record<string, unknown>) => vi.fn().mockReturnValue(git);
+  const rootGit: Record<string, unknown> = {
     clone: vi.fn(),
-  },
-  repoGit: {
+  };
+  rootGit.env = makeEnv(rootGit);
+  const repoGit: Record<string, unknown> = {
     fetch: vi.fn(),
     checkout: vi.fn(),
     pull: vi.fn(),
@@ -21,8 +22,10 @@ const gitMockState = vi.hoisted(() => ({
     addRemote: vi.fn(),
     remote: vi.fn(),
     revparse: vi.fn(),
-  },
-}));
+  };
+  repoGit.env = makeEnv(repoGit);
+  return { simpleGit: vi.fn(), rootGit, repoGit };
+});
 
 vi.mock("node:fs/promises", () => ({
   access: vi.fn(async (path: string) => {
@@ -36,9 +39,11 @@ vi.mock("node:fs/promises", () => ({
 }));
 
 vi.mock("simple-git", () => ({
-  simpleGit: vi.fn((path?: string) => {
-    gitMockState.simpleGit(path);
-    return path ? gitMockState.repoGit : gitMockState.rootGit;
+  simpleGit: vi.fn((pathOrOpts?: string | Record<string, unknown>) => {
+    gitMockState.simpleGit(pathOrOpts);
+    const baseDir =
+      typeof pathOrOpts === "string" ? pathOrOpts : (pathOrOpts as Record<string, unknown>)?.baseDir;
+    return baseDir ? gitMockState.repoGit : gitMockState.rootGit;
   }),
 }));
 
@@ -80,6 +85,10 @@ function makeResolvedRepo(overrides: Partial<ResolvedRepo> = {}): ResolvedRepo {
 beforeEach(() => {
   vi.clearAllMocks();
   fsMockState.existingPaths.clear();
+
+  // Re-establish .env() chainable mock (vi.restoreAllMocks clears mockReturnValue)
+  (gitMockState.rootGit.env as ReturnType<typeof vi.fn>).mockReturnValue(gitMockState.rootGit);
+  (gitMockState.repoGit.env as ReturnType<typeof vi.fn>).mockReturnValue(gitMockState.repoGit);
 
   gitMockState.rootGit.clone.mockResolvedValue(undefined);
 

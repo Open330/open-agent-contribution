@@ -60,6 +60,7 @@ function makeRepoData(overrides: Record<string, unknown> = {}): Record<string, u
     private: false,
     permissions: { pull: true, push: false, admin: false },
     clone_url: "https://github.com/owner/repo.git",
+    ssh_url: "git@github.com:owner/repo.git",
     ...overrides,
   };
 }
@@ -92,6 +93,7 @@ function makeResolvedRepo(fullName = "cached/repo"): ResolvedRepo {
     git: {
       headSha: "abc123def456",
       remoteUrl: `https://github.com/${fullName}.git`,
+      sshUrl: `git@github.com:${fullName}.git`,
       isShallowClone: true,
     },
   };
