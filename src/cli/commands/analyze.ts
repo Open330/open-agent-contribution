@@ -31,9 +31,7 @@ export function createAnalyzeCommand(): Command {
   const command = new Command("analyze");
 
   command
-    .description(
-      "Deep codebase analysis — build module graph and group findings into epics",
-    )
+    .description("Deep codebase analysis — build module graph and group findings into epics")
     .option("--repo <owner/repo>", "Target repository (owner/repo or GitHub URL)")
     .option("--force", "Force re-analysis even if context is fresh", false)
     .option("--format <format>", "Output format: table|json", "table")

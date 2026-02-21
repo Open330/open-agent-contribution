@@ -42,7 +42,9 @@ vi.mock("simple-git", () => ({
   simpleGit: vi.fn((pathOrOpts?: string | Record<string, unknown>) => {
     gitMockState.simpleGit(pathOrOpts);
     const baseDir =
-      typeof pathOrOpts === "string" ? pathOrOpts : (pathOrOpts as Record<string, unknown>)?.baseDir;
+      typeof pathOrOpts === "string"
+        ? pathOrOpts
+        : (pathOrOpts as Record<string, unknown>)?.baseDir;
     return baseDir ? gitMockState.repoGit : gitMockState.rootGit;
   }),
 }));

@@ -449,7 +449,9 @@ describe("CompletionHandler", () => {
 
     expect(result.prUrl).toBe("https://github.com/o/r/pull/1");
     // pulls.list should not be called when there is no linked issue
-    expect((octokitMock as unknown as { pulls: { list: ReturnType<typeof vi.fn> } }).pulls.list).not.toHaveBeenCalled();
+    expect(
+      (octokitMock as unknown as { pulls: { list: ReturnType<typeof vi.fn> } }).pulls.list,
+    ).not.toHaveBeenCalled();
   });
 
   it("does not block PR creation when the guard throws", async () => {

@@ -82,7 +82,8 @@ async function runMinimalInit(
   const trackingDirectory = resolve(process.cwd(), ".oac");
 
   if (await pathExists(configPath)) {
-    const message = "oac.config.ts already exists. Remove it first or run `oac init` without --minimal.";
+    const message =
+      "oac.config.ts already exists. Remove it first or run `oac init` without --minimal.";
     if (globalOptions.json) {
       console.log(JSON.stringify({ cancelled: true, reason: message }, null, 2));
     } else {

@@ -1,10 +1,6 @@
 import { Command } from "commander";
 import { UNLIMITED_BUDGET } from "../../../core/index.js";
-import {
-  createUi,
-  getGlobalOptions,
-  parseInteger,
-} from "../../helpers.js";
+import { createUi, getGlobalOptions, parseInteger } from "../../helpers.js";
 import { runPipeline, validateRunOptions } from "./pipeline.js";
 import type { RunCommandOptions } from "./types.js";
 
@@ -20,9 +16,7 @@ export function createRunCommand(): Command {
 
   command
     .alias("r")
-    .description(
-      "Run the full OAC pipeline — analyze, plan, and execute in one command",
-    )
+    .description("Run the full OAC pipeline — analyze, plan, and execute in one command")
     .option("--repo <owner/repo>", "Target repository (owner/repo or GitHub URL)")
     .option("--tokens <value>", 'Token budget (number or "unlimited")', parseTokens)
     .option("--provider <id>", "Agent provider id")
@@ -65,4 +59,3 @@ Exit Codes:
 
   return command;
 }
-

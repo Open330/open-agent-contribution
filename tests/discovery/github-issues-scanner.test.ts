@@ -343,9 +343,7 @@ describe("GitHubIssuesScanner", () => {
       makeIssue({ number: 2, title: "Bug B" }),
       makeIssue({ number: 3, title: "Bug C" }),
     ];
-    const pulls = [
-      makePR({ number: 100, title: "[OAC] Bug A", body: "Fixes #1\n\n---" }),
-    ];
+    const pulls = [makePR({ number: 100, title: "[OAC] Bug A", body: "Fixes #1\n\n---" })];
     mockFetchByUrl(issues, pulls);
     const scanner = new GitHubIssuesScanner();
 
@@ -384,9 +382,7 @@ describe("GitHubIssuesScanner", () => {
 
   it("ignores non-OAC PRs when checking for duplicates", async () => {
     const issues = [makeIssue({ number: 10, title: "Bug 10" })];
-    const pulls = [
-      { number: 50, title: "Regular PR", body: "Fixes #10" },
-    ];
+    const pulls = [{ number: 50, title: "Regular PR", body: "Fixes #10" }];
     mockFetchByUrl(issues, pulls);
     const scanner = new GitHubIssuesScanner();
 

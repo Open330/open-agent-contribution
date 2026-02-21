@@ -194,8 +194,9 @@ export async function estimateTokens(
 
   const fileQueue = new PQueue({ concurrency: 50 });
   const fileResults = await Promise.all(
-    uniqueTargetFiles.map((targetFile) =>
-      fileQueue.add(() => readContextFile(targetFile, counter)) as Promise<ContextFileResult>,
+    uniqueTargetFiles.map(
+      (targetFile) =>
+        fileQueue.add(() => readContextFile(targetFile, counter)) as Promise<ContextFileResult>,
     ),
   );
 
@@ -280,8 +281,8 @@ export async function estimateEpicTokens(epic: Epic, provider: AgentProviderId):
 
   const epicQueue = new PQueue({ concurrency: 10 });
   const subtaskEstimates = await Promise.all(
-    epic.subtasks.map((task) =>
-      epicQueue.add(() => estimateTokens(task, provider)) as Promise<TokenEstimate>,
+    epic.subtasks.map(
+      (task) => epicQueue.add(() => estimateTokens(task, provider)) as Promise<TokenEstimate>,
     ),
   );
 

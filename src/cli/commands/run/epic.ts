@@ -1,10 +1,7 @@
 import type { ChalkInstance } from "chalk";
 import Table from "cli-table3";
 import PQueue from "p-queue";
-import {
-  buildEpicExecutionPlan,
-  estimateEpicTokens,
-} from "../../../budget/index.js";
+import { buildEpicExecutionPlan, estimateEpicTokens } from "../../../budget/index.js";
 import type { Epic, OacConfig, TokenEstimate } from "../../../core/index.js";
 import {
   analyzeCodebase,
@@ -112,8 +109,6 @@ function makeStubEstimate(taskId: string, providerId: string, tokens: number): T
   };
 }
 
-
-
 async function executeEpicEntry(
   entry: { epic: Epic; estimatedTokens: number },
   params: {
@@ -220,46 +215,44 @@ export async function runEpicPipeline(
 
   let epicCompletedCount = 0;
   const epicTotal = epicPlan.selectedEpics.length;
-  const executionSpinner = createSpinner(
-    ctx.suppressOutput,
-    `Executing ${epicTotal} epic(s)...`,
-  );
+  const executionSpinner = createSpinner(ctx.suppressOutput, `Executing ${epicTotal} epic(s)...`);
 
   const epicQueue = new PQueue({ concurrency });
   const allTaskResults = await Promise.all(
-    epicPlan.selectedEpics.map((entry) =>
-      epicQueue.add(async (): Promise<TaskRunResult> => {
-        if (!ctx.suppressOutput) {
-          console.log(
-            ctx.ui.blue(
-              `\n[oac] Executing epic: ${entry.epic.title} (${entry.epic.subtasks.length} subtasks)`,
-            ),
-          );
-        }
+    epicPlan.selectedEpics.map(
+      (entry) =>
+        epicQueue.add(async (): Promise<TaskRunResult> => {
+          if (!ctx.suppressOutput) {
+            console.log(
+              ctx.ui.blue(
+                `\n[oac] Executing epic: ${entry.epic.title} (${entry.epic.subtasks.length} subtasks)`,
+              ),
+            );
+          }
 
-        const result = await executeEpicEntry(entry, {
-          adapter,
-          resolvedRepo,
-          providerId,
-          timeoutSeconds,
-          mode,
-          ghToken,
-        });
+          const result = await executeEpicEntry(entry, {
+            adapter,
+            resolvedRepo,
+            providerId,
+            timeoutSeconds,
+            mode,
+            ghToken,
+          });
 
-        epicCompletedCount += 1;
-        if (executionSpinner) {
-          const pct = Math.round((epicCompletedCount / epicTotal) * 100);
-          executionSpinner.text = `Executing epics... (${epicCompletedCount}/${epicTotal} — ${pct}%)`;
-        }
+          epicCompletedCount += 1;
+          if (executionSpinner) {
+            const pct = Math.round((epicCompletedCount / epicTotal) * 100);
+            executionSpinner.text = `Executing epics... (${epicCompletedCount}/${epicTotal} — ${pct}%)`;
+          }
 
-        if (!ctx.suppressOutput) {
-          const icon = result.execution.success ? ctx.ui.green("[OK]") : ctx.ui.red("[X]");
-          console.log(`${icon} ${entry.epic.title}`);
-          if (result.pr) console.log(`    PR #${result.pr.number}: ${result.pr.url}`);
-        }
+          if (!ctx.suppressOutput) {
+            const icon = result.execution.success ? ctx.ui.green("[OK]") : ctx.ui.red("[X]");
+            console.log(`${icon} ${entry.epic.title}`);
+            if (result.pr) console.log(`    PR #${result.pr.number}: ${result.pr.url}`);
+          }
 
-        return result;
-      }) as Promise<TaskRunResult>,
+          return result;
+        }) as Promise<TaskRunResult>,
     ),
   );
   executionSpinner?.succeed("Epic execution finished");

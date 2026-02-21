@@ -188,5 +188,3 @@ function globToRegex(glob: string): RegExp {
   const escaped = glob.replaceAll(/[-/\\^$+?.()|[\]{}]/g, "\\$&").replaceAll("*", ".*");
   return new RegExp(`^${escaped}$`);
 }
-
-

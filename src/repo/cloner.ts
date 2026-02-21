@@ -60,10 +60,7 @@ async function cloneNewRepository(repo: ResolvedRepo, localPath: string): Promis
       );
     } catch (sshError) {
       throw new Error(
-        `Failed to clone "${repo.fullName}" via both HTTPS and SSH.\n` +
-          "Ensure git credentials are configured: run `gh auth login` or set up SSH keys.\n" +
-          `HTTPS error: ${httpsError instanceof Error ? httpsError.message : httpsError}\n` +
-          `SSH error: ${sshError instanceof Error ? sshError.message : sshError}`,
+        `Failed to clone "${repo.fullName}" via both HTTPS and SSH.\nEnsure git credentials are configured: run \`gh auth login\` or set up SSH keys.\nHTTPS error: ${httpsError instanceof Error ? httpsError.message : httpsError}\nSSH error: ${sshError instanceof Error ? sshError.message : sshError}`,
         { cause: sshError },
       );
     }

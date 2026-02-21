@@ -344,8 +344,7 @@ async function codexNpxFallback(): Promise<AgentAvailability> {
   }
   return {
     available: false,
-    error:
-      "Codex CLI is not available. Install via: npm install -g @openai/codex",
+    error: "Codex CLI is not available. Install via: npm install -g @openai/codex",
   };
 }
 

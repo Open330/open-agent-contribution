@@ -1,8 +1,8 @@
 import { readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
 
-import type { Task } from "../../../core/index.js";
 import { buildExecutionPlan } from "../../../budget/index.js";
+import type { Task } from "../../../core/index.js";
 import type { resolveRepo } from "../../../repo/index.js";
 import {
   type ContributionLog,
@@ -35,9 +35,7 @@ async function readMostRecentContributionLog(
       const content = await readFile(resolve(contributionsPath, fileName), "utf8");
       const parsed = contributionLogSchema.safeParse(JSON.parse(content));
       if (parsed.success) return parsed.data;
-    } catch {
-      continue;
-    }
+    } catch {}
   }
 
   return undefined;
@@ -79,7 +77,9 @@ export async function runRetryPipeline(
   if (!log) {
     retrySpinner?.fail("No contribution logs found in .oac/contributions/");
     if (!ctx.suppressOutput) {
-      console.log(ctx.ui.yellow("[oac] Run the pipeline at least once before using --retry-failed."));
+      console.log(
+        ctx.ui.yellow("[oac] Run the pipeline at least once before using --retry-failed."),
+      );
     }
     return [];
   }
@@ -141,4 +141,3 @@ export async function runRetryPipeline(
 
   return completedTasks;
 }
-

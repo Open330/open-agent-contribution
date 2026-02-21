@@ -57,4 +57,3 @@ function instantiateScanner(name: ScannerName): Scanner {
       return new GitHubIssuesScanner();
   }
 }
-

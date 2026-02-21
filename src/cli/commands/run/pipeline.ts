@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import type { OacConfig } from "../../../core/index.js";
 import { cloneRepo, resolveRepo } from "../../../repo/index.js";
+import { checkGitHubScopes, ensureGitHubAuth } from "../../github-auth.js";
 import {
   type GlobalCliOptions,
   createSpinner,
@@ -10,8 +11,7 @@ import {
   resolveProviderId,
   resolveRepoInput,
 } from "../../helpers.js";
-import { checkGitHubScopes, ensureGitHubAuth } from "../../github-auth.js";
-import { tryLoadOrAnalyzeEpics, runEpicPipeline } from "./epic.js";
+import { runEpicPipeline, tryLoadOrAnalyzeEpics } from "./epic.js";
 import { runRetryPipeline } from "./retry.js";
 import {
   discoverTasks,
@@ -153,7 +153,6 @@ export async function runPipeline(
 
   process.exitCode = resolveExitCode(completedTasks);
 }
-
 
 function printGitHubAuthWarnings(ctx: PipelineContext, ghToken: string | undefined): void {
   if (ctx.suppressOutput) return;

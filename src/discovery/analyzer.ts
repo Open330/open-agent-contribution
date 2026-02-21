@@ -1,8 +1,8 @@
 import type { Dirent } from "node:fs";
 import { createReadStream } from "node:fs";
 import { mkdir, readFile, readdir, rename, stat, unlink, writeFile } from "node:fs/promises";
-import { createInterface } from "node:readline";
 import { dirname, extname, join, relative, resolve } from "node:path";
+import { createInterface } from "node:readline";
 
 import PQueue from "p-queue";
 

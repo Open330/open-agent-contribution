@@ -1,15 +1,11 @@
 import type { ChalkInstance } from "chalk";
-import type { OacConfig, Task, TokenEstimate } from "../../../core/index.js";
-import { createEventBus } from "../../../core/index.js";
 import Table from "cli-table3";
 import { execa } from "execa";
 import PQueue from "p-queue";
 import { buildExecutionPlan } from "../../../budget/index.js";
-import {
-  type ScannerName,
-  buildScanners,
-  rankTasks,
-} from "../../../discovery/index.js";
+import type { OacConfig, Task, TokenEstimate } from "../../../core/index.js";
+import { createEventBus } from "../../../core/index.js";
+import { type ScannerName, buildScanners, rankTasks } from "../../../discovery/index.js";
 import {
   type AgentProvider,
   adapterRegistry,
@@ -151,10 +147,7 @@ export function printDryRunSummary(
   }
 }
 
-function renderDryRunDiff(
-  ui: ChalkInstance,
-  plan: ReturnType<typeof buildExecutionPlan>,
-): void {
+function renderDryRunDiff(ui: ChalkInstance, plan: ReturnType<typeof buildExecutionPlan>): void {
   if (plan.selectedTasks.length === 0) return;
 
   console.log(ui.bold("Planned changes:"));
@@ -171,7 +164,9 @@ function renderDryRunDiff(
           : ui.red;
 
     console.log(`${ui.green("+")} ${ui.bold(task.title)}`);
-    console.log(`  ${ui.dim(`source: ${sourceLabel}  complexity: `)}${complexityColor(task.complexity)}`);
+    console.log(
+      `  ${ui.dim(`source: ${sourceLabel}  complexity: `)}${complexityColor(task.complexity)}`,
+    );
 
     if (task.targetFiles.length > 0) {
       for (const file of task.targetFiles.slice(0, 5)) {
@@ -183,9 +178,8 @@ function renderDryRunDiff(
     }
 
     if (task.description) {
-      const preview = task.description.length > 120
-        ? `${task.description.slice(0, 117)}...`
-        : task.description;
+      const preview =
+        task.description.length > 120 ? `${task.description.slice(0, 117)}...` : task.description;
       console.log(`  ${ui.dim(preview)}`);
     }
     console.log("");
@@ -222,27 +216,28 @@ export async function executePlan(
 
   const taskQueue = new PQueue({ concurrency });
   const executedTasks = await Promise.all(
-    plan.selectedTasks.map((entry) =>
-      taskQueue.add(async (): Promise<TaskRunResult> => {
-        const result = await executeWithAgent({
-          task: entry.task,
-          estimate: entry.estimate,
-          adapter,
-          repoPath: resolvedRepo.localPath,
-          baseBranch: resolvedRepo.meta.defaultBranch,
-          timeoutSeconds,
-        });
-        const { execution, sandbox } = result;
+    plan.selectedTasks.map(
+      (entry) =>
+        taskQueue.add(async (): Promise<TaskRunResult> => {
+          const result = await executeWithAgent({
+            task: entry.task,
+            estimate: entry.estimate,
+            adapter,
+            repoPath: resolvedRepo.localPath,
+            baseBranch: resolvedRepo.meta.defaultBranch,
+            timeoutSeconds,
+          });
+          const { execution, sandbox } = result;
 
-        completedCount += 1;
-        if (executionSpinner) {
-          const total = plan.selectedTasks.length;
-          const pct = Math.round((completedCount / total) * 100);
-          executionSpinner.text = `Executing tasks... (${completedCount}/${total} — ${pct}%)`;
-        }
+          completedCount += 1;
+          if (executionSpinner) {
+            const total = plan.selectedTasks.length;
+            const pct = Math.round((completedCount / total) * 100);
+            executionSpinner.text = `Executing tasks... (${completedCount}/${total} — ${pct}%)`;
+          }
 
-        return { task: entry.task, estimate: entry.estimate, execution, sandbox };
-      }) as Promise<TaskRunResult>,
+          return { task: entry.task, estimate: entry.estimate, execution, sandbox };
+        }) as Promise<TaskRunResult>,
     ),
   );
 
@@ -251,28 +246,28 @@ export async function executePlan(
   const completionSpinner = createSpinner(ctx.suppressOutput, "Completing task outputs...");
   const completionQueue = new PQueue({ concurrency });
   const completedTasks = await Promise.all(
-    executedTasks.map((result) =>
-      completionQueue.add(async (): Promise<TaskRunResult> => {
-        if (mode === "direct-commit" || !result.execution.success) return result;
+    executedTasks.map(
+      (result) =>
+        completionQueue.add(async (): Promise<TaskRunResult> => {
+          if (mode === "direct-commit" || !result.execution.success) return result;
 
-        const pr = await createPullRequest({
-          task: result.task,
-          execution: result.execution,
-          sandbox: result.sandbox,
-          repoFullName: resolvedRepo.fullName,
-          baseBranch: resolvedRepo.meta.defaultBranch,
-          ghToken,
-        });
+          const pr = await createPullRequest({
+            task: result.task,
+            execution: result.execution,
+            sandbox: result.sandbox,
+            repoFullName: resolvedRepo.fullName,
+            baseBranch: resolvedRepo.meta.defaultBranch,
+            ghToken,
+          });
 
-        return pr ? { ...result, pr } : result;
-      }) as Promise<TaskRunResult>,
+          return pr ? { ...result, pr } : result;
+        }) as Promise<TaskRunResult>,
     ),
   );
   completionSpinner?.succeed("Completion stage finished");
 
   return completedTasks;
 }
-
 
 export function printFinalSummary(
   ctx: PipelineContext,
@@ -340,10 +335,7 @@ export function printFinalSummary(
   }
 }
 
-export function selectScannersFromConfig(
-  config: OacConfig | null,
-  hasGitHubAuth: boolean,
-) {
+export function selectScannersFromConfig(config: OacConfig | null, hasGitHubAuth: boolean) {
   const { names, composite } = buildScanners(config, hasGitHubAuth);
   return { enabled: names, scanner: composite };
 }
@@ -459,17 +451,14 @@ async function commitSandboxChanges(
   }
 }
 
-export async function resolveAdapter(
-  providerId: string,
-): Promise<{ adapter: AgentProvider }> {
+export async function resolveAdapter(providerId: string): Promise<{ adapter: AgentProvider }> {
   const normalizedId = adapterRegistry.resolveId(providerId);
   const factory = adapterRegistry.get(providerId);
 
   if (!factory) {
     const supported = adapterRegistry.registeredIds().join(", ");
     throw new Error(
-      `Unknown provider "${providerId}". Supported providers: ${supported}.\n` +
-        `Run \`oac doctor\` to check your environment setup.`,
+      `Unknown provider "${providerId}". Supported providers: ${supported}.\nRun \`oac doctor\` to check your environment setup.`,
     );
   }
 
@@ -477,9 +466,7 @@ export async function resolveAdapter(
   const availability = await adapter.checkAvailability();
   if (!availability.available) {
     throw new Error(
-      `Agent CLI "${normalizedId}" is not available: ${availability.error ?? "unknown reason"}.\n` +
-        `Install the ${normalizedId} CLI or switch providers.\n` +
-        `Run \`oac doctor\` for setup instructions.`,
+      `Agent CLI "${normalizedId}" is not available: ${availability.error ?? "unknown reason"}.\nInstall the ${normalizedId} CLI or switch providers.\nRun \`oac doctor\` for setup instructions.`,
     );
   }
 

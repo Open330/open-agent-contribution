@@ -133,4 +133,3 @@ export function formatDuration(seconds: number): string {
   const remainingSeconds = Math.round(seconds % 60);
   return `${minutes}m ${remainingSeconds}s`;
 }
-

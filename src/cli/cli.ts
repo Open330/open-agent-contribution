@@ -54,7 +54,7 @@ export async function createCliProgram(): Promise<Command> {
 
   program.addHelpText(
     "after",
-    `\nGetting Started:\n  $ oac init          Set up your project configuration\n  $ oac doctor        Verify your environment is ready\n  $ oac analyze       Analyze codebase for contribution opportunities\n  $ oac run           Run the full contribution pipeline\n\nDocumentation: https://github.com/Open330/open-agent-contribution\n`,
+    "\nGetting Started:\n  $ oac init          Set up your project configuration\n  $ oac doctor        Verify your environment is ready\n  $ oac analyze       Analyze codebase for contribution opportunities\n  $ oac run           Run the full contribution pipeline\n\nDocumentation: https://github.com/Open330/open-agent-contribution\n",
   );
 
   return program;

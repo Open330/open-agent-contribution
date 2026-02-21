@@ -2,12 +2,23 @@ import type { Task } from "../../../core/index.js";
 import type { ContributionLog } from "../../../tracking/index.js";
 import { writeContributionLog } from "../../../tracking/index.js";
 import { createSpinner } from "../../helpers.js";
-import type { CompletionStatus, ExecutionOutcome, PipelineContext, TaskRunResult } from "./types.js";
+import type {
+  CompletionStatus,
+  ExecutionOutcome,
+  PipelineContext,
+  TaskRunResult,
+} from "./types.js";
 
 export async function writeTracking(
   ctx: PipelineContext,
   params: {
-    resolvedRepo: { localPath: string; fullName: string; git: { headSha: string }; meta: { defaultBranch: string }; owner: string };
+    resolvedRepo: {
+      localPath: string;
+      fullName: string;
+      git: { headSha: string };
+      meta: { defaultBranch: string };
+      owner: string;
+    };
     providerId: string;
     totalBudget: number;
     candidateTasks: Task[];
@@ -172,4 +183,3 @@ export function sanitizeGithubUsername(value: string): string | null {
 
   return cleaned;
 }
-

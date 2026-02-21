@@ -5,7 +5,7 @@ import PQueue from "p-queue";
 import {
   type ExecutionPlan,
   type ExecutionResult,
-  OacError,
+  type OacError,
   type OacEventBus,
   type Task,
   type TokenEstimate,

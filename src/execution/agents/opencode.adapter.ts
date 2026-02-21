@@ -47,22 +47,34 @@ function parseTokenPatchFromPayload(payload: Record<string, unknown>): TokenPatc
   const usage = isRecord(payload.usage) ? payload.usage : undefined;
   return {
     inputTokens: readNumber(
-      payload.inputTokens ?? payload.input_tokens ??
-      payload.promptTokens ?? payload.prompt_tokens ??
-      usage?.inputTokens ?? usage?.input_tokens ??
-      usage?.promptTokens ?? usage?.prompt_tokens,
+      payload.inputTokens ??
+        payload.input_tokens ??
+        payload.promptTokens ??
+        payload.prompt_tokens ??
+        usage?.inputTokens ??
+        usage?.input_tokens ??
+        usage?.promptTokens ??
+        usage?.prompt_tokens,
     ),
     outputTokens: readNumber(
-      payload.outputTokens ?? payload.output_tokens ??
-      payload.completionTokens ?? payload.completion_tokens ??
-      usage?.outputTokens ?? usage?.output_tokens ??
-      usage?.completionTokens ?? usage?.completion_tokens,
+      payload.outputTokens ??
+        payload.output_tokens ??
+        payload.completionTokens ??
+        payload.completion_tokens ??
+        usage?.outputTokens ??
+        usage?.output_tokens ??
+        usage?.completionTokens ??
+        usage?.completion_tokens,
     ),
     cumulativeTokens: readNumber(
-      payload.cumulativeTokens ?? payload.cumulative_tokens ??
-      payload.totalTokens ?? payload.total_tokens ??
-      usage?.cumulativeTokens ?? usage?.cumulative_tokens ??
-      usage?.totalTokens ?? usage?.total_tokens,
+      payload.cumulativeTokens ??
+        payload.cumulative_tokens ??
+        payload.totalTokens ??
+        payload.total_tokens ??
+        usage?.cumulativeTokens ??
+        usage?.cumulative_tokens ??
+        usage?.totalTokens ??
+        usage?.total_tokens,
     ),
   };
 }
@@ -141,8 +153,6 @@ function parseFileEditFromPayload(
   return undefined;
 }
 
-
-
 function parseToolUseFromPayload(
   payload: Record<string, unknown>,
 ): Extract<AgentEvent, { type: "tool_use" }> | undefined {
@@ -186,10 +196,14 @@ function normalizeUnknownError(error: unknown, executionId: string): OacError {
   }
 
   if (/rate.limit|429|too many requests|throttl/i.test(message)) {
-    return executionError("AGENT_RATE_LIMITED", `OpenCode execution rate-limited for ${executionId}`, {
-      context: { executionId, message },
-      cause: error,
-    });
+    return executionError(
+      "AGENT_RATE_LIMITED",
+      `OpenCode execution rate-limited for ${executionId}`,
+      {
+        context: { executionId, message },
+        cause: error,
+      },
+    );
   }
 
   if (/network|ECONN|ENOTFOUND|EAI_AGAIN/i.test(message)) {
@@ -302,17 +316,13 @@ export class OpenCodeAdapter implements AgentProvider {
     };
 
     // `opencode run --format json "<prompt>"` — nd-JSON output on stdout
-    const subprocess = execa(
-      "opencode",
-      ["run", "--format", "json", params.prompt],
-      {
-        cwd: params.workingDirectory,
-        env: processEnv,
-        reject: false,
-        timeout: params.timeoutMs,
-        stdin: "ignore",
-      },
-    );
+    const subprocess = execa("opencode", ["run", "--format", "json", params.prompt], {
+      cwd: params.workingDirectory,
+      env: processEnv,
+      reject: false,
+      timeout: params.timeoutMs,
+      stdin: "ignore",
+    });
 
     this.runningExecutions.set(params.executionId, subprocess);
 

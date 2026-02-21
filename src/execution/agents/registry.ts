@@ -22,9 +22,7 @@ class AdapterRegistry {
   private readonly factories = new Map<string, AdapterFactory>();
 
   /** Well-known aliases (e.g. legacy IDs) that map to canonical provider IDs. */
-  private readonly aliases = new Map<string, string>([
-    ["codex-cli", "codex"],
-  ]);
+  private readonly aliases = new Map<string, string>([["codex-cli", "codex"]]);
 
   /** Register a new adapter factory. Replaces any previous factory for the same ID. */
   register(id: string, factory: AdapterFactory): void {
@@ -62,4 +60,3 @@ export const adapterRegistry = new AdapterRegistry();
 adapterRegistry.register("claude-code", () => new ClaudeCodeAdapter());
 adapterRegistry.register("codex", () => new CodexAdapter());
 adapterRegistry.register("opencode", () => new OpenCodeAdapter());
-

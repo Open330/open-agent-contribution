@@ -13,7 +13,15 @@ const SUBCOMMANDS = [
   "completion",
 ];
 
-const GLOBAL_OPTIONS = ["--config", "--verbose", "--quiet", "--json", "--no-color", "--help", "--version"];
+const GLOBAL_OPTIONS = [
+  "--config",
+  "--verbose",
+  "--quiet",
+  "--json",
+  "--no-color",
+  "--help",
+  "--version",
+];
 
 const COMMAND_OPTIONS: Record<string, string[]> = {
   run: [
@@ -108,9 +116,7 @@ function generateFish(): string {
   for (const [cmd, opts] of Object.entries(COMMAND_OPTIONS)) {
     for (const opt of opts) {
       const long = opt.replace(/^--/, "");
-      lines.push(
-        `complete -c oac -n '__fish_seen_subcommand_from ${cmd}' -l '${long}'`,
-      );
+      lines.push(`complete -c oac -n '__fish_seen_subcommand_from ${cmd}' -l '${long}'`);
     }
   }
   return lines.join("\n");
@@ -125,7 +131,11 @@ export function createCompletionCommand(): Command {
     .description("Generate shell completion scripts")
     .argument("<shell>", "Shell type: bash, zsh, or fish")
     .action((shell: string) => {
-      const generators: Record<Shell, () => string> = { bash: generateBash, zsh: generateZsh, fish: generateFish };
+      const generators: Record<Shell, () => string> = {
+        bash: generateBash,
+        zsh: generateZsh,
+        fish: generateFish,
+      };
       const gen = generators[shell as Shell];
       if (!gen) {
         throw new Error(`Unsupported shell "${shell}". Supported: bash, zsh, fish`);
@@ -143,4 +153,3 @@ export function createCompletionCommand(): Command {
 
   return command;
 }
-

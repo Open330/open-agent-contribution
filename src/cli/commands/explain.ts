@@ -2,7 +2,7 @@ import { resolve } from "node:path";
 
 import { Command } from "commander";
 
-import { loadContext, loadBacklog } from "../../discovery/index.js";
+import { loadBacklog, loadContext } from "../../discovery/index.js";
 import { createUi, getGlobalOptions, loadOptionalConfig } from "../helpers.js";
 
 export function createExplainCommand(): Command {
@@ -104,11 +104,13 @@ export function createExplainCommand(): Command {
         console.log(`  ${finding.description}`);
         console.log("");
         console.log(ui.dim("What the agent would do:"));
-        console.log(`  1. Check out a clean branch for this task`);
-        console.log(`  2. Open ${finding.filePath}${finding.line ? ` at line ${finding.line}` : ""}`);
-        console.log(`  3. Apply the fix described above`);
-        console.log(`  4. Run tests and linters to verify`);
-        console.log(`  5. Create a PR with the changes`);
+        console.log("  1. Check out a clean branch for this task");
+        console.log(
+          `  2. Open ${finding.filePath}${finding.line ? ` at line ${finding.line}` : ""}`,
+        );
+        console.log("  3. Apply the fix described above");
+        console.log("  4. Run tests and linters to verify");
+        console.log("  5. Create a PR with the changes");
       }
     });
 
@@ -155,4 +157,3 @@ function printAvailableIds(
     if (epics.length > 8) console.log(ui.dim(`  ... and ${epics.length - 8} more`));
   }
 }
-

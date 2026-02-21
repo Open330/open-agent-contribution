@@ -23,13 +23,7 @@
       "types": "./dist/core/index.d.ts"
     }
   },
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE",
-    "CHANGELOG.md",
-    "docs"
-  ],
+  "files": ["dist", "README.md", "LICENSE", "CHANGELOG.md", "docs"],
   "publishConfig": {
     "access": "public"
   },
@@ -69,6 +63,11 @@
     "simple-git": "^3.27.0",
     "tiktoken": "^1.0.18",
     "zod": "^3.24.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "minimatch@<10.2.1": ">=10.2.1"
+    }
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",

@@ -2,8 +2,8 @@ import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import { relative, resolve, sep } from "node:path";
-import { truncate } from "../../core/utils.js";
 import type { Task, TaskComplexity } from "../../core/index.js";
+import { truncate } from "../../core/utils.js";
 import type { ScanOptions, Scanner } from "../types.js";
 
 const DEFAULT_TIMEOUT_MS = 60_000;
@@ -392,8 +392,6 @@ function extractTodoKeyword(lineText: string): string | undefined {
 
   return match[1].toUpperCase();
 }
-
-
 
 function createTaskId(
   source: string,

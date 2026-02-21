@@ -1,11 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import {
-  type Epic,
-  type ExecutionResult,
-  type OacEventBus,
-  type Task,
-} from "../core/index.js";
+import type { Epic, ExecutionResult, OacEventBus, Task } from "../core/index.js";
 
 import type { AgentEvent, AgentProvider, AgentResult } from "./agents/agent.interface.js";
 import { normalizeExecutionError } from "./normalize-error.js";
@@ -105,8 +100,6 @@ function mergeExecutionResult(
     error: result.error,
   };
 }
-
-
 
 export async function executeTask(
   agent: AgentProvider,

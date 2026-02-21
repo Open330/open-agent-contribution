@@ -7,11 +7,7 @@
  * Defaults to the unicode ellipsis `"…"` (1 char).  Pass `"..."` for the
  * three-dot ASCII variant.
  */
-export function truncate(
-  value: string,
-  maxLength: number,
-  ellipsis = "…",
-): string {
+export function truncate(value: string, maxLength: number, ellipsis = "…"): string {
   if (value.length <= maxLength) {
     return value;
   }
@@ -25,4 +21,3 @@ export function truncate(
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
-

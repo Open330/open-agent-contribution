@@ -228,10 +228,7 @@ export class CompletionHandler {
    * Pre-PR guard: checks for an existing open OAC pull request that already
    * targets the same issue. Returns the PR number if a duplicate exists.
    */
-  private async findExistingOacPR(
-    repo: ResolvedRepo,
-    task: Task,
-  ): Promise<number | undefined> {
+  private async findExistingOacPR(repo: ResolvedRepo, task: Task): Promise<number | undefined> {
     if (!task.linkedIssue) {
       return undefined;
     }

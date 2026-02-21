@@ -448,80 +448,81 @@ export async function executePipeline(
 
     const taskQueue = new PQueue({ concurrency });
     const taskResults = await Promise.all(
-      plan.selectedTasks.map((entry) =>
-        taskQueue.add(async (): Promise<TaskResult> => {
-        emit({ type: "run:task-start", taskId: entry.task.id, title: entry.task.title });
-        progress.currentTask = entry.task.title;
-        emit({ type: "run:progress", progress: { ...progress } });
+      plan.selectedTasks.map(
+        (entry) =>
+          taskQueue.add(async (): Promise<TaskResult> => {
+            emit({ type: "run:task-start", taskId: entry.task.id, title: entry.task.title });
+            progress.currentTask = entry.task.title;
+            emit({ type: "run:progress", progress: { ...progress } });
 
-        let execution: ExecutionOutcome;
-        let sandbox: SandboxInfo | undefined;
+            let execution: ExecutionOutcome;
+            let sandbox: SandboxInfo | undefined;
 
-        if (useRealExecution) {
-          const result = await executeWithCodex({
-            task: entry.task,
-            estimate: entry.estimate,
-            codexAdapter,
-            repoPath: resolvedRepo.localPath,
-            baseBranch: resolvedRepo.meta.defaultBranch,
-            timeoutSeconds: 300,
-          });
-          execution = result.execution;
-          sandbox = result.sandbox;
-        } else {
-          await new Promise((r) => setTimeout(r, 500));
-          execution = {
-            success: true,
-            exitCode: 0,
-            totalTokensUsed: Math.round(entry.estimate.totalEstimatedTokens * 0.9),
-            filesChanged: entry.task.targetFiles.slice(0, 4),
-            duration: 0.5,
-          };
-        }
+            if (useRealExecution) {
+              const result = await executeWithCodex({
+                task: entry.task,
+                estimate: entry.estimate,
+                codexAdapter,
+                repoPath: resolvedRepo.localPath,
+                baseBranch: resolvedRepo.meta.defaultBranch,
+                timeoutSeconds: 300,
+              });
+              execution = result.execution;
+              sandbox = result.sandbox;
+            } else {
+              await new Promise((r) => setTimeout(r, 500));
+              execution = {
+                success: true,
+                exitCode: 0,
+                totalTokensUsed: Math.round(entry.estimate.totalEstimatedTokens * 0.9),
+                filesChanged: entry.task.targetFiles.slice(0, 4),
+                duration: 0.5,
+              };
+            }
 
-        // Create PR if execution produced changes
-        let pr: TaskResult["pr"];
-        if (execution.success && sandbox && execution.filesChanged.length > 0) {
-          emit({
-            type: "run:stage",
-            stage: "creating-pr",
-            message: `Creating PR for "${entry.task.title}"...`,
-          });
-          pr = await createPullRequest({
-            task: entry.task,
-            execution,
-            sandbox,
-            repoFullName: resolvedRepo.fullName,
-            baseBranch: resolvedRepo.meta.defaultBranch,
-          });
-          if (pr) {
-            progress.prsCreated += 1;
-            progress.prUrls.push(pr.url);
-          }
-        }
+            // Create PR if execution produced changes
+            let pr: TaskResult["pr"];
+            if (execution.success && sandbox && execution.filesChanged.length > 0) {
+              emit({
+                type: "run:stage",
+                stage: "creating-pr",
+                message: `Creating PR for "${entry.task.title}"...`,
+              });
+              pr = await createPullRequest({
+                task: entry.task,
+                execution,
+                sandbox,
+                repoFullName: resolvedRepo.fullName,
+                baseBranch: resolvedRepo.meta.defaultBranch,
+              });
+              if (pr) {
+                progress.prsCreated += 1;
+                progress.prUrls.push(pr.url);
+              }
+            }
 
-        if (execution.success) {
-          progress.tasksCompleted += 1;
-        } else {
-          progress.tasksFailed += 1;
-        }
-        progress.tokensUsed += execution.totalTokensUsed;
-        progress.currentTask = undefined;
+            if (execution.success) {
+              progress.tasksCompleted += 1;
+            } else {
+              progress.tasksFailed += 1;
+            }
+            progress.tokensUsed += execution.totalTokensUsed;
+            progress.currentTask = undefined;
 
-        const result: TaskResult = { task: entry.task, execution, sandbox, pr };
+            const result: TaskResult = { task: entry.task, execution, sandbox, pr };
 
-        emit({
-          type: "run:task-done",
-          taskId: entry.task.id,
-          title: entry.task.title,
-          success: execution.success,
-          prUrl: pr?.url,
-          filesChanged: execution.filesChanged.length,
-        });
-        emit({ type: "run:progress", progress: { ...progress } });
+            emit({
+              type: "run:task-done",
+              taskId: entry.task.id,
+              title: entry.task.title,
+              success: execution.success,
+              prUrl: pr?.url,
+              filesChanged: execution.filesChanged.length,
+            });
+            emit({ type: "run:progress", progress: { ...progress } });
 
-          return result;
-        }) as Promise<TaskResult>,
+            return result;
+          }) as Promise<TaskResult>,
       ),
     );
 
@@ -590,5 +591,3 @@ export async function executePipeline(
     return state;
   }
 }
-
-

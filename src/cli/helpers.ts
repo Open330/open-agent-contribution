@@ -1,5 +1,5 @@
 import chalk, { Chalk, type ChalkInstance } from "chalk";
-import { Command } from "commander";
+import type { Command } from "commander";
 import ora, { type Ora } from "ora";
 import PQueue from "p-queue";
 
@@ -118,10 +118,7 @@ export function resolveProviderId(
   return config?.provider.id ?? "claude-code";
 }
 
-export function resolveBudget(
-  tokensOption: number | undefined,
-  config: OacConfig | null,
-): number {
+export function resolveBudget(tokensOption: number | undefined, config: OacConfig | null): number {
   const budget = tokensOption ?? config?.budget.totalTokens ?? 100_000;
   if (!Number.isFinite(budget) || budget <= 0) {
     throw new Error("Token budget must be a positive number.");
@@ -142,16 +139,16 @@ export async function estimateTaskMap(
   const queue = new PQueue({ concurrency: 10 });
 
   const entries = await Promise.all(
-    tasks.map((task) =>
-      queue.add(async () => {
-        const estimate = await estimateTokens(task, providerId);
-        completed += 1;
-        onProgress?.(completed, total);
-        return [task.id, estimate] as const;
-      }) as Promise<readonly [string, TokenEstimate]>,
+    tasks.map(
+      (task) =>
+        queue.add(async () => {
+          const estimate = await estimateTokens(task, providerId);
+          completed += 1;
+          onProgress?.(completed, total);
+          return [task.id, estimate] as const;
+        }) as Promise<readonly [string, TokenEstimate]>,
     ),
   );
 
   return new Map(entries);
 }
-

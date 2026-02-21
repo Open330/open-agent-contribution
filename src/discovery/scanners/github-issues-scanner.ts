@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { truncate } from "../../core/utils.js";
 import type { Task, TaskComplexity, TaskSource } from "../../core/index.js";
+import { truncate } from "../../core/utils.js";
 import type { ScanOptions, Scanner } from "../types.js";
 
 const GITHUB_API_BASE_URL = "https://api.github.com";
@@ -453,8 +453,6 @@ function readAuthor(user: unknown): string {
 
   return login;
 }
-
-
 
 function toIssueResponse(value: unknown): GitHubIssueResponse {
   if (value && typeof value === "object") {

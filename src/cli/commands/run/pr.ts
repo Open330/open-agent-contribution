@@ -1,5 +1,5 @@
-import type { Task } from "../../../core/index.js";
 import { execa } from "execa";
+import type { Task } from "../../../core/index.js";
 import type { ExecutionOutcome, SandboxInfo, TaskRunResult } from "./types.js";
 import { PR_CREATION_TIMEOUT_MS } from "./types.js";
 
@@ -130,9 +130,7 @@ async function findExistingOacPR(
   issueNumber: number,
   token: string,
 ): Promise<number | undefined> {
-  const url =
-    `${GITHUB_API_BASE_URL}/repos/${repoFullName}` +
-    `/pulls?state=open&per_page=100&sort=updated&direction=desc`;
+  const url = `${GITHUB_API_BASE_URL}/repos/${repoFullName}/pulls?state=open&per_page=100&sort=updated&direction=desc`;
 
   try {
     const response = await fetch(url, {
@@ -161,8 +159,7 @@ async function findExistingOacPR(
       const title = typeof record.title === "string" ? record.title : "";
       if (!title.startsWith(OAC_PR_TITLE_PREFIX)) continue;
 
-      const prNumber =
-        typeof record.number === "number" ? record.number : undefined;
+      const prNumber = typeof record.number === "number" ? record.number : undefined;
       const body = typeof record.body === "string" ? record.body : "";
 
       for (const match of body.matchAll(issueRefPattern)) {
@@ -179,4 +176,3 @@ async function findExistingOacPR(
     return undefined;
   }
 }
-
