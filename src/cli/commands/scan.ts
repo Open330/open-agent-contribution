@@ -85,6 +85,7 @@ export function createScanCommand(): Command {
       const scannedTasks = await scannerSelection.scanner.scan(resolvedRepo.localPath, {
         exclude: config?.discovery.exclude,
         maxTasks: config?.discovery.maxTasks,
+        issueLabels: config?.discovery.issueLabels,
         repo: resolvedRepo,
       });
 

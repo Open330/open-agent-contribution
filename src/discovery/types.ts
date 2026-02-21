@@ -34,6 +34,12 @@ export interface ScanOptions {
    * Optional resolved repository metadata for scanners that need it.
    */
   repo?: ResolvedRepo;
+
+  /**
+   * GitHub issue labels to match (OR semantics).
+   * When non-empty, only issues with at least one matching label are included.
+   */
+  issueLabels?: string[];
 }
 
 /**

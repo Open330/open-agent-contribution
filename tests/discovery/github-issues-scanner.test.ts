@@ -395,4 +395,53 @@ describe("GitHubIssuesScanner", () => {
     expect(tasks).toHaveLength(1);
     expect(tasks[0]?.id).toBe("github-issue-10");
   });
+
+  // ── issueLabels filtering ──────────────────────────────────
+
+  it("filters issues to those matching at least one configured label", async () => {
+    mockFetchJson([
+      makeIssue({ number: 1, labels: [{ name: "bug" }] }),
+      makeIssue({ number: 2, labels: [{ name: "documentation" }] }),
+      makeIssue({ number: 3, labels: [{ name: "enhancement" }] }),
+      makeIssue({ number: 4, labels: [] }),
+    ]);
+    const scanner = new GitHubIssuesScanner();
+
+    const tasks = await scanner.scan("/repo", {
+      repo: makeResolvedRepo(),
+      issueLabels: ["documentation"],
+    });
+
+    expect(tasks.map((t) => t.id)).toEqual(["github-issue-2"]);
+  });
+
+  it("allows all issues when issueLabels is empty", async () => {
+    mockFetchJson([
+      makeIssue({ number: 1, labels: [{ name: "bug" }] }),
+      makeIssue({ number: 2, labels: [] }),
+    ]);
+    const scanner = new GitHubIssuesScanner();
+
+    const tasks = await scanner.scan("/repo", {
+      repo: makeResolvedRepo(),
+      issueLabels: [],
+    });
+
+    expect(tasks).toHaveLength(2);
+  });
+
+  it("matches labels case-insensitively", async () => {
+    mockFetchJson([
+      makeIssue({ number: 1, labels: [{ name: "Documentation" }] }),
+      makeIssue({ number: 2, labels: [{ name: "BUG" }] }),
+    ]);
+    const scanner = new GitHubIssuesScanner();
+
+    const tasks = await scanner.scan("/repo", {
+      repo: makeResolvedRepo(),
+      issueLabels: ["documentation", "bug"],
+    });
+
+    expect(tasks).toHaveLength(2);
+  });
 });

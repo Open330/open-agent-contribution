@@ -70,10 +70,12 @@ export class GitHubIssuesScanner implements Scanner {
       return [];
     }
 
+    const issueLabels = options.issueLabels ?? [];
     const discoveredAt = new Date().toISOString();
     const tasks = issues
       .filter((issue) => issue.pull_request === undefined)
       .filter((issue) => !claimedIssueNumbers.has(asNumber(issue.number) ?? -1))
+      .filter((issue) => matchesLabelFilter(issue, issueLabels))
       .map((issue) => mapIssueToTask(issue, discoveredAt))
       .filter((task): task is Task => task !== undefined);
 
@@ -328,6 +330,21 @@ function isGitHubHost(hostname: string): boolean {
 
 function stripGitSuffix(value: string): string {
   return value.replace(/\.git$/i, "");
+}
+
+/**
+ * Returns true when the issue carries at least one label present in
+ * `allowedLabels` (case-insensitive, OR semantics).
+ * An empty `allowedLabels` list disables filtering and matches every issue.
+ */
+function matchesLabelFilter(issue: GitHubIssueResponse, allowedLabels: string[]): boolean {
+  if (allowedLabels.length === 0) {
+    return true;
+  }
+
+  const normalized = new Set(allowedLabels.map((l) => l.toLowerCase()));
+  const issueLabels = normalizeLabels(issue.labels);
+  return issueLabels.some((label) => normalized.has(label.toLowerCase()));
 }
 
 function mapIssueToTask(issue: GitHubIssueResponse, discoveredAt: string): Task | undefined {
