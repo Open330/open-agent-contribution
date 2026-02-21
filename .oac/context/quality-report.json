@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-02-21T16:21:04.690Z",
+  "generatedAt": "2026-02-21T16:37:31.604Z",
   "repoFullName": "Open330/open-agent-contribution",
   "findings": [
     {
@@ -20,7 +20,7 @@
         "createdAt": "2026-02-18T15:23:23Z",
         "estimatedTokens": 9000
       },
-      "discoveredAt": "2026-02-21T16:21:05.176Z"
+      "discoveredAt": "2026-02-21T16:37:32.104Z"
     },
     {
       "scannerId": "github-issue",
@@ -39,7 +39,7 @@
         "createdAt": "2026-02-17T07:42:43Z",
         "estimatedTokens": 9000
       },
-      "discoveredAt": "2026-02-21T16:21:05.176Z"
+      "discoveredAt": "2026-02-21T16:37:32.104Z"
     },
     {
       "scannerId": "test-gap",
@@ -59,7 +59,7 @@
         "estimatedTokens": 4000,
         "symbols": []
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -83,7 +83,7 @@
           "normalizeOutputFormat"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -125,7 +125,7 @@
           "walkSourceFiles"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -151,7 +151,7 @@
           "updateBacklog"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -190,7 +190,7 @@
           "patchTokenState"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -213,7 +213,7 @@
           "getEncoder"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -236,7 +236,7 @@
           "getEncoder"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -274,7 +274,7 @@
           "patchTokenState"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -299,7 +299,7 @@
           "generateZsh"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -319,7 +319,7 @@
         "estimatedTokens": 4000,
         "symbols": []
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -349,7 +349,7 @@
           "runDoctorChecks"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -379,7 +379,7 @@
           "resolveContextFiles"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -408,7 +408,7 @@
           "tryLoadOrAnalyzeEpics"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -432,7 +432,7 @@
           "printAvailableIds"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -455,7 +455,7 @@
           "ensureGitHubAuth"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -495,7 +495,7 @@
           "toIssueResponse"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -527,7 +527,7 @@
           "resolveGitPath"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -558,7 +558,7 @@
           "resolveRepoInput"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -588,7 +588,7 @@
           "stripGitSuffix"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -618,7 +618,7 @@
           "sortValue"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -647,7 +647,7 @@
           "writeFileAtomically"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -695,7 +695,7 @@
           "withPackageManagerRunner"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -722,7 +722,7 @@
           "summarizeSources"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -745,7 +745,7 @@
           "getMemorySnapshot"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -768,7 +768,7 @@
           "toErrorMessage"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -806,7 +806,7 @@
           "patchTokenState"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -834,7 +834,7 @@
           "validateRunOptions"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -863,7 +863,7 @@
           "resolveGithubUsername"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -887,7 +887,7 @@
           "selectScannersFromConfig"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -910,7 +910,7 @@
           "findExistingOacPR"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -932,7 +932,7 @@
           "AdapterRegistry"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -956,7 +956,7 @@
           "taskFromContributionEntry"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -979,7 +979,7 @@
           "getWorktreePath"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -1005,7 +1005,7 @@
           "selectScanners"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -1028,7 +1028,7 @@
           "instantiateScanner"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -1055,7 +1055,7 @@
           "startDashboard"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -1079,7 +1079,7 @@
           "readString"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -1107,7 +1107,7 @@
           "renderStatusOutput"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -1140,7 +1140,7 @@
           "selectScannersFromConfig"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -1179,7 +1179,7 @@
           "walk"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -1224,7 +1224,7 @@
           "walk"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -1250,7 +1250,7 @@
           "writeTracking"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -1275,7 +1275,7 @@
           "resolveExitCode"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -1295,7 +1295,7 @@
         "estimatedTokens": 1500,
         "symbols": []
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -1315,7 +1315,7 @@
         "estimatedTokens": 8000,
         "symbols": []
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -1335,7 +1335,7 @@
         "estimatedTokens": 4000,
         "symbols": []
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -1355,7 +1355,7 @@
         "estimatedTokens": 1500,
         "symbols": []
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -1393,7 +1393,7 @@
           "updateStage"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "test-gap",
@@ -1416,7 +1416,7 @@
           "truncate"
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.734Z"
+      "discoveredAt": "2026-02-21T16:37:31.649Z"
     },
     {
       "scannerId": "todo",
@@ -1447,7 +1447,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.729Z"
+      "discoveredAt": "2026-02-21T16:37:31.645Z"
     },
     {
       "scannerId": "todo",
@@ -1478,7 +1478,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.729Z"
+      "discoveredAt": "2026-02-21T16:37:31.645Z"
     },
     {
       "scannerId": "todo",
@@ -1509,7 +1509,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.729Z"
+      "discoveredAt": "2026-02-21T16:37:31.645Z"
     },
     {
       "scannerId": "todo",
@@ -1540,7 +1540,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.729Z"
+      "discoveredAt": "2026-02-21T16:37:31.645Z"
     },
     {
       "scannerId": "todo",
@@ -1571,7 +1571,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.729Z"
+      "discoveredAt": "2026-02-21T16:37:31.645Z"
     },
     {
       "scannerId": "todo",
@@ -1602,7 +1602,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.729Z"
+      "discoveredAt": "2026-02-21T16:37:31.645Z"
     },
     {
       "scannerId": "todo",
@@ -1645,7 +1645,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.729Z"
+      "discoveredAt": "2026-02-21T16:37:31.645Z"
     },
     {
       "scannerId": "todo",
@@ -1676,7 +1676,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.729Z"
+      "discoveredAt": "2026-02-21T16:37:31.645Z"
     },
     {
       "scannerId": "todo",
@@ -1707,7 +1707,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.729Z"
+      "discoveredAt": "2026-02-21T16:37:31.645Z"
     },
     {
       "scannerId": "todo",
@@ -1738,7 +1738,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.729Z"
+      "discoveredAt": "2026-02-21T16:37:31.645Z"
     },
     {
       "scannerId": "todo",
@@ -1781,7 +1781,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.729Z"
+      "discoveredAt": "2026-02-21T16:37:31.645Z"
     },
     {
       "scannerId": "todo",
@@ -1818,7 +1818,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.729Z"
+      "discoveredAt": "2026-02-21T16:37:31.645Z"
     },
     {
       "scannerId": "todo",
@@ -1849,7 +1849,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.729Z"
+      "discoveredAt": "2026-02-21T16:37:31.645Z"
     },
     {
       "scannerId": "todo",
@@ -1880,7 +1880,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.729Z"
+      "discoveredAt": "2026-02-21T16:37:31.645Z"
     },
     {
       "scannerId": "todo",
@@ -1911,7 +1911,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.729Z"
+      "discoveredAt": "2026-02-21T16:37:31.645Z"
     },
     {
       "scannerId": "todo",
@@ -1942,7 +1942,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:04.729Z"
+      "discoveredAt": "2026-02-21T16:37:31.645Z"
     },
     {
       "scannerId": "github-issue",
@@ -1963,7 +1963,7 @@
         "createdAt": "2026-02-21T16:19:50Z",
         "estimatedTokens": 9000
       },
-      "discoveredAt": "2026-02-21T16:21:05.176Z"
+      "discoveredAt": "2026-02-21T16:37:32.104Z"
     },
     {
       "scannerId": "lint",
@@ -1994,7 +1994,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2025,7 +2025,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2056,7 +2056,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2087,7 +2087,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2118,7 +2118,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2200,7 +2200,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2231,7 +2231,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2262,7 +2262,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2293,7 +2293,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2324,7 +2324,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2364,7 +2364,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2422,7 +2422,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2471,7 +2471,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2545,7 +2545,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2576,7 +2576,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2607,7 +2607,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2638,7 +2638,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2678,7 +2678,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2709,7 +2709,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2740,7 +2740,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2771,7 +2771,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2802,7 +2802,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2833,7 +2833,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2864,7 +2864,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2895,7 +2895,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2926,7 +2926,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -2966,7 +2966,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -3006,7 +3006,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -3037,7 +3037,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -3068,7 +3068,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -3099,7 +3099,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -3130,7 +3130,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -3161,7 +3161,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -3201,7 +3201,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -3241,7 +3241,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -3272,7 +3272,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -3303,7 +3303,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -3342,7 +3342,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -3381,7 +3381,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "lint",
@@ -3412,7 +3412,7 @@
           }
         ]
       },
-      "discoveredAt": "2026-02-21T16:21:05.125Z"
+      "discoveredAt": "2026-02-21T16:37:32.046Z"
     },
     {
       "scannerId": "github-issue",
@@ -3431,7 +3431,7 @@
         "createdAt": "2026-02-20T14:35:50Z",
         "estimatedTokens": 9000
       },
-      "discoveredAt": "2026-02-21T16:21:05.176Z"
+      "discoveredAt": "2026-02-21T16:37:32.104Z"
     },
     {
       "scannerId": "github-issue",
@@ -3450,7 +3450,7 @@
         "createdAt": "2026-02-20T18:58:38Z",
         "estimatedTokens": 9000
       },
-      "discoveredAt": "2026-02-21T16:21:05.176Z"
+      "discoveredAt": "2026-02-21T16:37:32.104Z"
     },
     {
       "scannerId": "github-issue",
@@ -3469,7 +3469,7 @@
         "createdAt": "2026-02-20T06:24:46Z",
         "estimatedTokens": 9000
       },
-      "discoveredAt": "2026-02-21T16:21:05.176Z"
+      "discoveredAt": "2026-02-21T16:37:32.104Z"
     }
   ],
   "summary": {

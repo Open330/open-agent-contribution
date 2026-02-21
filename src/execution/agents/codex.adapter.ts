@@ -316,12 +316,22 @@ function parseVersion(output: string): string | undefined {
 }
 
 /**
- * Codex CLI v0.104+ is a native TUI binary that may not respond to `--version`
- * in headless environments. Fall back to verifying the binary exists in PATH.
+ * Codex CLI v0.104+ is a native Rust TUI binary whose Homebrew installation
+ * lacks the sibling helper binaries (ripgrep) that the npm wrapper bundles.
+ * The bare binary hangs in headless mode even with CODEX_MANAGED_BY_NPM=1.
+ *
+ * We always invoke Codex through `npx @openai/codex` which:
+ *  1. Discovers the platform-specific binary from the npm package
+ *  2. Sets CODEX_MANAGED_BY_NPM=1
+ *  3. Prepends vendor path/ (containing rg) to PATH
+ *  4. Spawns with proper stdio
+ *
+ * Fallback: check that `npx` is available (always true when OAC is installed
+ * via npm/npx itself).
  */
-async function codexBinaryFallback(): Promise<AgentAvailability> {
+async function codexNpxFallback(): Promise<AgentAvailability> {
   try {
-    const whichResult = await execa("which", ["codex"], {
+    const whichResult = await execa("which", ["npx"], {
       reject: false,
       timeout: 3_000,
       stdin: "ignore",
@@ -332,7 +342,11 @@ async function codexBinaryFallback(): Promise<AgentAvailability> {
   } catch {
     // which also failed
   }
-  return { available: false, error: "codex is not installed or not in PATH." };
+  return {
+    available: false,
+    error:
+      "Codex CLI is not available. Install via: npm install -g @openai/codex",
+  };
 }
 
 async function estimateContextTokens(targetFiles: string[]): Promise<number> {
@@ -359,11 +373,10 @@ export class CodexAdapter implements AgentProvider {
 
   public async checkAvailability(): Promise<AgentAvailability> {
     try {
-      const result = await execa("codex", ["--version"], {
+      const result = await execa("npx", ["--yes", "@openai/codex", "--version"], {
         reject: false,
-        timeout: 5_000,
+        timeout: 15_000,
         stdin: "ignore",
-        env: { ...process.env, CODEX_MANAGED_BY_NPM: "1" },
       });
       if (result.exitCode === 0) {
         const versionLine = result.stdout.trim().split("\n")[0] ?? "";
@@ -373,12 +386,12 @@ export class CodexAdapter implements AgentProvider {
         };
       }
 
-      // Codex CLI v0.104+ is a TUI binary that may hang on --version.
-      // Fall back to verifying the binary exists in PATH.
-      return await codexBinaryFallback();
+      // npx may succeed but codex --version may return non-zero.
+      // Fall back to verifying npx is available.
+      return await codexNpxFallback();
     } catch {
-      // Timeout or spawn error — try binary existence check.
-      return await codexBinaryFallback();
+      // Timeout or spawn error — check npx availability.
+      return await codexNpxFallback();
     }
   }
 
@@ -405,8 +418,10 @@ export class CodexAdapter implements AgentProvider {
     };
 
     const subprocess = execa(
-      "codex",
+      "npx",
       [
+        "--yes",
+        "@openai/codex",
         "exec",
         "--full-auto",
         "--json",

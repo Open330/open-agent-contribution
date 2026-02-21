@@ -154,11 +154,10 @@ describe("CodexAdapter", () => {
     const adapter = new CodexAdapter();
     const availability = await adapter.checkAvailability();
 
-    expect(execa).toHaveBeenCalledWith("codex", ["--version"], {
+    expect(execa).toHaveBeenCalledWith("npx", ["--yes", "@openai/codex", "--version"], {
       reject: false,
-      timeout: 5_000,
+      timeout: 15_000,
       stdin: "ignore",
-      env: expect.objectContaining({ CODEX_MANAGED_BY_NPM: "1" }),
     });
     expect(availability).toEqual({
       available: true,
@@ -166,8 +165,8 @@ describe("CodexAdapter", () => {
     });
   });
 
-  it("checkAvailability falls back to which when --version fails", async () => {
-    // First call: codex --version fails (TUI hangs / times out)
+  it("checkAvailability falls back to which npx when --version fails", async () => {
+    // First call: npx @openai/codex --version fails
     vi.mocked(execa).mockImplementationOnce(
       () =>
         Promise.resolve({
@@ -176,12 +175,12 @@ describe("CodexAdapter", () => {
           stderr: "",
         }) as unknown as ReturnType<typeof execa>,
     );
-    // Second call: which codex succeeds
+    // Second call: which npx succeeds
     vi.mocked(execa).mockImplementationOnce(
       () =>
         Promise.resolve({
           exitCode: 0,
-          stdout: "/opt/homebrew/bin/codex\n",
+          stdout: "/usr/local/bin/npx\n",
           stderr: "",
         }) as unknown as ReturnType<typeof execa>,
     );
@@ -196,11 +195,11 @@ describe("CodexAdapter", () => {
   });
 
   it("checkAvailability returns unavailable when codex is not found", async () => {
-    // First call: codex --version throws ENOENT
+    // First call: npx @openai/codex --version throws ENOENT
     vi.mocked(execa).mockImplementationOnce(
-      () => Promise.reject(new Error("spawn codex ENOENT")) as unknown as ReturnType<typeof execa>,
+      () => Promise.reject(new Error("spawn npx ENOENT")) as unknown as ReturnType<typeof execa>,
     );
-    // Second call: which codex also fails
+    // Second call: which npx also fails
     vi.mocked(execa).mockImplementationOnce(
       () =>
         Promise.resolve({
@@ -214,7 +213,9 @@ describe("CodexAdapter", () => {
     const availability = await adapter.checkAvailability();
 
     expect(availability.available).toBe(false);
-    expect(availability.error).toBe("codex is not installed or not in PATH.");
+    expect(availability.error).toBe(
+      "Codex CLI is not available. Install via: npm install -g @openai/codex",
+    );
   });
 
   it("execute spawns codex process with correct args", async () => {
@@ -237,8 +238,18 @@ describe("CodexAdapter", () => {
 
     expect(execution.providerId).toBe("codex");
     expect(execa).toHaveBeenCalledWith(
-      "codex",
-      ["exec", "--full-auto", "--json", "--ephemeral", "-C", "/tmp/project", "Fix all issues"],
+      "npx",
+      [
+        "--yes",
+        "@openai/codex",
+        "exec",
+        "--full-auto",
+        "--json",
+        "--ephemeral",
+        "-C",
+        "/tmp/project",
+        "Fix all issues",
+      ],
       expect.objectContaining({
         cwd: "/tmp/project",
         reject: false,
