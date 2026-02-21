@@ -17,7 +17,7 @@
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-3178C6?logo=typescript&logoColor=white)](https://typescriptlang.org/)
 
-[Getting Started](#-getting-started) · [How It Works](#-how-it-works) · [Commands](#commands) · [Configuration](#configuration) · [Architecture](#architecture) · [Contributing](#contributing)
+[Getting Started](#-getting-started) · [How It Works](#-how-it-works) · [Commands](#commands) · [Configuration](#configuration) · [Architecture](#architecture) · [Contribution Directions](#contribution-direction-options) · [Contributing](#contributing)
 
 </div>
 
@@ -463,6 +463,36 @@ export class MyAgentAdapter implements AgentProvider {
 - [x] **2026.4.x** — 9-wave quality cycle: performance fixes, UX polish, run module decomposition, shell completion, retry, exit codes, memory monitoring, streaming analysis, config reference docs
 - [ ] **Next** — OpenCode adapter, multi-agent routing, localhost dashboard, daemon mode
 - [ ] **Future** — Linear/Jira webhooks, plugin system, sparse checkout for monorepos
+
+---
+
+## Contribution Direction Options
+
+Use these options to decide what kinds of work OAC should execute in a repo.
+
+### Contribution Categories
+
+| Category | Typical Direction Channel | Example Outcomes |
+|---|---|---|
+| Bug fixes | GitHub issues (`bug`) | Resolve regressions, fix runtime errors, correct edge-case behavior |
+| Feature requests | GitHub issues (`feature`, `enhancement`) | Add new CLI flags, workflow capabilities, or integrations |
+| Documentation improvements | GitHub issues (`documentation`) | Clarify setup guides, command docs, and architecture explanations |
+| Refactoring / maintainability | GitHub issues or TODO findings | Reduce complexity, split large modules, remove dead paths |
+| Test coverage | `test-gap` scanner or GitHub issue | Add missing unit/integration tests and regression coverage |
+| Performance optimization | GitHub issues (`performance`) | Reduce memory use, speed up scans/execution, remove bottlenecks |
+
+### Direction Options
+
+- Use `oac run --source github-issue` when you want issue-driven work (best for bugs, features, docs, refactors, and performance tasks).
+- Use `oac run --source test-gap` for coverage-focused contributions.
+- Use `oac scan --scanners lint,todo,test-gap,github-issues` to preview candidate work before running execution.
+- Use `discovery.issueLabels` in `oac.config.ts` to constrain which issue types OAC should pick up.
+
+### Issue Writing Tips For Better OAC Results
+
+- Include clear scope (`files/modules affected`) and acceptance criteria (`what must be true when done`).
+- Mark priorities with labels (for example `bug`, `enhancement`, `documentation`, `performance`, `good-first-issue`).
+- Keep issues small to moderate in size so they can be completed as focused PRs.
 
 ---
 
