@@ -3,6 +3,9 @@ import { execa } from "execa";
 import type { ExecutionOutcome, SandboxInfo, TaskRunResult } from "./types.js";
 import { PR_CREATION_TIMEOUT_MS } from "./types.js";
 
+const GITHUB_API_BASE_URL = "https://api.github.com";
+const OAC_PR_TITLE_PREFIX = "[OAC]";
+
 export async function createPullRequest(input: {
   task: Task;
   execution: ExecutionOutcome;
@@ -23,6 +26,21 @@ export async function createPullRequest(input: {
     if (input.ghToken) {
       ghEnv.GH_TOKEN = input.ghToken;
       ghEnv.GITHUB_TOKEN = input.ghToken;
+    }
+
+    // Pre-PR guard: skip if another OAC instance already created a PR for this issue
+    if (input.task.linkedIssue && input.ghToken) {
+      const duplicate = await findExistingOacPR(
+        input.repoFullName,
+        input.task.linkedIssue.number,
+        input.ghToken,
+      );
+      if (duplicate) {
+        console.warn(
+          `[oac] Skipping PR: existing OAC PR #${duplicate} already targets issue #${input.task.linkedIssue.number}`,
+        );
+        return undefined;
+      }
     }
 
     // Push the branch from the sandbox worktree
@@ -99,6 +117,65 @@ export async function createPullRequest(input: {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.warn(`[oac] PR creation failed: ${message}`);
+    return undefined;
+  }
+}
+
+/**
+ * Pre-PR guard: checks for an existing open OAC pull request targeting
+ * the given issue number. Returns the PR number if found.
+ */
+async function findExistingOacPR(
+  repoFullName: string,
+  issueNumber: number,
+  token: string,
+): Promise<number | undefined> {
+  const url =
+    `${GITHUB_API_BASE_URL}/repos/${repoFullName}` +
+    `/pulls?state=open&per_page=100&sort=updated&direction=desc`;
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github.v3+json",
+      },
+      signal: AbortSignal.timeout(15_000),
+    });
+
+    if (!response.ok) {
+      return undefined;
+    }
+
+    const pulls: unknown = await response.json();
+    if (!Array.isArray(pulls)) {
+      return undefined;
+    }
+
+    const issueRefPattern = /(?:Fixes|Closes|Resolves)\s+#(\d+)/gi;
+    for (const pr of pulls) {
+      if (!pr || typeof pr !== "object") continue;
+
+      const record = pr as Record<string, unknown>;
+      const title = typeof record.title === "string" ? record.title : "";
+      if (!title.startsWith(OAC_PR_TITLE_PREFIX)) continue;
+
+      const prNumber =
+        typeof record.number === "number" ? record.number : undefined;
+      const body = typeof record.body === "string" ? record.body : "";
+
+      for (const match of body.matchAll(issueRefPattern)) {
+        const num = Number.parseInt(match[1], 10);
+        if (num === issueNumber) {
+          return prNumber;
+        }
+      }
+    }
+
+    return undefined;
+  } catch {
+    // Guard failure should not block PR creation.
     return undefined;
   }
 }

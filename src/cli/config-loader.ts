@@ -71,6 +71,12 @@ function shouldTryLegacyDefineConfigFallback(error: unknown): boolean {
     return false;
   }
 
+  // Node < 22.6: can't import .ts files directly → ERR_UNKNOWN_FILE_EXTENSION
+  if ((error as NodeJS.ErrnoException).code === "ERR_UNKNOWN_FILE_EXTENSION") {
+    return true;
+  }
+
+  // Node >= 22.6: strips types but can't resolve the @open330/oac package
   return DEFINE_CONFIG_IMPORT.test(error.message);
 }
 

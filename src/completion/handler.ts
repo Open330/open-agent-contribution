@@ -67,6 +67,18 @@ export class CompletionHandler {
       this.handleValidationResult(validation);
       warnings.push(...validation.warnings);
 
+      this.emitProgress(params.jobId, params.result.totalTokensUsed, "completion:duplicatePRGuard");
+      const duplicatePr = await this.findExistingOacPR(params.repo, params.task);
+      if (duplicatePr) {
+        const skipMsg = `Skipped: existing OAC PR #${duplicatePr} already targets issue #${params.task.linkedIssue?.number ?? "unknown"}.`;
+        warnings.push(skipMsg);
+        return {
+          summary: skipMsg,
+          filesChanged: params.result.filesChanged.length,
+          tokensUsed: params.result.totalTokensUsed,
+        };
+      }
+
       warnings.push(...(await this.notifyStarted(externalTaskRef)));
 
       this.emitProgress(params.jobId, params.result.totalTokensUsed, "completion:pushBranch");
@@ -210,6 +222,50 @@ export class CompletionHandler {
     }
 
     return warnings;
+  }
+
+  /**
+   * Pre-PR guard: checks for an existing open OAC pull request that already
+   * targets the same issue. Returns the PR number if a duplicate exists.
+   */
+  private async findExistingOacPR(
+    repo: ResolvedRepo,
+    task: Task,
+  ): Promise<number | undefined> {
+    if (!task.linkedIssue) {
+      return undefined;
+    }
+
+    const issueNumber = task.linkedIssue.number;
+
+    try {
+      const { data: pulls } = await this.octokit.pulls.list({
+        owner: repo.owner,
+        repo: repo.name,
+        state: "open",
+        per_page: 100,
+        sort: "updated",
+        direction: "desc",
+      });
+
+      const issueRefPattern = /(?:Fixes|Closes|Resolves)\s+#(\d+)/gi;
+      for (const pr of pulls) {
+        if (!pr.title.startsWith("[OAC]")) continue;
+
+        const body = pr.body ?? "";
+        for (const match of body.matchAll(issueRefPattern)) {
+          const num = Number.parseInt(match[1], 10);
+          if (num === issueNumber) {
+            return pr.number;
+          }
+        }
+      }
+
+      return undefined;
+    } catch {
+      // Guard failure should not block PR creation.
+      return undefined;
+    }
   }
 
   private resolveExternalTaskRef(

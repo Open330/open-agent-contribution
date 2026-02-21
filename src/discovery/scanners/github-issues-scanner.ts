@@ -6,6 +6,8 @@ import type { ScanOptions, Scanner } from "../types.js";
 
 const GITHUB_API_BASE_URL = "https://api.github.com";
 const ISSUES_PER_PAGE = 30;
+const OAC_PR_PAGE_SIZE = 100;
+const OAC_PR_TITLE_PREFIX = "[OAC]";
 const TITLE_LIMIT = 120;
 const DESCRIPTION_LIMIT = 500;
 
@@ -60,7 +62,10 @@ export class GitHubIssuesScanner implements Scanner {
       return [];
     }
 
-    const issues = await fetchOpenIssues(repo, token);
+    const [issues, claimedIssueNumbers] = await Promise.all([
+      fetchOpenIssues(repo, token),
+      fetchOacClaimedIssueNumbers(repo, token),
+    ]);
     if (issues.length === 0) {
       return [];
     }
@@ -68,6 +73,7 @@ export class GitHubIssuesScanner implements Scanner {
     const discoveredAt = new Date().toISOString();
     const tasks = issues
       .filter((issue) => issue.pull_request === undefined)
+      .filter((issue) => !claimedIssueNumbers.has(asNumber(issue.number) ?? -1))
       .map((issue) => mapIssueToTask(issue, discoveredAt))
       .filter((task): task is Task => task !== undefined);
 
@@ -125,6 +131,68 @@ async function fetchOpenIssues(
   } catch {
     return [];
   }
+}
+
+/**
+ * Returns issue numbers that already have an open OAC pull request.
+ * Used to skip issues during discovery so multiple OAC instances
+ * targeting the same repo don't create duplicate PRs.
+ */
+async function fetchOacClaimedIssueNumbers(
+  repo: RepoCoordinates,
+  token: string,
+): Promise<Set<number>> {
+  const url =
+    `${GITHUB_API_BASE_URL}/repos/` +
+    `${encodeURIComponent(repo.owner)}/${encodeURIComponent(repo.name)}` +
+    `/pulls?state=open&per_page=${OAC_PR_PAGE_SIZE}&sort=updated&direction=desc`;
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github.v3+json",
+      },
+      signal: AbortSignal.timeout(15_000),
+    });
+
+    if (!response.ok) {
+      return new Set();
+    }
+
+    const pulls: unknown = await response.json();
+    if (!Array.isArray(pulls)) {
+      return new Set();
+    }
+
+    return extractClaimedIssueNumbers(pulls);
+  } catch {
+    return new Set();
+  }
+}
+
+function extractClaimedIssueNumbers(pulls: unknown[]): Set<number> {
+  const claimed = new Set<number>();
+  const issueRefPattern = /(?:Fixes|Closes|Resolves)\s+#(\d+)/gi;
+
+  for (const pr of pulls) {
+    if (!pr || typeof pr !== "object") continue;
+
+    const record = pr as Record<string, unknown>;
+    const title = typeof record.title === "string" ? record.title : "";
+    if (!title.startsWith(OAC_PR_TITLE_PREFIX)) continue;
+
+    const body = typeof record.body === "string" ? record.body : "";
+    for (const match of body.matchAll(issueRefPattern)) {
+      const num = Number.parseInt(match[1], 10);
+      if (Number.isFinite(num)) {
+        claimed.add(num);
+      }
+    }
+  }
+
+  return claimed;
 }
 
 async function parseRepoFromGitConfig(repoPath: string): Promise<RepoCoordinates | undefined> {

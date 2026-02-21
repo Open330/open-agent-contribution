@@ -108,6 +108,32 @@ export default defineConfig({
     expect(config?.budget.totalTokens).toBe(100_000);
   });
 
+  it("loads defineConfig format when import fails with ERR_UNKNOWN_FILE_EXTENSION (Node < 22.6)", async () => {
+    const tempDir = await createTempDir();
+    const configSource = `import { defineConfig } from "@open330/oac";
+
+export default defineConfig({
+  repos: ["open330/test-repo"],
+  provider: {
+    id: "claude-code",
+    options: { enabledProviders: ["claude-code"] },
+  },
+  budget: { totalTokens: 50000 },
+});
+`;
+    // .tsx triggers ERR_UNKNOWN_FILE_EXTENSION on Node 25+ — same error as
+    // .ts on Node < 22.6 which lacks native TypeScript stripping
+    const configFile = "oac.config.tsx";
+    await writeFile(join(tempDir, configFile), configSource, "utf8");
+
+    const config = await loadOptionalConfigFile(configFile, { cwd: tempDir });
+
+    expect(config).not.toBeNull();
+    expect(config?.repos[0]).toBe("open330/test-repo");
+    expect(config?.provider.id).toBe("claude-code");
+    expect(config?.budget.totalTokens).toBe(50_000);
+  });
+
   it("returns null and reports warning when config validation fails", async () => {
     const tempDir = await createTempDir();
     await writeConfig(
