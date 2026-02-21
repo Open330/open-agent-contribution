@@ -292,6 +292,26 @@ function parseVersion(output: string): string | undefined {
   return match[1];
 }
 
+/**
+ * Codex CLI v0.104+ is a native TUI binary that may not respond to `--version`
+ * in headless environments. Fall back to verifying the binary exists in PATH.
+ */
+async function codexBinaryFallback(): Promise<AgentAvailability> {
+  try {
+    const whichResult = await execa("which", ["codex"], {
+      reject: false,
+      timeout: 3_000,
+      stdin: "ignore",
+    });
+    if (whichResult.exitCode === 0 && whichResult.stdout.trim().length > 0) {
+      return { available: true, version: undefined };
+    }
+  } catch {
+    // which also failed
+  }
+  return { available: false, error: "codex is not installed or not in PATH." };
+}
+
 async function estimateContextTokens(targetFiles: string[]): Promise<number> {
   let totalBytes = 0;
   for (const filePath of targetFiles) {
@@ -316,7 +336,11 @@ export class CodexAdapter implements AgentProvider {
 
   public async checkAvailability(): Promise<AgentAvailability> {
     try {
-      const result = await execa("codex", ["--version"], { reject: false });
+      const result = await execa("codex", ["--version"], {
+        reject: false,
+        timeout: 5_000,
+        stdin: "ignore",
+      });
       if (result.exitCode === 0) {
         const versionLine = result.stdout.trim().split("\n")[0] ?? "";
         return {
@@ -325,19 +349,12 @@ export class CodexAdapter implements AgentProvider {
         };
       }
 
-      return {
-        available: false,
-        error:
-          result.stderr.trim() ||
-          result.stdout.trim() ||
-          `codex --version exited with code ${result.exitCode}`,
-      };
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      return {
-        available: false,
-        error: message,
-      };
+      // Codex CLI v0.104+ is a TUI binary that may hang on --version.
+      // Fall back to verifying the binary exists in PATH.
+      return await codexBinaryFallback();
+    } catch {
+      // Timeout or spawn error — try binary existence check.
+      return await codexBinaryFallback();
     }
   }
 

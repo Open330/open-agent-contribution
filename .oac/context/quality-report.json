@@ -1,356 +1,1438 @@
 {
   "version": 1,
-  "generatedAt": "2026-02-17T16:17:59.730Z",
-  "repoFullName": "Open330/BurstPick",
+  "generatedAt": "2026-02-21T16:21:04.690Z",
+  "repoFullName": "Open330/open-agent-contribution",
   "findings": [
     {
-      "scannerId": "test-gap",
-      "source": "test-gap",
-      "filePath": "web/src/lib/supabase/client.ts",
+      "scannerId": "github-issue",
+      "source": "github-issue",
+      "filePath": "",
       "module": "root",
-      "title": "Add tests for client.ts",
-      "description": "Add test coverage for `web/src/lib/supabase/client.ts`, including: `createSupabaseBrowserClient`.",
-      "severity": "info",
-      "complexity": "simple",
+      "title": "A03ṣ",
+      "description": "![20260218_072208.jpg](https://github.com/user-attachments/assets/eb16c2e8-8be2-45e2-ada0-0a0db06c1879)\n\nLabels: none",
+      "severity": "warning",
+      "complexity": "moderate",
       "metadata": {
-        "scannerId": "test-gap",
-        "filePath": "web/src/lib/supabase/client.ts",
-        "lineCount": 9,
-        "fileSizeBytes": 229,
-        "complexityBucket": "small",
-        "estimatedTokens": 1500,
-        "symbols": [
-          "createSupabaseBrowserClient"
-        ]
+        "issueNumber": 19,
+        "labels": [],
+        "url": "https://github.com/Open330/open-agent-contribution/issues/19",
+        "author": "marlonjonathanalfonzoleiva7-lang",
+        "createdAt": "2026-02-18T15:23:23Z",
+        "estimatedTokens": 9000
       },
-      "discoveredAt": "2026-02-17T16:17:59.798Z"
+      "discoveredAt": "2026-02-21T16:21:05.176Z"
+    },
+    {
+      "scannerId": "github-issue",
+      "source": "github-issue",
+      "filePath": "",
+      "module": "root",
+      "title": "Add README badges for CI status, npm version, and license",
+      "description": "## Description\n\nThe project README currently lacks status badges. Add the following badges to the top of README.md:\n\n- CI status badge (GitHub Actions)\n- License badge (MIT)\n- Node.js version badge (>=22)\n- pnpm badge\n\n## Acceptance Criteria\n- Badges are displayed at the top of README.md\n- All badge links work correctly\n- Badges use shields.io format\n\n## Labels\nenhancement, good-first-issue\n\nLabels: none",
+      "severity": "warning",
+      "complexity": "moderate",
+      "metadata": {
+        "issueNumber": 2,
+        "labels": [],
+        "url": "https://github.com/Open330/open-agent-contribution/issues/2",
+        "author": "jiunbae",
+        "createdAt": "2026-02-17T07:42:43Z",
+        "estimatedTokens": 9000
+      },
+      "discoveredAt": "2026-02-21T16:21:05.176Z"
     },
     {
       "scannerId": "test-gap",
       "source": "test-gap",
-      "filePath": "web/src/lib/constants.ts",
-      "module": "root",
-      "title": "Add tests for constants.ts",
-      "description": "Add initial test coverage for `web/src/lib/constants.ts`. No named functions or classes were detected.",
+      "filePath": "src/execution/agents/agent.interface.ts",
+      "module": "execution",
+      "title": "Add tests for agent.interface.ts",
+      "description": "Add initial test coverage for `src/execution/agents/agent.interface.ts`. No named functions or classes were detected.",
       "severity": "info",
       "complexity": "moderate",
       "metadata": {
         "scannerId": "test-gap",
-        "filePath": "web/src/lib/constants.ts",
-        "lineCount": 57,
-        "fileSizeBytes": 1831,
+        "filePath": "src/execution/agents/agent.interface.ts",
+        "lineCount": 75,
+        "fileSizeBytes": 1689,
         "complexityBucket": "medium",
         "estimatedTokens": 4000,
         "symbols": []
       },
-      "discoveredAt": "2026-02-17T16:17:59.798Z"
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
     },
     {
       "scannerId": "test-gap",
       "source": "test-gap",
-      "filePath": "web/src/lib/supabase/middleware.ts",
-      "module": "root",
-      "title": "Add tests for middleware.ts",
-      "description": "Add test coverage for `web/src/lib/supabase/middleware.ts`, including: `updateSession`.",
+      "filePath": "src/cli/commands/analyze.ts",
+      "module": "cli",
+      "title": "Add tests for analyze.ts",
+      "description": "Add test coverage for `src/cli/commands/analyze.ts`, including: `buildScannerList`, `createAnalyzeCommand`, `normalizeOutputFormat`.",
       "severity": "info",
-      "complexity": "simple",
+      "complexity": "moderate",
       "metadata": {
         "scannerId": "test-gap",
-        "filePath": "web/src/lib/supabase/middleware.ts",
-        "lineCount": 33,
-        "fileSizeBytes": 925,
-        "complexityBucket": "small",
-        "estimatedTokens": 1500,
+        "filePath": "src/cli/commands/analyze.ts",
+        "lineCount": 168,
+        "fileSizeBytes": 6124,
+        "complexityBucket": "medium",
+        "estimatedTokens": 4000,
         "symbols": [
-          "updateSession"
+          "buildScannerList",
+          "createAnalyzeCommand",
+          "normalizeOutputFormat"
         ]
       },
-      "discoveredAt": "2026-02-17T16:17:59.798Z"
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
     },
     {
       "scannerId": "test-gap",
       "source": "test-gap",
-      "filePath": "web/src/middleware.ts",
-      "module": "root",
-      "title": "Add tests for middleware.ts",
-      "description": "Add test coverage for `web/src/middleware.ts`, including: `middleware`.",
+      "filePath": "src/discovery/analyzer.ts",
+      "module": "discovery",
+      "title": "Add tests for analyzer.ts",
+      "description": "Add test coverage for `src/discovery/analyzer.ts`, including: `analyzeCodebase`, `analyzeFile`, `atomicWriteJson`, `buildModuleMap`, `buildQualityReport`, `countLinesStreaming`, `deriveModuleFromPath`, `deriveSeverity`, `extractExports`, `extractImports`, `fileInfos`, `isContextStale`, `isExcludedDir`, `isExcludedFile`, `loadContext`, `persistContext`, `resolveModuleDependencies`, `runScanners`, `taskToRawFinding`, `walk`, `walkSourceFiles`.",
+      "severity": "info",
+      "complexity": "complex",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/discovery/analyzer.ts",
+        "lineCount": 573,
+        "fileSizeBytes": 19199,
+        "complexityBucket": "large",
+        "estimatedTokens": 8000,
+        "symbols": [
+          "analyzeCodebase",
+          "analyzeFile",
+          "atomicWriteJson",
+          "buildModuleMap",
+          "buildQualityReport",
+          "countLinesStreaming",
+          "deriveModuleFromPath",
+          "deriveSeverity",
+          "extractExports",
+          "extractImports",
+          "fileInfos",
+          "isContextStale",
+          "isExcludedDir",
+          "isExcludedFile",
+          "loadContext",
+          "persistContext",
+          "resolveModuleDependencies",
+          "runScanners",
+          "taskToRawFinding",
+          "walk",
+          "walkSourceFiles"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/discovery/backlog.ts",
+      "module": "discovery",
+      "title": "Add tests for backlog.ts",
+      "description": "Add test coverage for `src/discovery/backlog.ts`, including: `createBacklog`, `getPendingEpics`, `loadBacklog`, `persistBacklog`, `updateBacklog`.",
+      "severity": "info",
+      "complexity": "moderate",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/discovery/backlog.ts",
+        "lineCount": 122,
+        "fileSizeBytes": 3319,
+        "complexityBucket": "medium",
+        "estimatedTokens": 4000,
+        "symbols": [
+          "createBacklog",
+          "getPendingEpics",
+          "loadBacklog",
+          "persistBacklog",
+          "updateBacklog"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/execution/agents/claude-code.adapter.ts",
+      "module": "execution",
+      "title": "Add tests for claude-code.adapter.ts",
+      "description": "Add test coverage for `src/execution/agents/claude-code.adapter.ts`, including: `buildFailureMessage`, `ClaudeCodeAdapter`, `computeTotalTokens`, `estimateTokenCount`, `hasBooleanFlag`, `normalizeExitCode`, `normalizeFileAction`, `normalizeUnknownError`, `parseErrorEvent`, `parseFileEditEvent`, `parseFileEditFromLine`, `parseFileEditFromPayload`, `parseJsonPayload`, `parseTokenEvent`, `parseTokenPatchFromLine`, `parseTokenPatchFromPayload`, `parseToolUseEvent`, `patchTokenState`.",
+      "severity": "info",
+      "complexity": "complex",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/execution/agents/claude-code.adapter.ts",
+        "lineCount": 551,
+        "fileSizeBytes": 15639,
+        "complexityBucket": "large",
+        "estimatedTokens": 8000,
+        "symbols": [
+          "buildFailureMessage",
+          "ClaudeCodeAdapter",
+          "computeTotalTokens",
+          "estimateTokenCount",
+          "hasBooleanFlag",
+          "normalizeExitCode",
+          "normalizeFileAction",
+          "normalizeUnknownError",
+          "parseErrorEvent",
+          "parseFileEditEvent",
+          "parseFileEditFromLine",
+          "parseFileEditFromPayload",
+          "parseJsonPayload",
+          "parseTokenEvent",
+          "parseTokenPatchFromLine",
+          "parseTokenPatchFromPayload",
+          "parseToolUseEvent",
+          "patchTokenState"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/budget/providers/claude-counter.ts",
+      "module": "budget",
+      "title": "Add tests for claude-counter.ts",
+      "description": "Add test coverage for `src/budget/providers/claude-counter.ts`, including: `ClaudeTokenCounter`, `getEncoder`.",
       "severity": "info",
       "complexity": "simple",
       "metadata": {
         "scannerId": "test-gap",
-        "filePath": "web/src/middleware.ts",
+        "filePath": "src/budget/providers/claude-counter.ts",
         "lineCount": 31,
-        "fileSizeBytes": 885,
+        "fileSizeBytes": 774,
         "complexityBucket": "small",
         "estimatedTokens": 1500,
         "symbols": [
-          "middleware"
+          "ClaudeTokenCounter",
+          "getEncoder"
         ]
       },
-      "discoveredAt": "2026-02-17T16:17:59.798Z"
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
     },
     {
       "scannerId": "test-gap",
       "source": "test-gap",
-      "filePath": "web/src/i18n/request.ts",
-      "module": "root",
-      "title": "Add tests for request.ts",
-      "description": "Add initial test coverage for `web/src/i18n/request.ts`. No named functions or classes were detected.",
-      "severity": "info",
-      "complexity": "simple",
-      "metadata": {
-        "scannerId": "test-gap",
-        "filePath": "web/src/i18n/request.ts",
-        "lineCount": 14,
-        "fileSizeBytes": 402,
-        "complexityBucket": "small",
-        "estimatedTokens": 1500,
-        "symbols": []
-      },
-      "discoveredAt": "2026-02-17T16:17:59.798Z"
-    },
-    {
-      "scannerId": "test-gap",
-      "source": "test-gap",
-      "filePath": "web/src/app/robots.ts",
-      "module": "root",
-      "title": "Add tests for robots.ts",
-      "description": "Add test coverage for `web/src/app/robots.ts`, including: `robots`.",
-      "severity": "info",
-      "complexity": "simple",
-      "metadata": {
-        "scannerId": "test-gap",
-        "filePath": "web/src/app/robots.ts",
-        "lineCount": 12,
-        "fileSizeBytes": 229,
-        "complexityBucket": "small",
-        "estimatedTokens": 1500,
-        "symbols": [
-          "robots"
-        ]
-      },
-      "discoveredAt": "2026-02-17T16:17:59.798Z"
-    },
-    {
-      "scannerId": "test-gap",
-      "source": "test-gap",
-      "filePath": "web/src/app/api/auth/device/authorize/route.ts",
-      "module": "root",
-      "title": "Add tests for route.ts",
-      "description": "Add test coverage for `web/src/app/api/auth/device/authorize/route.ts`, including: `POST`.",
-      "severity": "info",
-      "complexity": "simple",
-      "metadata": {
-        "scannerId": "test-gap",
-        "filePath": "web/src/app/api/auth/device/authorize/route.ts",
-        "lineCount": 35,
-        "fileSizeBytes": 1127,
-        "complexityBucket": "small",
-        "estimatedTokens": 1500,
-        "symbols": [
-          "POST"
-        ]
-      },
-      "discoveredAt": "2026-02-17T16:17:59.798Z"
-    },
-    {
-      "scannerId": "test-gap",
-      "source": "test-gap",
-      "filePath": "web/src/app/api/auth/me/route.ts",
-      "module": "root",
-      "title": "Add tests for route.ts",
-      "description": "Add test coverage for `web/src/app/api/auth/me/route.ts`, including: `GET`.",
-      "severity": "info",
-      "complexity": "simple",
-      "metadata": {
-        "scannerId": "test-gap",
-        "filePath": "web/src/app/api/auth/me/route.ts",
-        "lineCount": 42,
-        "fileSizeBytes": 1344,
-        "complexityBucket": "small",
-        "estimatedTokens": 1500,
-        "symbols": [
-          "GET"
-        ]
-      },
-      "discoveredAt": "2026-02-17T16:17:59.798Z"
-    },
-    {
-      "scannerId": "test-gap",
-      "source": "test-gap",
-      "filePath": "web/src/app/api/auth/token/exchange/route.ts",
-      "module": "root",
-      "title": "Add tests for route.ts",
-      "description": "Add test coverage for `web/src/app/api/auth/token/exchange/route.ts`, including: `POST`.",
+      "filePath": "src/budget/providers/codex-counter.ts",
+      "module": "budget",
+      "title": "Add tests for codex-counter.ts",
+      "description": "Add test coverage for `src/budget/providers/codex-counter.ts`, including: `CodexTokenCounter`, `getEncoder`.",
       "severity": "info",
       "complexity": "moderate",
       "metadata": {
         "scannerId": "test-gap",
-        "filePath": "web/src/app/api/auth/token/exchange/route.ts",
-        "lineCount": 79,
-        "fileSizeBytes": 2564,
+        "filePath": "src/budget/providers/codex-counter.ts",
+        "lineCount": 51,
+        "fileSizeBytes": 1260,
         "complexityBucket": "medium",
         "estimatedTokens": 4000,
         "symbols": [
-          "POST"
+          "CodexTokenCounter",
+          "getEncoder"
         ]
       },
-      "discoveredAt": "2026-02-17T16:17:59.798Z"
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
     },
     {
       "scannerId": "test-gap",
       "source": "test-gap",
-      "filePath": "web/src/app/api/auth/token/refresh/route.ts",
-      "module": "root",
-      "title": "Add tests for route.ts",
-      "description": "Add test coverage for `web/src/app/api/auth/token/refresh/route.ts`, including: `POST`.",
+      "filePath": "src/execution/agents/codex.adapter.ts",
+      "module": "execution",
+      "title": "Add tests for codex.adapter.ts",
+      "description": "Add test coverage for `src/execution/agents/codex.adapter.ts`, including: `buildFailureMessage`, `CodexAdapter`, `computeTotalTokens`, `estimateContextTokens`, `estimateTokenCount`, `hasBooleanFlag`, `normalizeExitCode`, `normalizeFileAction`, `normalizeUnknownError`, `parseErrorFromPayload`, `parseFileEditFromPayload`, `parseJsonPayload`, `parseTokenEvent`, `parseTokenPatchFromPayload`, `parseToolUseFromPayload`, `parseVersion`, `patchTokenState`.",
+      "severity": "info",
+      "complexity": "complex",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/execution/agents/codex.adapter.ts",
+        "lineCount": 542,
+        "fileSizeBytes": 15142,
+        "complexityBucket": "large",
+        "estimatedTokens": 8000,
+        "symbols": [
+          "buildFailureMessage",
+          "CodexAdapter",
+          "computeTotalTokens",
+          "estimateContextTokens",
+          "estimateTokenCount",
+          "hasBooleanFlag",
+          "normalizeExitCode",
+          "normalizeFileAction",
+          "normalizeUnknownError",
+          "parseErrorFromPayload",
+          "parseFileEditFromPayload",
+          "parseJsonPayload",
+          "parseTokenEvent",
+          "parseTokenPatchFromPayload",
+          "parseToolUseFromPayload",
+          "parseVersion",
+          "patchTokenState"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/cli/commands/completion.ts",
+      "module": "cli",
+      "title": "Add tests for completion.ts",
+      "description": "Add test coverage for `src/cli/commands/completion.ts`, including: `createCompletionCommand`, `generateBash`, `generateFish`, `generateZsh`.",
       "severity": "info",
       "complexity": "moderate",
       "metadata": {
         "scannerId": "test-gap",
-        "filePath": "web/src/app/api/auth/token/refresh/route.ts",
+        "filePath": "src/cli/commands/completion.ts",
+        "lineCount": 147,
+        "fileSizeBytes": 3670,
+        "complexityBucket": "medium",
+        "estimatedTokens": 4000,
+        "symbols": [
+          "createCompletionCommand",
+          "generateBash",
+          "generateFish",
+          "generateZsh"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/discovery/context-types.ts",
+      "module": "discovery",
+      "title": "Add tests for context-types.ts",
+      "description": "Add initial test coverage for `src/discovery/context-types.ts`. No named functions or classes were detected.",
+      "severity": "info",
+      "complexity": "moderate",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/discovery/context-types.ts",
+        "lineCount": 61,
+        "fileSizeBytes": 1698,
+        "complexityBucket": "medium",
+        "estimatedTokens": 4000,
+        "symbols": []
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/cli/commands/doctor.ts",
+      "module": "cli",
+      "title": "Add tests for doctor.ts",
+      "description": "Add test coverage for `src/cli/commands/doctor.ts`, including: `checkGithubAuth`, `createDoctorCommand`, `explainCommandFailure`, `extractVersion`, `isVersionAtLeast`, `maskToken`, `renderDoctorOutput`, `runCommand`, `runDoctorChecks`.",
+      "severity": "info",
+      "complexity": "complex",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/cli/commands/doctor.ts",
+        "lineCount": 279,
+        "fileSizeBytes": 7566,
+        "complexityBucket": "large",
+        "estimatedTokens": 8000,
+        "symbols": [
+          "checkGithubAuth",
+          "createDoctorCommand",
+          "explainCommandFailure",
+          "extractVersion",
+          "isVersionAtLeast",
+          "maskToken",
+          "renderDoctorOutput",
+          "runCommand",
+          "runDoctorChecks"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/discovery/epic-grouper.ts",
+      "module": "discovery",
+      "title": "Add tests for epic-grouper.ts",
+      "description": "Add test coverage for `src/discovery/epic-grouper.ts`, including: `buildEpic`, `buildEpicDescription`, `buildEpicTitle`, `computeEpicComplexity`, `computeEpicPriority`, `derivePriorityFromSeverity`, `findingToTask`, `groupFindingsIntoEpics`, `resolveContextFiles`.",
+      "severity": "info",
+      "complexity": "complex",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/discovery/epic-grouper.ts",
+        "lineCount": 235,
+        "fileSizeBytes": 8300,
+        "complexityBucket": "large",
+        "estimatedTokens": 8000,
+        "symbols": [
+          "buildEpic",
+          "buildEpicDescription",
+          "buildEpicTitle",
+          "computeEpicComplexity",
+          "computeEpicPriority",
+          "derivePriorityFromSeverity",
+          "findingToTask",
+          "groupFindingsIntoEpics",
+          "resolveContextFiles"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/cli/commands/run/epic.ts",
+      "module": "cli",
+      "title": "Add tests for epic.ts",
+      "description": "Add test coverage for `src/cli/commands/run/epic.ts`, including: `buildScannerList`, `executeEpicEntry`, `makeStubEstimate`, `printEpicDryRun`, `printEpicSummary`, `renderEpicPlanTable`, `runEpicPipeline`, `tryLoadOrAnalyzeEpics`.",
+      "severity": "info",
+      "complexity": "complex",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/cli/commands/run/epic.ts",
+        "lineCount": 406,
+        "fileSizeBytes": 12541,
+        "complexityBucket": "large",
+        "estimatedTokens": 8000,
+        "symbols": [
+          "buildScannerList",
+          "executeEpicEntry",
+          "makeStubEstimate",
+          "printEpicDryRun",
+          "printEpicSummary",
+          "renderEpicPlanTable",
+          "runEpicPipeline",
+          "tryLoadOrAnalyzeEpics"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/cli/commands/explain.ts",
+      "module": "cli",
+      "title": "Add tests for explain.ts",
+      "description": "Add test coverage for `src/cli/commands/explain.ts`, including: `colorSeverity`, `createExplainCommand`, `printAvailableIds`.",
+      "severity": "info",
+      "complexity": "moderate",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/cli/commands/explain.ts",
+        "lineCount": 159,
+        "fileSizeBytes": 5662,
+        "complexityBucket": "medium",
+        "estimatedTokens": 4000,
+        "symbols": [
+          "colorSeverity",
+          "createExplainCommand",
+          "printAvailableIds"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/cli/github-auth.ts",
+      "module": "cli",
+      "title": "Add tests for github-auth.ts",
+      "description": "Add test coverage for `src/cli/github-auth.ts`, including: `checkGitHubScopes`, `ensureGitHubAuth`.",
+      "severity": "info",
+      "complexity": "moderate",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/cli/github-auth.ts",
         "lineCount": 73,
-        "fileSizeBytes": 2411,
+        "fileSizeBytes": 2257,
         "complexityBucket": "medium",
         "estimatedTokens": 4000,
         "symbols": [
-          "POST"
+          "checkGitHubScopes",
+          "ensureGitHubAuth"
         ]
       },
-      "discoveredAt": "2026-02-17T16:17:59.798Z"
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
     },
     {
       "scannerId": "test-gap",
       "source": "test-gap",
-      "filePath": "web/src/app/api/auth/token/revoke/route.ts",
-      "module": "root",
-      "title": "Add tests for route.ts",
-      "description": "Add test coverage for `web/src/app/api/auth/token/revoke/route.ts`, including: `POST`.",
+      "filePath": "src/discovery/scanners/github-issues-scanner.ts",
+      "module": "discovery",
+      "title": "Add tests for github-issues-scanner.ts",
+      "description": "Add test coverage for `src/discovery/scanners/github-issues-scanner.ts`, including: `asNumber`, `asString`, `extractClaimedIssueNumbers`, `extractRemoteUrl`, `fetchOacClaimedIssueNumbers`, `fetchOpenIssues`, `GitHubIssuesScanner`, `isGitHubHost`, `mapComplexityFromLabels`, `mapIssueToTask`, `normalizeLabels`, `parseGitDirPointer`, `parseGitHubRemoteUrl`, `parseRepoFromGitConfig`, `readAuthor`, `readGitConfig`, `resolveRepoCoordinates`, `stripGitSuffix`, `toIssueResponse`.",
       "severity": "info",
-      "complexity": "simple",
+      "complexity": "complex",
       "metadata": {
         "scannerId": "test-gap",
-        "filePath": "web/src/app/api/auth/token/revoke/route.ts",
-        "lineCount": 26,
-        "fileSizeBytes": 916,
-        "complexityBucket": "small",
-        "estimatedTokens": 1500,
+        "filePath": "src/discovery/scanners/github-issues-scanner.ts",
+        "lineCount": 456,
+        "fileSizeBytes": 11475,
+        "complexityBucket": "large",
+        "estimatedTokens": 8000,
         "symbols": [
-          "POST"
+          "asNumber",
+          "asString",
+          "extractClaimedIssueNumbers",
+          "extractRemoteUrl",
+          "fetchOacClaimedIssueNumbers",
+          "fetchOpenIssues",
+          "GitHubIssuesScanner",
+          "isGitHubHost",
+          "mapComplexityFromLabels",
+          "mapIssueToTask",
+          "normalizeLabels",
+          "parseGitDirPointer",
+          "parseGitHubRemoteUrl",
+          "parseRepoFromGitConfig",
+          "readAuthor",
+          "readGitConfig",
+          "resolveRepoCoordinates",
+          "stripGitSuffix",
+          "toIssueResponse"
         ]
       },
-      "discoveredAt": "2026-02-17T16:17:59.798Z"
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
     },
     {
       "scannerId": "test-gap",
       "source": "test-gap",
-      "filePath": "web/src/i18n/routing.ts",
-      "module": "root",
-      "title": "Add tests for routing.ts",
-      "description": "Add initial test coverage for `web/src/i18n/routing.ts`. No named functions or classes were detected.",
+      "filePath": "src/completion/github-pr.ts",
+      "module": "completion",
+      "title": "Add tests for github-pr.ts",
+      "description": "Add test coverage for `src/completion/github-pr.ts`, including: `addLabels`, `buildPrBody`, `createPR`, `formatDurationSeconds`, `pushBranch`, `readMetadataString`, `readRemoteBranchSha`, `renderFilesPreview`, `resolveAgentLabel`, `resolveDiffStats`, `resolveGitPath`.",
+      "severity": "info",
+      "complexity": "complex",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/completion/github-pr.ts",
+        "lineCount": 240,
+        "fileSizeBytes": 6480,
+        "complexityBucket": "large",
+        "estimatedTokens": 8000,
+        "symbols": [
+          "addLabels",
+          "buildPrBody",
+          "createPR",
+          "formatDurationSeconds",
+          "pushBranch",
+          "readMetadataString",
+          "readRemoteBranchSha",
+          "renderFilesPreview",
+          "resolveAgentLabel",
+          "resolveDiffStats",
+          "resolveGitPath"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/cli/helpers.ts",
+      "module": "cli",
+      "title": "Add tests for helpers.ts",
+      "description": "Add test coverage for `src/cli/helpers.ts`, including: `createSpinner`, `createUi`, `estimateTaskMap`, `formatInteger`, `getGlobalOptions`, `loadOptionalConfig`, `parseInteger`, `resolveBudget`, `resolveProviderId`, `resolveRepoInput`.",
+      "severity": "info",
+      "complexity": "moderate",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/cli/helpers.ts",
+        "lineCount": 158,
+        "fileSizeBytes": 4984,
+        "complexityBucket": "medium",
+        "estimatedTokens": 4000,
+        "symbols": [
+          "createSpinner",
+          "createUi",
+          "estimateTaskMap",
+          "formatInteger",
+          "getGlobalOptions",
+          "loadOptionalConfig",
+          "parseInteger",
+          "resolveBudget",
+          "resolveProviderId",
+          "resolveRepoInput"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/cli/commands/init.ts",
+      "module": "cli",
+      "title": "Add tests for init.ts",
+      "description": "Add test coverage for `src/cli/commands/init.ts`, including: `buildConfigFile`, `createInitCommand`, `ensureGitignoreEntry`, `isValidRepoInput`, `normalizeRepoInput`, `pathExists`, `runInteractiveInit`, `runMinimalInit`, `stripGitSuffix`.",
+      "severity": "info",
+      "complexity": "complex",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/cli/commands/init.ts",
+        "lineCount": 327,
+        "fileSizeBytes": 8759,
+        "complexityBucket": "large",
+        "estimatedTokens": 8000,
+        "symbols": [
+          "buildConfigFile",
+          "createInitCommand",
+          "ensureGitignoreEntry",
+          "isValidRepoInput",
+          "normalizeRepoInput",
+          "pathExists",
+          "runInteractiveInit",
+          "runMinimalInit",
+          "stripGitSuffix"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/cli/commands/leaderboard.ts",
+      "module": "cli",
+      "title": "Add tests for leaderboard.ts",
+      "description": "Add test coverage for `src/cli/commands/leaderboard.ts`, including: `buildEntriesFromLogs`, `createLeaderboardCommand`, `isFileNotFoundError`, `loadLeaderboardEntries`, `normalizeSortField`, `parseStoredLeaderboardEntries`, `readContributionLogs`, `sortEntries`, `sortValue`.",
+      "severity": "info",
+      "complexity": "complex",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/cli/commands/leaderboard.ts",
+        "lineCount": 275,
+        "fileSizeBytes": 7628,
+        "complexityBucket": "large",
+        "estimatedTokens": 8000,
+        "symbols": [
+          "buildEntriesFromLogs",
+          "createLeaderboardCommand",
+          "isFileNotFoundError",
+          "loadLeaderboardEntries",
+          "normalizeSortField",
+          "parseStoredLeaderboardEntries",
+          "readContributionLogs",
+          "sortEntries",
+          "sortValue"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/tracking/leaderboard.ts",
+      "module": "tracking",
+      "title": "Add tests for leaderboard.ts",
+      "description": "Add test coverage for `src/tracking/leaderboard.ts`, including: `buildLeaderboard`, `createAccumulator`, `getFavoriteTaskSource`, `isFileNotFoundError`, `maxIsoTimestamp`, `minIsoTimestamp`, `readContributionLogs`, `writeFileAtomically`.",
+      "severity": "info",
+      "complexity": "complex",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/tracking/leaderboard.ts",
+        "lineCount": 269,
+        "fileSizeBytes": 8327,
+        "complexityBucket": "large",
+        "estimatedTokens": 8000,
+        "symbols": [
+          "buildLeaderboard",
+          "createAccumulator",
+          "getFavoriteTaskSource",
+          "isFileNotFoundError",
+          "maxIsoTimestamp",
+          "minIsoTimestamp",
+          "readContributionLogs",
+          "writeFileAtomically"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/discovery/scanners/lint-scanner.ts",
+      "module": "discovery",
+      "title": "Add tests for lint-scanner.ts",
+      "description": "Add test coverage for `src/discovery/scanners/lint-scanner.ts`, including: `asArray`, `asNumber`, `asString`, `buildLintCommand`, `buildLintTasks`, `collectBiomeDiagnostics`, `collectDependencyNames`, `createTaskId`, `detectLinter`, `detectPackageManager`, `extractBiomePath`, `extractBiomePosition`, `fileExists`, `hasAnyFile`, `LintScanner`, `looksLikeBiomeDiagnostic`, `normalizeBiomeSeverity`, `normalizeFilePath`, `normalizeJsonText`, `parseBiomeFindings`, `parseEslintFindings`, `parseJson`, `readPackageJson`, `runCommand`, `runLinter`, `toRecord`, `withPackageManagerRunner`.",
+      "severity": "info",
+      "complexity": "complex",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/discovery/scanners/lint-scanner.ts",
+        "lineCount": 629,
+        "fileSizeBytes": 16718,
+        "complexityBucket": "large",
+        "estimatedTokens": 8000,
+        "symbols": [
+          "asArray",
+          "asNumber",
+          "asString",
+          "buildLintCommand",
+          "buildLintTasks",
+          "collectBiomeDiagnostics",
+          "collectDependencyNames",
+          "createTaskId",
+          "detectLinter",
+          "detectPackageManager",
+          "extractBiomePath",
+          "extractBiomePosition",
+          "fileExists",
+          "hasAnyFile",
+          "LintScanner",
+          "looksLikeBiomeDiagnostic",
+          "normalizeBiomeSeverity",
+          "normalizeFilePath",
+          "normalizeJsonText",
+          "parseBiomeFindings",
+          "parseEslintFindings",
+          "parseJson",
+          "readPackageJson",
+          "runCommand",
+          "runLinter",
+          "toRecord",
+          "withPackageManagerRunner"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/cli/commands/log.ts",
+      "module": "cli",
+      "title": "Add tests for log.ts",
+      "description": "Add test coverage for `src/cli/commands/log.ts`, including: `createLogCommand`, `formatDate`, `isFileNotFoundError`, `parseSinceDate`, `readContributionLogs`, `summarizeSources`.",
+      "severity": "info",
+      "complexity": "moderate",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/cli/commands/log.ts",
+        "lineCount": 174,
+        "fileSizeBytes": 4877,
+        "complexityBucket": "medium",
+        "estimatedTokens": 4000,
+        "symbols": [
+          "createLogCommand",
+          "formatDate",
+          "isFileNotFoundError",
+          "parseSinceDate",
+          "readContributionLogs",
+          "summarizeSources"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/core/memory.ts",
+      "module": "core",
+      "title": "Add tests for memory.ts",
+      "description": "Add test coverage for `src/core/memory.ts`, including: `createMemoryMonitor`, `getMemorySnapshot`.",
+      "severity": "info",
+      "complexity": "moderate",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/core/memory.ts",
+        "lineCount": 88,
+        "fileSizeBytes": 2799,
+        "complexityBucket": "medium",
+        "estimatedTokens": 4000,
+        "symbols": [
+          "createMemoryMonitor",
+          "getMemorySnapshot"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/execution/normalize-error.ts",
+      "module": "execution",
+      "title": "Add tests for normalize-error.ts",
+      "description": "Add test coverage for `src/execution/normalize-error.ts`, including: `normalizeExecutionError`, `toErrorMessage`.",
+      "severity": "info",
+      "complexity": "moderate",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/execution/normalize-error.ts",
+        "lineCount": 85,
+        "fileSizeBytes": 2391,
+        "complexityBucket": "medium",
+        "estimatedTokens": 4000,
+        "symbols": [
+          "normalizeExecutionError",
+          "toErrorMessage"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/execution/agents/opencode.adapter.ts",
+      "module": "execution",
+      "title": "Add tests for opencode.adapter.ts",
+      "description": "Add test coverage for `src/execution/agents/opencode.adapter.ts`, including: `buildFailureMessage`, `computeTotalTokens`, `estimateContextTokens`, `estimateTokenCount`, `hasBooleanFlag`, `normalizeExitCode`, `normalizeFileAction`, `normalizeUnknownError`, `OpenCodeAdapter`, `parseErrorFromPayload`, `parseFileEditFromPayload`, `parseJsonPayload`, `parseTokenEvent`, `parseTokenPatchFromPayload`, `parseToolUseFromPayload`, `parseVersion`, `patchTokenState`.",
+      "severity": "info",
+      "complexity": "complex",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/execution/agents/opencode.adapter.ts",
+        "lineCount": 468,
+        "fileSizeBytes": 15009,
+        "complexityBucket": "large",
+        "estimatedTokens": 8000,
+        "symbols": [
+          "buildFailureMessage",
+          "computeTotalTokens",
+          "estimateContextTokens",
+          "estimateTokenCount",
+          "hasBooleanFlag",
+          "normalizeExitCode",
+          "normalizeFileAction",
+          "normalizeUnknownError",
+          "OpenCodeAdapter",
+          "parseErrorFromPayload",
+          "parseFileEditFromPayload",
+          "parseJsonPayload",
+          "parseTokenEvent",
+          "parseTokenPatchFromPayload",
+          "parseToolUseFromPayload",
+          "parseVersion",
+          "patchTokenState"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/cli/commands/run/pipeline.ts",
+      "module": "cli",
+      "title": "Add tests for pipeline.ts",
+      "description": "Add test coverage for `src/cli/commands/run/pipeline.ts`, including: `printGitHubAuthWarnings`, `printRunHeader`, `resolveConcurrency`, `resolveMode`, `resolveTimeout`, `runPipeline`, `validateRunOptions`.",
+      "severity": "info",
+      "complexity": "complex",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/cli/commands/run/pipeline.ts",
+        "lineCount": 240,
+        "fileSizeBytes": 7199,
+        "complexityBucket": "large",
+        "estimatedTokens": 8000,
+        "symbols": [
+          "printGitHubAuthWarnings",
+          "printRunHeader",
+          "resolveConcurrency",
+          "resolveMode",
+          "resolveTimeout",
+          "runPipeline",
+          "validateRunOptions"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/dashboard/pipeline.ts",
+      "module": "dashboard",
+      "title": "Add tests for pipeline.ts",
+      "description": "Add test coverage for `src/dashboard/pipeline.ts`, including: `buildScanners`, `commitSandboxChanges`, `createPullRequest`, `emit`, `executePipeline`, `executeWithCodex`, `resolveGitHubToken`, `resolveGithubUsername`.",
+      "severity": "info",
+      "complexity": "complex",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/dashboard/pipeline.ts",
+        "lineCount": 595,
+        "fileSizeBytes": 18061,
+        "complexityBucket": "large",
+        "estimatedTokens": 8000,
+        "symbols": [
+          "buildScanners",
+          "commitSandboxChanges",
+          "createPullRequest",
+          "emit",
+          "executePipeline",
+          "executeWithCodex",
+          "resolveGitHubToken",
+          "resolveGithubUsername"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/cli/commands/plan.ts",
+      "module": "cli",
+      "title": "Add tests for plan.ts",
+      "description": "Add test coverage for `src/cli/commands/plan.ts`, including: `createPlanCommand`, `renderPlan`, `selectScannersFromConfig`.",
+      "severity": "info",
+      "complexity": "complex",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/cli/commands/plan.ts",
+        "lineCount": 216,
+        "fileSizeBytes": 6416,
+        "complexityBucket": "large",
+        "estimatedTokens": 8000,
+        "symbols": [
+          "createPlanCommand",
+          "renderPlan",
+          "selectScannersFromConfig"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/cli/commands/run/pr.ts",
+      "module": "cli",
+      "title": "Add tests for pr.ts",
+      "description": "Add test coverage for `src/cli/commands/run/pr.ts`, including: `createPullRequest`, `findExistingOacPR`.",
+      "severity": "info",
+      "complexity": "moderate",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/cli/commands/run/pr.ts",
+        "lineCount": 183,
+        "fileSizeBytes": 5167,
+        "complexityBucket": "medium",
+        "estimatedTokens": 4000,
+        "symbols": [
+          "createPullRequest",
+          "findExistingOacPR"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/execution/agents/registry.ts",
+      "module": "execution",
+      "title": "Add tests for registry.ts",
+      "description": "Add test coverage for `src/execution/agents/registry.ts`, including: `AdapterRegistry`.",
+      "severity": "info",
+      "complexity": "moderate",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/execution/agents/registry.ts",
+        "lineCount": 66,
+        "fileSizeBytes": 2315,
+        "complexityBucket": "medium",
+        "estimatedTokens": 4000,
+        "symbols": [
+          "AdapterRegistry"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/cli/commands/run/retry.ts",
+      "module": "cli",
+      "title": "Add tests for retry.ts",
+      "description": "Add test coverage for `src/cli/commands/run/retry.ts`, including: `readMostRecentContributionLog`, `runRetryPipeline`, `taskFromContributionEntry`.",
+      "severity": "info",
+      "complexity": "moderate",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/cli/commands/run/retry.ts",
+        "lineCount": 145,
+        "fileSizeBytes": 4268,
+        "complexityBucket": "medium",
+        "estimatedTokens": 4000,
+        "symbols": [
+          "readMostRecentContributionLog",
+          "runRetryPipeline",
+          "taskFromContributionEntry"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/execution/sandbox.ts",
+      "module": "execution",
+      "title": "Add tests for sandbox.ts",
+      "description": "Add test coverage for `src/execution/sandbox.ts`, including: `createSandbox`, `getWorktreePath`.",
+      "severity": "info",
+      "complexity": "moderate",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/execution/sandbox.ts",
+        "lineCount": 86,
+        "fileSizeBytes": 2335,
+        "complexityBucket": "medium",
+        "estimatedTokens": 4000,
+        "symbols": [
+          "createSandbox",
+          "getWorktreePath"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/cli/commands/scan.ts",
+      "module": "cli",
+      "title": "Add tests for scan.ts",
+      "description": "Add test coverage for `src/cli/commands/scan.ts`, including: `createScanCommand`, `normalizeOutputFormat`, `parseCsv`, `scannersFromConfig`, `selectScanners`.",
+      "severity": "info",
+      "complexity": "complex",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/cli/commands/scan.ts",
+        "lineCount": 258,
+        "fileSizeBytes": 7499,
+        "complexityBucket": "large",
+        "estimatedTokens": 8000,
+        "symbols": [
+          "createScanCommand",
+          "normalizeOutputFormat",
+          "parseCsv",
+          "scannersFromConfig",
+          "selectScanners"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/discovery/scanner-factory.ts",
+      "module": "discovery",
+      "title": "Add tests for scanner-factory.ts",
+      "description": "Add test coverage for `src/discovery/scanner-factory.ts`, including: `buildScanners`, `instantiateScanner`.",
+      "severity": "info",
+      "complexity": "moderate",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/discovery/scanner-factory.ts",
+        "lineCount": 61,
+        "fileSizeBytes": 1868,
+        "complexityBucket": "medium",
+        "estimatedTokens": 4000,
+        "symbols": [
+          "buildScanners",
+          "instantiateScanner"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/dashboard/server.ts",
+      "module": "dashboard",
+      "title": "Add tests for server.ts",
+      "description": "Add test coverage for `src/dashboard/server.ts`, including: `broadcastEvent`, `createDashboardServer`, `readContributionLogs`, `readRunStatus`, `sendEvent`, `startDashboard`.",
+      "severity": "info",
+      "complexity": "complex",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/dashboard/server.ts",
+        "lineCount": 274,
+        "fileSizeBytes": 8193,
+        "complexityBucket": "large",
+        "estimatedTokens": 8000,
+        "symbols": [
+          "broadcastEvent",
+          "createDashboardServer",
+          "readContributionLogs",
+          "readRunStatus",
+          "sendEvent",
+          "startDashboard"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/execution/agents/shared.ts",
+      "module": "execution",
+      "title": "Add tests for shared.ts",
+      "description": "Add test coverage for `src/execution/agents/shared.ts`, including: `AsyncEventQueue`, `readNumber`, `readString`.",
+      "severity": "info",
+      "complexity": "moderate",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/execution/agents/shared.ts",
+        "lineCount": 113,
+        "fileSizeBytes": 2856,
+        "complexityBucket": "medium",
+        "estimatedTokens": 4000,
+        "symbols": [
+          "AsyncEventQueue",
+          "readNumber",
+          "readString"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/cli/commands/status.ts",
+      "module": "cli",
+      "title": "Add tests for status.ts",
+      "description": "Add test coverage for `src/cli/commands/status.ts`, including: `createStatusCommand`, `formatTaskList`, `isFileNotFoundError`, `parseRunStatus`, `parseRunStatusTask`, `readRunStatus`, `renderStatusOutput`.",
+      "severity": "info",
+      "complexity": "complex",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/cli/commands/status.ts",
+        "lineCount": 236,
+        "fileSizeBytes": 5696,
+        "complexityBucket": "large",
+        "estimatedTokens": 8000,
+        "symbols": [
+          "createStatusCommand",
+          "formatTaskList",
+          "isFileNotFoundError",
+          "parseRunStatus",
+          "parseRunStatusTask",
+          "readRunStatus",
+          "renderStatusOutput"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/cli/commands/run/task.ts",
+      "module": "cli",
+      "title": "Add tests for task.ts",
+      "description": "Add test coverage for `src/cli/commands/run/task.ts`, including: `commitSandboxChanges`, `discoverTasks`, `executePlan`, `executeWithAgent`, `printDryRunSummary`, `printEmptySummary`, `printFinalSummary`, `renderDryRunDiff`, `renderSelectedPlanTable`, `renderTaskResults`, `resolveAdapter`, `selectScannersFromConfig`.",
+      "severity": "info",
+      "complexity": "complex",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/cli/commands/run/task.ts",
+        "lineCount": 555,
+        "fileSizeBytes": 17743,
+        "complexityBucket": "large",
+        "estimatedTokens": 8000,
+        "symbols": [
+          "commitSandboxChanges",
+          "discoverTasks",
+          "executePlan",
+          "executeWithAgent",
+          "printDryRunSummary",
+          "printEmptySummary",
+          "printFinalSummary",
+          "renderDryRunDiff",
+          "renderSelectedPlanTable",
+          "renderTaskResults",
+          "resolveAdapter",
+          "selectScannersFromConfig"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/discovery/scanners/test-gap-scanner.ts",
+      "module": "discovery",
+      "title": "Add tests for test-gap-scanner.ts",
+      "description": "Add test coverage for `src/discovery/scanners/test-gap-scanner.ts`, including: `buildCoveredSourceKeySet`, `buildDescription`, `collectCandidateFiles`, `compileGlobMatcher`, `countLines`, `createTaskId`, `deriveCandidateSourceKeysFromTest`, `estimateTokens`, `extractSymbols`, `isSourceFile`, `isTestFile`, `mergeExcludes`, `normalizeRelativePath`, `TestGapScanner`, `toComplexityBucket`, `toSourceKey`, `toTaskComplexity`, `walk`.",
+      "severity": "info",
+      "complexity": "complex",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/discovery/scanners/test-gap-scanner.ts",
+        "lineCount": 323,
+        "fileSizeBytes": 9262,
+        "complexityBucket": "large",
+        "estimatedTokens": 8000,
+        "symbols": [
+          "buildCoveredSourceKeySet",
+          "buildDescription",
+          "collectCandidateFiles",
+          "compileGlobMatcher",
+          "countLines",
+          "createTaskId",
+          "deriveCandidateSourceKeysFromTest",
+          "estimateTokens",
+          "extractSymbols",
+          "isSourceFile",
+          "isTestFile",
+          "mergeExcludes",
+          "normalizeRelativePath",
+          "TestGapScanner",
+          "toComplexityBucket",
+          "toSourceKey",
+          "toTaskComplexity",
+          "walk"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/discovery/scanners/todo-scanner.ts",
+      "module": "discovery",
+      "title": "Add tests for todo-scanner.ts",
+      "description": "Add test coverage for `src/discovery/scanners/todo-scanner.ts`, including: `asArray`, `asNumber`, `asString`, `buildTodoTask`, `collectFiles`, `compileGlobMatcher`, `createTaskId`, `extractTodoKeyword`, `findNearestFunctionName`, `findTodoMatchesWithFsFallback`, `findTodoMatchesWithRipgrep`, `getFileLines`, `groupTodoMatches`, `isCommandNotFound`, `isMultiLineTodo`, `mergeExcludes`, `normalizeRelativePath`, `parseRipgrepJson`, `runCommand`, `sanitizeLine`, `TodoScanner`, `toRecord`, `toRgExclude`, `walk`.",
+      "severity": "info",
+      "complexity": "complex",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/discovery/scanners/todo-scanner.ts",
+        "lineCount": 572,
+        "fileSizeBytes": 15504,
+        "complexityBucket": "large",
+        "estimatedTokens": 8000,
+        "symbols": [
+          "asArray",
+          "asNumber",
+          "asString",
+          "buildTodoTask",
+          "collectFiles",
+          "compileGlobMatcher",
+          "createTaskId",
+          "extractTodoKeyword",
+          "findNearestFunctionName",
+          "findTodoMatchesWithFsFallback",
+          "findTodoMatchesWithRipgrep",
+          "getFileLines",
+          "groupTodoMatches",
+          "isCommandNotFound",
+          "isMultiLineTodo",
+          "mergeExcludes",
+          "normalizeRelativePath",
+          "parseRipgrepJson",
+          "runCommand",
+          "sanitizeLine",
+          "TodoScanner",
+          "toRecord",
+          "toRgExclude",
+          "walk"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/cli/commands/run/tracking.ts",
+      "module": "cli",
+      "title": "Add tests for tracking.ts",
+      "description": "Add test coverage for `src/cli/commands/run/tracking.ts`, including: `buildContributionLog`, `deriveTaskStatus`, `resolveGithubUsername`, `sanitizeGithubUsername`, `writeTracking`.",
+      "severity": "info",
+      "complexity": "moderate",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/cli/commands/run/tracking.ts",
+        "lineCount": 176,
+        "fileSizeBytes": 5151,
+        "complexityBucket": "medium",
+        "estimatedTokens": 4000,
+        "symbols": [
+          "buildContributionLog",
+          "deriveTaskStatus",
+          "resolveGithubUsername",
+          "sanitizeGithubUsername",
+          "writeTracking"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/cli/commands/run/types.ts",
+      "module": "cli",
+      "title": "Add tests for types.ts",
+      "description": "Add test coverage for `src/cli/commands/run/types.ts`, including: `ConfigError`, `formatBudgetDisplay`, `formatDuration`, `resolveExitCode`.",
+      "severity": "info",
+      "complexity": "moderate",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/cli/commands/run/types.ts",
+        "lineCount": 137,
+        "fileSizeBytes": 4020,
+        "complexityBucket": "medium",
+        "estimatedTokens": 4000,
+        "symbols": [
+          "ConfigError",
+          "formatBudgetDisplay",
+          "formatDuration",
+          "resolveExitCode"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/completion/types.ts",
+      "module": "completion",
+      "title": "Add tests for types.ts",
+      "description": "Add initial test coverage for `src/completion/types.ts`. No named functions or classes were detected.",
       "severity": "info",
       "complexity": "simple",
       "metadata": {
         "scannerId": "test-gap",
-        "filePath": "web/src/i18n/routing.ts",
-        "lineCount": 7,
-        "fileSizeBytes": 143,
+        "filePath": "src/completion/types.ts",
+        "lineCount": 40,
+        "fileSizeBytes": 942,
         "complexityBucket": "small",
         "estimatedTokens": 1500,
         "symbols": []
       },
-      "discoveredAt": "2026-02-17T16:17:59.798Z"
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
     },
     {
       "scannerId": "test-gap",
       "source": "test-gap",
-      "filePath": "web/src/lib/supabase/server.ts",
-      "module": "root",
-      "title": "Add tests for server.ts",
-      "description": "Add test coverage for `web/src/lib/supabase/server.ts`, including: `createSupabaseServerClient`.",
+      "filePath": "src/core/types.ts",
+      "module": "core",
+      "title": "Add tests for types.ts",
+      "description": "Add initial test coverage for `src/core/types.ts`. No named functions or classes were detected.",
       "severity": "info",
-      "complexity": "simple",
+      "complexity": "complex",
       "metadata": {
         "scannerId": "test-gap",
-        "filePath": "web/src/lib/supabase/server.ts",
-        "lineCount": 28,
-        "fileSizeBytes": 684,
-        "complexityBucket": "small",
-        "estimatedTokens": 1500,
-        "symbols": [
-          "createSupabaseServerClient"
-        ]
+        "filePath": "src/core/types.ts",
+        "lineCount": 210,
+        "fileSizeBytes": 4842,
+        "complexityBucket": "large",
+        "estimatedTokens": 8000,
+        "symbols": []
       },
-      "discoveredAt": "2026-02-17T16:17:59.798Z"
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
     },
     {
       "scannerId": "test-gap",
       "source": "test-gap",
-      "filePath": "web/src/app/sitemap.ts",
-      "module": "root",
-      "title": "Add tests for sitemap.ts",
-      "description": "Add test coverage for `web/src/app/sitemap.ts`, including: `sitemap`.",
+      "filePath": "src/discovery/types.ts",
+      "module": "discovery",
+      "title": "Add tests for types.ts",
+      "description": "Add initial test coverage for `src/discovery/types.ts`. No named functions or classes were detected.",
+      "severity": "info",
+      "complexity": "moderate",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/discovery/types.ts",
+        "lineCount": 88,
+        "fileSizeBytes": 2062,
+        "complexityBucket": "medium",
+        "estimatedTokens": 4000,
+        "symbols": []
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/repo/types.ts",
+      "module": "repo",
+      "title": "Add tests for types.ts",
+      "description": "Add initial test coverage for `src/repo/types.ts`. No named functions or classes were detected.",
       "severity": "info",
       "complexity": "simple",
       "metadata": {
         "scannerId": "test-gap",
-        "filePath": "web/src/app/sitemap.ts",
-        "lineCount": 15,
-        "fileSizeBytes": 783,
+        "filePath": "src/repo/types.ts",
+        "lineCount": 37,
+        "fileSizeBytes": 714,
+        "complexityBucket": "small",
+        "estimatedTokens": 1500,
+        "symbols": []
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/dashboard/ui.ts",
+      "module": "dashboard",
+      "title": "Add tests for ui.ts",
+      "description": "Add test coverage for `src/dashboard/ui.ts`, including: `addEventLine`, `addTaskResult`, `connectSSE`, `escapeHtml`, `fetchLeaderboard`, `fetchLogs`, `fetchStatus`, `formatDate`, `initStageList`, `onRunCompleted`, `onRunError`, `renderDashboardHtml`, `showProgressCard`, `startRun`, `toggleTokenInput`, `updateProgress`, `updateStage`.",
+      "severity": "info",
+      "complexity": "complex",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/dashboard/ui.ts",
+        "lineCount": 623,
+        "fileSizeBytes": 27576,
+        "complexityBucket": "large",
+        "estimatedTokens": 8000,
+        "symbols": [
+          "addEventLine",
+          "addTaskResult",
+          "connectSSE",
+          "escapeHtml",
+          "fetchLeaderboard",
+          "fetchLogs",
+          "fetchStatus",
+          "formatDate",
+          "initStageList",
+          "onRunCompleted",
+          "onRunError",
+          "renderDashboardHtml",
+          "showProgressCard",
+          "startRun",
+          "toggleTokenInput",
+          "updateProgress",
+          "updateStage"
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
+    },
+    {
+      "scannerId": "test-gap",
+      "source": "test-gap",
+      "filePath": "src/core/utils.ts",
+      "module": "core",
+      "title": "Add tests for utils.ts",
+      "description": "Add test coverage for `src/core/utils.ts`, including: `isRecord`, `truncate`.",
+      "severity": "info",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "test-gap",
+        "filePath": "src/core/utils.ts",
+        "lineCount": 29,
+        "fileSizeBytes": 733,
         "complexityBucket": "small",
         "estimatedTokens": 1500,
         "symbols": [
-          "sitemap"
+          "isRecord",
+          "truncate"
         ]
       },
-      "discoveredAt": "2026-02-17T16:17:59.798Z"
+      "discoveredAt": "2026-02-21T16:21:04.734Z"
     },
     {
       "scannerId": "todo",
       "source": "todo",
-      "filePath": "./Sources/BurstPickWin/Auth/LicenseValidator.swift",
+      "filePath": "./docs/config-reference.md",
       "module": "root",
-      "title": "Address TODO comments in ./Sources/BurstPickWin/Auth/LicenseValidator.swift:36",
-      "description": "Resolve TODO-style markers in `./Sources/BurstPickWin/Auth/LicenseValidator.swift`.\n\nMarkers discovered:\n\n- TODO at line 36: // TODO: Implement Ed25519 verification when swift-crypto is added",
-      "severity": "info",
-      "complexity": "simple",
-      "line": 36,
-      "metadata": {
-        "scannerId": "todo",
-        "filePath": "./Sources/BurstPickWin/Auth/LicenseValidator.swift",
-        "startLine": 36,
-        "endLine": 36,
-        "functionName": null,
-        "keywordSet": [
-          "TODO"
-        ],
-        "matchCount": 1,
-        "matches": [
-          {
-            "line": 36,
-            "column": 12,
-            "keyword": "TODO",
-            "text": "// TODO: Implement Ed25519 verification when swift-crypto is added"
-          }
-        ]
-      },
-      "discoveredAt": "2026-02-17T16:17:59.770Z"
-    },
-    {
-      "scannerId": "todo",
-      "source": "todo",
-      "filePath": "./Sources/BurstPickWin/UI/AppState+Catalog.swift",
-      "module": "root",
-      "title": "Address TODO comments in ./Sources/BurstPickWin/UI/AppState+Catalog.swift:244",
-      "description": "Resolve TODO-style markers in `./Sources/BurstPickWin/UI/AppState+Catalog.swift`.\n\nMarkers discovered:\n\n- TODO at line 244: // TODO: Implement ReadDirectoryChangesW-based file watching on Windows",
+      "title": "Address TODO comments in ./docs/config-reference.md:73",
+      "description": "Resolve TODO-style markers in `./docs/config-reference.md`.\n\nMarkers discovered:\n\n- TODO at line 73: | `discovery.scanners.todo` | `boolean` | `true` | Scan for TODO/FIXME/HACK comments. |",
       "severity": "info",
       "complexity": "trivial",
-      "line": 244,
+      "line": 73,
       "metadata": {
         "scannerId": "todo",
-        "filePath": "./Sources/BurstPickWin/UI/AppState+Catalog.swift",
-        "startLine": 244,
-        "endLine": 244,
+        "filePath": "./docs/config-reference.md",
+        "startLine": 73,
+        "endLine": 73,
         "functionName": null,
         "keywordSet": [
           "TODO"
@@ -358,27 +1440,2061 @@
         "matchCount": 1,
         "matches": [
           {
-            "line": 244,
-            "column": 12,
+            "line": 73,
+            "column": 61,
             "keyword": "TODO",
-            "text": "// TODO: Implement ReadDirectoryChangesW-based file watching on Windows"
+            "text": "| `discovery.scanners.todo` | `boolean` | `true` | Scan for TODO/FIXME/HACK comments. |"
           }
         ]
       },
-      "discoveredAt": "2026-02-17T16:17:59.770Z"
+      "discoveredAt": "2026-02-21T16:21:04.729Z"
+    },
+    {
+      "scannerId": "todo",
+      "source": "todo",
+      "filePath": "./README.md",
+      "module": "root",
+      "title": "Address TODO comments in ./README.md:230",
+      "description": "Resolve TODO-style markers in `./README.md`.\n\nMarkers discovered:\n\n- TODO at line 230: │ d4e5f6  │ TODO: Add input validation       │ todo   │ 72       │ simple     │",
+      "severity": "info",
+      "complexity": "trivial",
+      "line": 230,
+      "metadata": {
+        "scannerId": "todo",
+        "filePath": "./README.md",
+        "startLine": 230,
+        "endLine": 230,
+        "functionName": null,
+        "keywordSet": [
+          "TODO"
+        ],
+        "matchCount": 1,
+        "matches": [
+          {
+            "line": 230,
+            "column": 17,
+            "keyword": "TODO",
+            "text": "│ d4e5f6  │ TODO: Add input validation       │ todo   │ 72       │ simple     │"
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.729Z"
+    },
+    {
+      "scannerId": "todo",
+      "source": "todo",
+      "filePath": "./README.md",
+      "module": "root",
+      "title": "Address TODO comments in ./README.md:317",
+      "description": "Resolve TODO-style markers in `./README.md`.\n\nMarkers discovered:\n\n- TODO at line 317: | Discovery | `src/discovery/` | Codebase analyzer (streaming for large files), epic grouper, backlog, scanners (lint, TODO, test-gap, GitH…",
+      "severity": "info",
+      "complexity": "trivial",
+      "line": 317,
+      "metadata": {
+        "scannerId": "todo",
+        "filePath": "./README.md",
+        "startLine": 317,
+        "endLine": 317,
+        "functionName": null,
+        "keywordSet": [
+          "TODO"
+        ],
+        "matchCount": 1,
+        "matches": [
+          {
+            "line": 317,
+            "column": 120,
+            "keyword": "TODO",
+            "text": "| Discovery | `src/discovery/` | Codebase analyzer (streaming for large files), epic grouper, backlog, scanners (lint, TODO, test-gap, GitHub issues) |"
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.729Z"
+    },
+    {
+      "scannerId": "todo",
+      "source": "todo",
+      "filePath": "./README.md",
+      "module": "root",
+      "title": "Address TODO comments in ./README.md:389",
+      "description": "Resolve TODO-style markers in `./README.md`.\n\nMarkers discovered:\n\n- TODO at line 389: ┌─────────┐     TODO, lint, test-gap,     ┌────▼─────┐",
+      "severity": "info",
+      "complexity": "trivial",
+      "line": 389,
+      "metadata": {
+        "scannerId": "todo",
+        "filePath": "./README.md",
+        "startLine": 389,
+        "endLine": 389,
+        "functionName": null,
+        "keywordSet": [
+          "TODO"
+        ],
+        "matchCount": 1,
+        "matches": [
+          {
+            "line": 389,
+            "column": 42,
+            "keyword": "TODO",
+            "text": "┌─────────┐     TODO, lint, test-gap,     ┌────▼─────┐"
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.729Z"
+    },
+    {
+      "scannerId": "todo",
+      "source": "todo",
+      "filePath": "./README.md",
+      "module": "root",
+      "title": "Address TODO comments in ./README.md:64",
+      "description": "Resolve TODO-style markers in `./README.md`.\n\nMarkers discovered:\n\n- TODO at line 64: ✔ Address TODO comments (3/3)",
+      "severity": "info",
+      "complexity": "trivial",
+      "line": 64,
+      "metadata": {
+        "scannerId": "todo",
+        "filePath": "./README.md",
+        "startLine": 64,
+        "endLine": 64,
+        "functionName": null,
+        "keywordSet": [
+          "TODO"
+        ],
+        "matchCount": 1,
+        "matches": [
+          {
+            "line": 64,
+            "column": 15,
+            "keyword": "TODO",
+            "text": "✔ Address TODO comments (3/3)"
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.729Z"
+    },
+    {
+      "scannerId": "todo",
+      "source": "todo",
+      "filePath": "./src/discovery/epic-grouper.ts",
+      "module": "root",
+      "title": "Address TODO comments in ./src/discovery/epic-grouper.ts:126",
+      "description": "Resolve TODO-style markers in `./src/discovery/epic-grouper.ts`.\n\nNearest function context: `switch`.\n\nMarkers discovered:\n\n- TODO at line 126: return `Address TODO comments${module === \"root\" ? \"\" : ` in ${module} module`}`;",
+      "severity": "info",
+      "complexity": "trivial",
+      "line": 126,
+      "metadata": {
+        "scannerId": "todo",
+        "filePath": "./src/discovery/epic-grouper.ts",
+        "startLine": 126,
+        "endLine": 126,
+        "functionName": "switch",
+        "keywordSet": [
+          "TODO"
+        ],
+        "matchCount": 1,
+        "matches": [
+          {
+            "line": 126,
+            "column": 23,
+            "keyword": "TODO",
+            "text": "return `Address TODO comments${module === \"root\" ? \"\" : ` in ${module} module`}`;"
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.729Z"
+    },
+    {
+      "scannerId": "todo",
+      "source": "todo",
+      "filePath": "./src/discovery/scanners/todo-scanner.ts",
+      "module": "root",
+      "title": "Address TODO comments in ./src/discovery/scanners/todo-scanner.ts:11",
+      "description": "Resolve TODO-style markers in `./src/discovery/scanners/todo-scanner.ts`.\n\nMarkers discovered:\n\n- TODO at line 11: const TODO_RG_PATTERN = \"\\\\b(TODO|FIXME|HACK|XXX)\\\\b\";\n- TODO at line 12: const TODO_KEYWORD_PATTERN = /\\b(TODO|FIXME|HACK|XXX)\\b/i;\n- TODO at line 13: const TODO_TEXT_PATTERN = /\\b(TODO|FIXME|HACK|XXX)\\b[:\\s-]?(.*)$/i;",
+      "severity": "info",
+      "complexity": "simple",
+      "line": 11,
+      "metadata": {
+        "scannerId": "todo",
+        "filePath": "./src/discovery/scanners/todo-scanner.ts",
+        "startLine": 11,
+        "endLine": 13,
+        "functionName": null,
+        "keywordSet": [
+          "TODO"
+        ],
+        "matchCount": 3,
+        "matches": [
+          {
+            "line": 11,
+            "column": 30,
+            "keyword": "TODO",
+            "text": "const TODO_RG_PATTERN = \"\\\\b(TODO|FIXME|HACK|XXX)\\\\b\";"
+          },
+          {
+            "line": 12,
+            "column": 34,
+            "keyword": "TODO",
+            "text": "const TODO_KEYWORD_PATTERN = /\\b(TODO|FIXME|HACK|XXX)\\b/i;"
+          },
+          {
+            "line": 13,
+            "column": 31,
+            "keyword": "TODO",
+            "text": "const TODO_TEXT_PATTERN = /\\b(TODO|FIXME|HACK|XXX)\\b[:\\s-]?(.*)$/i;"
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.729Z"
+    },
+    {
+      "scannerId": "todo",
+      "source": "todo",
+      "filePath": "./src/discovery/scanners/todo-scanner.ts",
+      "module": "root",
+      "title": "Address TODO comments in ./src/discovery/scanners/todo-scanner.ts:119",
+      "description": "Resolve TODO-style markers in `./src/discovery/scanners/todo-scanner.ts`.\n\nNearest function context: `if`.\n\nMarkers discovered:\n\n- TODO at line 119: throw new Error(`TODO scanner timed out after ${options.timeoutMs ?? DEFAULT_TIMEOUT_MS}ms`);",
+      "severity": "info",
+      "complexity": "trivial",
+      "line": 119,
+      "metadata": {
+        "scannerId": "todo",
+        "filePath": "./src/discovery/scanners/todo-scanner.ts",
+        "startLine": 119,
+        "endLine": 119,
+        "functionName": "if",
+        "keywordSet": [
+          "TODO"
+        ],
+        "matchCount": 1,
+        "matches": [
+          {
+            "line": 119,
+            "column": 22,
+            "keyword": "TODO",
+            "text": "throw new Error(`TODO scanner timed out after ${options.timeoutMs ?? DEFAULT_TIMEOUT_MS}ms`);"
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.729Z"
+    },
+    {
+      "scannerId": "todo",
+      "source": "todo",
+      "filePath": "./src/discovery/scanners/todo-scanner.ts",
+      "module": "root",
+      "title": "Address TODO comments in ./src/discovery/scanners/todo-scanner.ts:170",
+      "description": "Resolve TODO-style markers in `./src/discovery/scanners/todo-scanner.ts`.\n\nNearest function context: `if`.\n\nMarkers discovered:\n\n- TODO at line 170: const keyword = extractTodoKeyword(text) ?? \"TODO\";",
+      "severity": "info",
+      "complexity": "trivial",
+      "line": 170,
+      "metadata": {
+        "scannerId": "todo",
+        "filePath": "./src/discovery/scanners/todo-scanner.ts",
+        "startLine": 170,
+        "endLine": 170,
+        "functionName": "if",
+        "keywordSet": [
+          "TODO"
+        ],
+        "matchCount": 1,
+        "matches": [
+          {
+            "line": 170,
+            "column": 50,
+            "keyword": "TODO",
+            "text": "const keyword = extractTodoKeyword(text) ?? \"TODO\";"
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.729Z"
+    },
+    {
+      "scannerId": "todo",
+      "source": "todo",
+      "filePath": "./src/discovery/scanners/todo-scanner.ts",
+      "module": "root",
+      "title": "Address TODO comments in ./src/discovery/scanners/todo-scanner.ts:208",
+      "description": "Resolve TODO-style markers in `./src/discovery/scanners/todo-scanner.ts`.\n\nNearest function context: `for`.\n\nMarkers discovered:\n\n- TODO at line 208: const keyword = extractTodoKeyword(lineText) ?? \"TODO\";",
+      "severity": "info",
+      "complexity": "trivial",
+      "line": 208,
+      "metadata": {
+        "scannerId": "todo",
+        "filePath": "./src/discovery/scanners/todo-scanner.ts",
+        "startLine": 208,
+        "endLine": 208,
+        "functionName": "for",
+        "keywordSet": [
+          "TODO"
+        ],
+        "matchCount": 1,
+        "matches": [
+          {
+            "line": 208,
+            "column": 56,
+            "keyword": "TODO",
+            "text": "const keyword = extractTodoKeyword(lineText) ?? \"TODO\";"
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.729Z"
+    },
+    {
+      "scannerId": "todo",
+      "source": "todo",
+      "filePath": "./src/discovery/scanners/todo-scanner.ts",
+      "module": "root",
+      "title": "Address TODO comments in ./src/discovery/scanners/todo-scanner.ts:289",
+      "description": "Resolve TODO-style markers in `./src/discovery/scanners/todo-scanner.ts`.\n\nNearest function context: `buildTodoTask`.\n\nMarkers discovered:\n\n- TODO at line 289: ? `Address TODO comments in ${cluster.filePath}:${first.line}`\n- TODO at line 290: : `Address TODO comments in ${cluster.filePath}`;\n- TODO at line 297: `Resolve TODO-style markers in \\`${cluster.filePath}\\`.`,",
+      "severity": "info",
+      "complexity": "simple",
+      "line": 289,
+      "metadata": {
+        "scannerId": "todo",
+        "filePath": "./src/discovery/scanners/todo-scanner.ts",
+        "startLine": 289,
+        "endLine": 297,
+        "functionName": "buildTodoTask",
+        "keywordSet": [
+          "TODO"
+        ],
+        "matchCount": 3,
+        "matches": [
+          {
+            "line": 289,
+            "column": 16,
+            "keyword": "TODO",
+            "text": "? `Address TODO comments in ${cluster.filePath}:${first.line}`"
+          },
+          {
+            "line": 290,
+            "column": 16,
+            "keyword": "TODO",
+            "text": ": `Address TODO comments in ${cluster.filePath}`;"
+          },
+          {
+            "line": 297,
+            "column": 14,
+            "keyword": "TODO",
+            "text": "`Resolve TODO-style markers in \\`${cluster.filePath}\\`.`,"
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.729Z"
+    },
+    {
+      "scannerId": "todo",
+      "source": "todo",
+      "filePath": "./src/discovery/scanners/todo-scanner.ts",
+      "module": "root",
+      "title": "Address TODO comments in ./src/discovery/scanners/todo-scanner.ts:53",
+      "description": "Resolve TODO-style markers in `./src/discovery/scanners/todo-scanner.ts`.\n\nMarkers discovered:\n\n- TODO at line 53: * Scanner that converts TODO-like markers into actionable tasks.\n- TODO at line 57: public readonly name = \"TODO Scanner\";",
+      "severity": "info",
+      "complexity": "simple",
+      "line": 53,
+      "metadata": {
+        "scannerId": "todo",
+        "filePath": "./src/discovery/scanners/todo-scanner.ts",
+        "startLine": 53,
+        "endLine": 57,
+        "functionName": null,
+        "keywordSet": [
+          "TODO"
+        ],
+        "matchCount": 2,
+        "matches": [
+          {
+            "line": 53,
+            "column": 26,
+            "keyword": "TODO",
+            "text": "* Scanner that converts TODO-like markers into actionable tasks."
+          },
+          {
+            "line": 57,
+            "column": 27,
+            "keyword": "TODO",
+            "text": "public readonly name = \"TODO Scanner\";"
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.729Z"
+    },
+    {
+      "scannerId": "todo",
+      "source": "todo",
+      "filePath": "./tests/discovery/ranker.test.ts",
+      "module": "root",
+      "title": "Address TODO comments in ./tests/discovery/ranker.test.ts:124",
+      "description": "Resolve TODO-style markers in `./tests/discovery/ranker.test.ts`.\n\nMarkers discovered:\n\n- TODO at line 124: it(\"applies TODO matchCount bonuses (+4 at >=4, +2 at >=2)\", () => {",
+      "severity": "info",
+      "complexity": "trivial",
+      "line": 124,
+      "metadata": {
+        "scannerId": "todo",
+        "filePath": "./tests/discovery/ranker.test.ts",
+        "startLine": 124,
+        "endLine": 124,
+        "functionName": null,
+        "keywordSet": [
+          "TODO"
+        ],
+        "matchCount": 1,
+        "matches": [
+          {
+            "line": 124,
+            "column": 15,
+            "keyword": "TODO",
+            "text": "it(\"applies TODO matchCount bonuses (+4 at >=4, +2 at >=2)\", () => {"
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.729Z"
+    },
+    {
+      "scannerId": "todo",
+      "source": "todo",
+      "filePath": "./tests/execution/codex-adapter.test.ts",
+      "module": "root",
+      "title": "Address TODO comments in ./tests/execution/codex-adapter.test.ts:247",
+      "description": "Resolve TODO-style markers in `./tests/execution/codex-adapter.test.ts`.\n\nMarkers discovered:\n\n- TODO at line 247: input: { pattern: \"TODO\" },",
+      "severity": "info",
+      "complexity": "trivial",
+      "line": 247,
+      "metadata": {
+        "scannerId": "todo",
+        "filePath": "./tests/execution/codex-adapter.test.ts",
+        "startLine": 247,
+        "endLine": 247,
+        "functionName": null,
+        "keywordSet": [
+          "TODO"
+        ],
+        "matchCount": 1,
+        "matches": [
+          {
+            "line": 247,
+            "column": 32,
+            "keyword": "TODO",
+            "text": "input: { pattern: \"TODO\" },"
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.729Z"
+    },
+    {
+      "scannerId": "todo",
+      "source": "todo",
+      "filePath": "./tests/execution/codex-adapter.test.ts",
+      "module": "root",
+      "title": "Address TODO comments in ./tests/execution/codex-adapter.test.ts:291",
+      "description": "Resolve TODO-style markers in `./tests/execution/codex-adapter.test.ts`.\n\nMarkers discovered:\n\n- TODO at line 291: input: { pattern: \"TODO\" },",
+      "severity": "info",
+      "complexity": "trivial",
+      "line": 291,
+      "metadata": {
+        "scannerId": "todo",
+        "filePath": "./tests/execution/codex-adapter.test.ts",
+        "startLine": 291,
+        "endLine": 291,
+        "functionName": null,
+        "keywordSet": [
+          "TODO"
+        ],
+        "matchCount": 1,
+        "matches": [
+          {
+            "line": 291,
+            "column": 26,
+            "keyword": "TODO",
+            "text": "input: { pattern: \"TODO\" },"
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.729Z"
+    },
+    {
+      "scannerId": "todo",
+      "source": "todo",
+      "filePath": "./tests/execution/worker.test.ts",
+      "module": "root",
+      "title": "Address TODO comments in ./tests/execution/worker.test.ts:263",
+      "description": "Resolve TODO-style markers in `./tests/execution/worker.test.ts`.\n\nMarkers discovered:\n\n- TODO at line 263: input: { pattern: \"TODO\" },",
+      "severity": "info",
+      "complexity": "trivial",
+      "line": 263,
+      "metadata": {
+        "scannerId": "todo",
+        "filePath": "./tests/execution/worker.test.ts",
+        "startLine": 263,
+        "endLine": 263,
+        "functionName": null,
+        "keywordSet": [
+          "TODO"
+        ],
+        "matchCount": 1,
+        "matches": [
+          {
+            "line": 263,
+            "column": 30,
+            "keyword": "TODO",
+            "text": "input: { pattern: \"TODO\" },"
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:04.729Z"
+    },
+    {
+      "scannerId": "github-issue",
+      "source": "github-issue",
+      "filePath": "",
+      "module": "root",
+      "title": "docs: Add contribution direction options to README.md",
+      "description": "## Summary\n\nThe README.md should include a section that describes available options and directions for project contributions that OAC can tackle.\n\n## Details\n\nCurrently the README covers installation, usage, and configuration but doesn't guide contributors on **what kinds of contributions** OAC should be directed to solve. We need a section that outlines:\n\n1. **Contribution categories** — bug fixes, feature requests, documentation improvements, refactoring, test coverage, performance optimizati…",
+      "severity": "warning",
+      "complexity": "moderate",
+      "metadata": {
+        "issueNumber": 24,
+        "labels": [
+          "documentation"
+        ],
+        "url": "https://github.com/Open330/open-agent-contribution/issues/24",
+        "author": "jiunbae",
+        "createdAt": "2026-02-21T16:19:50Z",
+        "estimatedTokens": 9000
+      },
+      "discoveredAt": "2026-02-21T16:21:05.176Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "package.json",
+      "module": "root",
+      "title": "Fix lint findings in package.json",
+      "description": "Resolve 1 lint finding(s) reported by biome in `package.json`.\n\nPrimary rules: format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "package.json",
+        "issueCount": 1,
+        "ruleIds": [
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/budget/estimator.ts",
+      "module": "budget",
+      "title": "Fix lint findings in src/budget/estimator.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `src/budget/estimator.ts`.\n\nPrimary rules: format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/budget/estimator.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/cli/cli.ts",
+      "module": "cli",
+      "title": "Fix lint findings in src/cli/cli.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `src/cli/cli.ts`.\n\nPrimary rules: lint/style/noUnusedTemplateLiteral.\n\n1 finding(s) appear auto-fixable.",
+      "severity": "warning",
+      "complexity": "trivial",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/cli/cli.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "lint/style/noUnusedTemplateLiteral"
+        ],
+        "fixableCount": 1,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "lint/style/noUnusedTemplateLiteral",
+            "message": "Do not use template literals if interpolation and special-character handling are not needed.",
+            "fixable": true,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/cli/commands/analyze.ts",
+      "module": "cli",
+      "title": "Fix lint findings in src/cli/commands/analyze.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `src/cli/commands/analyze.ts`.\n\nPrimary rules: format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/cli/commands/analyze.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/cli/commands/completion.ts",
+      "module": "cli",
+      "title": "Fix lint findings in src/cli/commands/completion.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `src/cli/commands/completion.ts`.\n\nPrimary rules: format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/cli/commands/completion.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/cli/commands/explain.ts",
+      "module": "cli",
+      "title": "Fix lint findings in src/cli/commands/explain.ts",
+      "description": "Resolve 7 lint finding(s) reported by biome in `src/cli/commands/explain.ts`.\n\nPrimary rules: lint/style/noUnusedTemplateLiteral, lint/complexity/noExcessiveCognitiveComplexity, organizeImports, format.\n\n4 finding(s) appear auto-fixable.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/cli/commands/explain.ts",
+        "issueCount": 7,
+        "ruleIds": [
+          "lint/style/noUnusedTemplateLiteral",
+          "lint/complexity/noExcessiveCognitiveComplexity",
+          "organizeImports",
+          "format"
+        ],
+        "fixableCount": 4,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "lint/style/noUnusedTemplateLiteral",
+            "message": "Do not use template literals if interpolation and special-character handling are not needed.",
+            "fixable": true,
+            "severity": 2
+          },
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "lint/style/noUnusedTemplateLiteral",
+            "message": "Do not use template literals if interpolation and special-character handling are not needed.",
+            "fixable": true,
+            "severity": 2
+          },
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "lint/style/noUnusedTemplateLiteral",
+            "message": "Do not use template literals if interpolation and special-character handling are not needed.",
+            "fixable": true,
+            "severity": 2
+          },
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "lint/style/noUnusedTemplateLiteral",
+            "message": "Do not use template literals if interpolation and special-character handling are not needed.",
+            "fixable": true,
+            "severity": 2
+          },
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "lint/complexity/noExcessiveCognitiveComplexity",
+            "message": "Excessive complexity of 30 detected (max: 25).",
+            "fixable": false,
+            "severity": 1
+          },
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "organizeImports",
+            "message": "Import statements could be sorted:",
+            "fixable": false,
+            "severity": 2
+          },
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/cli/commands/init.ts",
+      "module": "cli",
+      "title": "Fix lint findings in src/cli/commands/init.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `src/cli/commands/init.ts`.\n\nPrimary rules: format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/cli/commands/init.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/cli/commands/plan.ts",
+      "module": "cli",
+      "title": "Fix lint findings in src/cli/commands/plan.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `src/cli/commands/plan.ts`.\n\nPrimary rules: format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/cli/commands/plan.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/cli/commands/run/epic.ts",
+      "module": "cli",
+      "title": "Fix lint findings in src/cli/commands/run/epic.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `src/cli/commands/run/epic.ts`.\n\nPrimary rules: format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/cli/commands/run/epic.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/cli/commands/run/index.ts",
+      "module": "cli",
+      "title": "Fix lint findings in src/cli/commands/run/index.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `src/cli/commands/run/index.ts`.\n\nPrimary rules: format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/cli/commands/run/index.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/cli/commands/run/pipeline.ts",
+      "module": "cli",
+      "title": "Fix lint findings in src/cli/commands/run/pipeline.ts",
+      "description": "Resolve 2 lint finding(s) reported by biome in `src/cli/commands/run/pipeline.ts`.\n\nPrimary rules: organizeImports, format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/cli/commands/run/pipeline.ts",
+        "issueCount": 2,
+        "ruleIds": [
+          "organizeImports",
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "organizeImports",
+            "message": "Import statements could be sorted:",
+            "fixable": false,
+            "severity": 2
+          },
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/cli/commands/run/pr.ts",
+      "module": "cli",
+      "title": "Fix lint findings in src/cli/commands/run/pr.ts",
+      "description": "Resolve 4 lint finding(s) reported by biome in `src/cli/commands/run/pr.ts`.\n\nPrimary rules: lint/style/useTemplate, lint/style/noUnusedTemplateLiteral, organizeImports, format.\n\n2 finding(s) appear auto-fixable.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/cli/commands/run/pr.ts",
+        "issueCount": 4,
+        "ruleIds": [
+          "lint/style/useTemplate",
+          "lint/style/noUnusedTemplateLiteral",
+          "organizeImports",
+          "format"
+        ],
+        "fixableCount": 2,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "lint/style/useTemplate",
+            "message": "Template literals are preferred over string concatenation.",
+            "fixable": true,
+            "severity": 2
+          },
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "lint/style/noUnusedTemplateLiteral",
+            "message": "Do not use template literals if interpolation and special-character handling are not needed.",
+            "fixable": true,
+            "severity": 2
+          },
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "organizeImports",
+            "message": "Import statements could be sorted:",
+            "fixable": false,
+            "severity": 2
+          },
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/cli/commands/run/retry.ts",
+      "module": "cli",
+      "title": "Fix lint findings in src/cli/commands/run/retry.ts",
+      "description": "Resolve 3 lint finding(s) reported by biome in `src/cli/commands/run/retry.ts`.\n\nPrimary rules: lint/correctness/noUnnecessaryContinue, organizeImports, format.\n\n1 finding(s) appear auto-fixable.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/cli/commands/run/retry.ts",
+        "issueCount": 3,
+        "ruleIds": [
+          "lint/correctness/noUnnecessaryContinue",
+          "organizeImports",
+          "format"
+        ],
+        "fixableCount": 1,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "lint/correctness/noUnnecessaryContinue",
+            "message": "Unnecessary continue statement",
+            "fixable": true,
+            "severity": 2
+          },
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "organizeImports",
+            "message": "Import statements could be sorted:",
+            "fixable": false,
+            "severity": 2
+          },
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/cli/commands/run/task.ts",
+      "module": "cli",
+      "title": "Fix lint findings in src/cli/commands/run/task.ts",
+      "description": "Resolve 6 lint finding(s) reported by biome in `src/cli/commands/run/task.ts`.\n\nPrimary rules: lint/style/useTemplate, lint/style/noUnusedTemplateLiteral, organizeImports, format.\n\n4 finding(s) appear auto-fixable.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/cli/commands/run/task.ts",
+        "issueCount": 6,
+        "ruleIds": [
+          "lint/style/useTemplate",
+          "lint/style/noUnusedTemplateLiteral",
+          "organizeImports",
+          "format"
+        ],
+        "fixableCount": 4,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "lint/style/useTemplate",
+            "message": "Template literals are preferred over string concatenation.",
+            "fixable": true,
+            "severity": 2
+          },
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "lint/style/noUnusedTemplateLiteral",
+            "message": "Do not use template literals if interpolation and special-character handling are not needed.",
+            "fixable": true,
+            "severity": 2
+          },
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "lint/style/useTemplate",
+            "message": "Template literals are preferred over string concatenation.",
+            "fixable": true,
+            "severity": 2
+          },
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "lint/style/noUnusedTemplateLiteral",
+            "message": "Do not use template literals if interpolation and special-character handling are not needed.",
+            "fixable": true,
+            "severity": 2
+          },
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "organizeImports",
+            "message": "Import statements could be sorted:",
+            "fixable": false,
+            "severity": 2
+          },
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/cli/commands/run/tracking.ts",
+      "module": "cli",
+      "title": "Fix lint findings in src/cli/commands/run/tracking.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `src/cli/commands/run/tracking.ts`.\n\nPrimary rules: format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/cli/commands/run/tracking.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/cli/commands/run/types.ts",
+      "module": "cli",
+      "title": "Fix lint findings in src/cli/commands/run/types.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `src/cli/commands/run/types.ts`.\n\nPrimary rules: format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/cli/commands/run/types.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/cli/commands/scan.ts",
+      "module": "cli",
+      "title": "Fix lint findings in src/cli/commands/scan.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `src/cli/commands/scan.ts`.\n\nPrimary rules: format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/cli/commands/scan.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/cli/helpers.ts",
+      "module": "cli",
+      "title": "Fix lint findings in src/cli/helpers.ts",
+      "description": "Resolve 2 lint finding(s) reported by biome in `src/cli/helpers.ts`.\n\nPrimary rules: lint/style/useImportType, format.\n\n1 finding(s) appear auto-fixable.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/cli/helpers.ts",
+        "issueCount": 2,
+        "ruleIds": [
+          "lint/style/useImportType",
+          "format"
+        ],
+        "fixableCount": 1,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "lint/style/useImportType",
+            "message": "All these imports are only used as types.",
+            "fixable": true,
+            "severity": 2
+          },
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/cli/index.ts",
+      "module": "cli",
+      "title": "Fix lint findings in src/cli/index.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `src/cli/index.ts`.\n\nPrimary rules: format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/cli/index.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/completion/diff-validator.ts",
+      "module": "completion",
+      "title": "Fix lint findings in src/completion/diff-validator.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `src/completion/diff-validator.ts`.\n\nPrimary rules: format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/completion/diff-validator.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/completion/handler.ts",
+      "module": "completion",
+      "title": "Fix lint findings in src/completion/handler.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `src/completion/handler.ts`.\n\nPrimary rules: format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/completion/handler.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/core/memory.ts",
+      "module": "core",
+      "title": "Fix lint findings in src/core/memory.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `src/core/memory.ts`.\n\nPrimary rules: format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/core/memory.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/core/utils.ts",
+      "module": "core",
+      "title": "Fix lint findings in src/core/utils.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `src/core/utils.ts`.\n\nPrimary rules: format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/core/utils.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/dashboard/pipeline.ts",
+      "module": "dashboard",
+      "title": "Fix lint findings in src/dashboard/pipeline.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `src/dashboard/pipeline.ts`.\n\nPrimary rules: format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/dashboard/pipeline.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/discovery/analyzer.ts",
+      "module": "discovery",
+      "title": "Fix lint findings in src/discovery/analyzer.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `src/discovery/analyzer.ts`.\n\nPrimary rules: organizeImports.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/discovery/analyzer.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "organizeImports"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "organizeImports",
+            "message": "Import statements could be sorted:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/discovery/scanner-factory.ts",
+      "module": "discovery",
+      "title": "Fix lint findings in src/discovery/scanner-factory.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `src/discovery/scanner-factory.ts`.\n\nPrimary rules: format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/discovery/scanner-factory.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/discovery/scanners/github-issues-scanner.ts",
+      "module": "discovery",
+      "title": "Fix lint findings in src/discovery/scanners/github-issues-scanner.ts",
+      "description": "Resolve 2 lint finding(s) reported by biome in `src/discovery/scanners/github-issues-scanner.ts`.\n\nPrimary rules: organizeImports, format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/discovery/scanners/github-issues-scanner.ts",
+        "issueCount": 2,
+        "ruleIds": [
+          "organizeImports",
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "organizeImports",
+            "message": "Import statements could be sorted:",
+            "fixable": false,
+            "severity": 2
+          },
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/discovery/scanners/todo-scanner.ts",
+      "module": "discovery",
+      "title": "Fix lint findings in src/discovery/scanners/todo-scanner.ts",
+      "description": "Resolve 2 lint finding(s) reported by biome in `src/discovery/scanners/todo-scanner.ts`.\n\nPrimary rules: organizeImports, format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/discovery/scanners/todo-scanner.ts",
+        "issueCount": 2,
+        "ruleIds": [
+          "organizeImports",
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "organizeImports",
+            "message": "Import statements could be sorted:",
+            "fixable": false,
+            "severity": 2
+          },
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/execution/agents/opencode.adapter.ts",
+      "module": "execution",
+      "title": "Fix lint findings in src/execution/agents/opencode.adapter.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `src/execution/agents/opencode.adapter.ts`.\n\nPrimary rules: format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/execution/agents/opencode.adapter.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/execution/agents/registry.ts",
+      "module": "execution",
+      "title": "Fix lint findings in src/execution/agents/registry.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `src/execution/agents/registry.ts`.\n\nPrimary rules: format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/execution/agents/registry.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/execution/agents/shared.ts",
+      "module": "execution",
+      "title": "Fix lint findings in src/execution/agents/shared.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `src/execution/agents/shared.ts`.\n\nPrimary rules: format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/execution/agents/shared.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/execution/engine.ts",
+      "module": "execution",
+      "title": "Fix lint findings in src/execution/engine.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `src/execution/engine.ts`.\n\nPrimary rules: lint/style/useImportType.\n\n1 finding(s) appear auto-fixable.",
+      "severity": "warning",
+      "complexity": "trivial",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/execution/engine.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "lint/style/useImportType"
+        ],
+        "fixableCount": 1,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "lint/style/useImportType",
+            "message": "Some named imports are only used as types.",
+            "fixable": true,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/execution/normalize-error.ts",
+      "module": "execution",
+      "title": "Fix lint findings in src/execution/normalize-error.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `src/execution/normalize-error.ts`.\n\nPrimary rules: format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/execution/normalize-error.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/execution/worker.ts",
+      "module": "execution",
+      "title": "Fix lint findings in src/execution/worker.ts",
+      "description": "Resolve 2 lint finding(s) reported by biome in `src/execution/worker.ts`.\n\nPrimary rules: lint/style/useImportType, format.\n\n1 finding(s) appear auto-fixable.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/execution/worker.ts",
+        "issueCount": 2,
+        "ruleIds": [
+          "lint/style/useImportType",
+          "format"
+        ],
+        "fixableCount": 1,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "lint/style/useImportType",
+            "message": "All these imports are only used as types.",
+            "fixable": true,
+            "severity": 2
+          },
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "src/repo/cloner.ts",
+      "module": "repo",
+      "title": "Fix lint findings in src/repo/cloner.ts",
+      "description": "Resolve 2 lint finding(s) reported by biome in `src/repo/cloner.ts`.\n\nPrimary rules: lint/style/noNonNullAssertion, lint/style/useTemplate.\n\n1 finding(s) appear auto-fixable.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "src/repo/cloner.ts",
+        "issueCount": 2,
+        "ruleIds": [
+          "lint/style/noNonNullAssertion",
+          "lint/style/useTemplate"
+        ],
+        "fixableCount": 1,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "lint/style/noNonNullAssertion",
+            "message": "Forbidden non-null assertion.",
+            "fixable": false,
+            "severity": 1
+          },
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "lint/style/useTemplate",
+            "message": "Template literals are preferred over string concatenation.",
+            "fixable": true,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "tests/completion/handler.test.ts",
+      "module": "root",
+      "title": "Fix lint findings in tests/completion/handler.test.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `tests/completion/handler.test.ts`.\n\nPrimary rules: format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "tests/completion/handler.test.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "tests/discovery/github-issues-scanner.test.ts",
+      "module": "root",
+      "title": "Fix lint findings in tests/discovery/github-issues-scanner.test.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `tests/discovery/github-issues-scanner.test.ts`.\n\nPrimary rules: format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "tests/discovery/github-issues-scanner.test.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "tests/discovery/ranker.test.ts",
+      "module": "root",
+      "title": "Fix lint findings in tests/discovery/ranker.test.ts",
+      "description": "Resolve 2 lint finding(s) reported by biome in `tests/discovery/ranker.test.ts`.\n\nPrimary rules: lint/style/noNonNullAssertion.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "tests/discovery/ranker.test.ts",
+        "issueCount": 2,
+        "ruleIds": [
+          "lint/style/noNonNullAssertion"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "lint/style/noNonNullAssertion",
+            "message": "Forbidden non-null assertion.",
+            "fixable": false,
+            "severity": 1
+          },
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "lint/style/noNonNullAssertion",
+            "message": "Forbidden non-null assertion.",
+            "fixable": false,
+            "severity": 1
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "tests/discovery/scanner.test.ts",
+      "module": "root",
+      "title": "Fix lint findings in tests/discovery/scanner.test.ts",
+      "description": "Resolve 2 lint finding(s) reported by biome in `tests/discovery/scanner.test.ts`.\n\nPrimary rules: lint/style/noNonNullAssertion.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "tests/discovery/scanner.test.ts",
+        "issueCount": 2,
+        "ruleIds": [
+          "lint/style/noNonNullAssertion"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "lint/style/noNonNullAssertion",
+            "message": "Forbidden non-null assertion.",
+            "fixable": false,
+            "severity": 1
+          },
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "lint/style/noNonNullAssertion",
+            "message": "Forbidden non-null assertion.",
+            "fixable": false,
+            "severity": 1
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "lint",
+      "source": "lint",
+      "filePath": "tests/repo/cloner.test.ts",
+      "module": "root",
+      "title": "Fix lint findings in tests/repo/cloner.test.ts",
+      "description": "Resolve 1 lint finding(s) reported by biome in `tests/repo/cloner.test.ts`.\n\nPrimary rules: format.\n\nNo auto-fixable findings were detected.",
+      "severity": "warning",
+      "complexity": "simple",
+      "metadata": {
+        "scannerId": "lint",
+        "linter": "biome",
+        "filePath": "tests/repo/cloner.test.ts",
+        "issueCount": 1,
+        "ruleIds": [
+          "format"
+        ],
+        "fixableCount": 0,
+        "findings": [
+          {
+            "line": null,
+            "column": null,
+            "ruleId": "format",
+            "message": "Formatter would have printed the following content:",
+            "fixable": false,
+            "severity": 2
+          }
+        ]
+      },
+      "discoveredAt": "2026-02-21T16:21:05.125Z"
+    },
+    {
+      "scannerId": "github-issue",
+      "source": "github-issue",
+      "filePath": "",
+      "module": "root",
+      "title": "Foco",
+      "description": "![20260220_063433.jpg](https://github.com/user-attachments/assets/de5f5b77-5ff5-4ce6-985b-caa83e93038d)\n\nLabels: none",
+      "severity": "warning",
+      "complexity": "moderate",
+      "metadata": {
+        "issueNumber": 21,
+        "labels": [],
+        "url": "https://github.com/Open330/open-agent-contribution/issues/21",
+        "author": "marlonjonathanalfonzoleiva7-lang",
+        "createdAt": "2026-02-20T14:35:50Z",
+        "estimatedTokens": 9000
+      },
+      "discoveredAt": "2026-02-21T16:21:05.176Z"
+    },
+    {
+      "scannerId": "github-issue",
+      "source": "github-issue",
+      "filePath": "",
+      "module": "root",
+      "title": "https://github.com/Open330/open-agent# -contribution/issues/22#issue- [ ] -3969226542canal.mar@_[]()",
+      "description": "https://github.com/Open330/open-agent# -contribution/issues/22#issue- [ ] -3969226542canal.mar@_[]()\n\n_Publicado originalmente por @marlonjonathanalfonzoleiva7-lang en https://github.com/Open330/open-agent-contribution/issues/22#issuecomment-3936563370_\n\nLabels: none",
+      "severity": "warning",
+      "complexity": "moderate",
+      "metadata": {
+        "issueNumber": 23,
+        "labels": [],
+        "url": "https://github.com/Open330/open-agent-contribution/issues/23",
+        "author": "marlonjonathanalfonzoleiva7-lang",
+        "createdAt": "2026-02-20T18:58:38Z",
+        "estimatedTokens": 9000
+      },
+      "discoveredAt": "2026-02-21T16:21:05.176Z"
+    },
+    {
+      "scannerId": "github-issue",
+      "source": "github-issue",
+      "filePath": "",
+      "module": "root",
+      "title": "Titular uno",
+      "description": "![wifi_qrcode.png](https://github.com/user-attachments/assets/0894992c-107d-4c00-85d8-aa5da55db0b5)\n\nLabels: none",
+      "severity": "warning",
+      "complexity": "moderate",
+      "metadata": {
+        "issueNumber": 20,
+        "labels": [],
+        "url": "https://github.com/Open330/open-agent-contribution/issues/20",
+        "author": "marlonjonathanalfonzoleiva7-lang",
+        "createdAt": "2026-02-20T06:24:46Z",
+        "estimatedTokens": 9000
+      },
+      "discoveredAt": "2026-02-21T16:21:05.176Z"
     }
   ],
   "summary": {
-    "totalFindings": 16,
+    "totalFindings": 111,
     "bySource": {
-      "test-gap": 14,
-      "todo": 2
+      "github-issue": 6,
+      "test-gap": 49,
+      "todo": 16,
+      "lint": 40
     },
     "byModule": {
-      "root": 16
+      "root": 28,
+      "execution": 14,
+      "cli": 36,
+      "discovery": 14,
+      "budget": 3,
+      "completion": 4,
+      "tracking": 1,
+      "core": 5,
+      "dashboard": 4,
+      "repo": 2
     },
     "bySeverity": {
-      "info": 16
+      "warning": 46,
+      "info": 65
     }
   }
 }

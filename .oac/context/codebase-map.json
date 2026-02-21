@@ -1,9 +1,1756 @@
 {
   "version": 1,
-  "generatedAt": "2026-02-17T16:17:59.730Z",
-  "repoFullName": "Open330/BurstPick",
-  "headSha": "7dfa1cc25a70775cb56cd3d68856d8a304eda3dd",
-  "modules": [],
-  "totalFiles": 0,
-  "totalLoc": 0
+  "generatedAt": "2026-02-21T16:21:04.690Z",
+  "repoFullName": "Open330/open-agent-contribution",
+  "headSha": "cb8f78ed779863594fa2671a505aec3861ce96d4",
+  "modules": [
+    {
+      "name": "budget",
+      "path": "src/budget",
+      "files": [
+        {
+          "path": "src/budget/complexity.ts",
+          "loc": 87,
+          "sizeBytes": 2709,
+          "exports": [
+            "estimateLocChanges",
+            "analyzeTaskComplexity"
+          ],
+          "imports": [
+            "./estimator.js"
+          ]
+        },
+        {
+          "path": "src/budget/estimator.ts",
+          "loc": 242,
+          "sizeBytes": 7829,
+          "exports": [
+            "AgentProviderId",
+            "TaskSource",
+            "TaskComplexity",
+            "ExecutionMode",
+            "Task",
+            "TokenEstimate",
+            "TokenCounter",
+            "resetCounters",
+            "estimateTokens",
+            "estimateEpicTokens"
+          ],
+          "imports": [
+            "node:fs/promises",
+            "node:path",
+            "p-queue",
+            "../core/types.js",
+            "./complexity.js",
+            "./providers/claude-counter.js",
+            "./providers/codex-counter.js"
+          ]
+        },
+        {
+          "path": "src/budget/index.ts",
+          "loc": 5,
+          "sizeBytes": 188,
+          "exports": [],
+          "imports": []
+        },
+        {
+          "path": "src/budget/planner.ts",
+          "loc": 184,
+          "sizeBytes": 5718,
+          "exports": [
+            "ExecutionPlan",
+            "buildExecutionPlan",
+            "EpicExecutionPlan",
+            "buildEpicExecutionPlan"
+          ],
+          "imports": [
+            "../core/types.js",
+            "./estimator.js"
+          ]
+        },
+        {
+          "path": "src/budget/providers/claude-counter.ts",
+          "loc": 24,
+          "sizeBytes": 774,
+          "exports": [
+            "ClaudeTokenCounter"
+          ],
+          "imports": [
+            "tiktoken"
+          ]
+        },
+        {
+          "path": "src/budget/providers/codex-counter.ts",
+          "loc": 40,
+          "sizeBytes": 1260,
+          "exports": [
+            "CodexTokenCounter"
+          ],
+          "imports": [
+            "tiktoken"
+          ]
+        }
+      ],
+      "totalLoc": 582,
+      "exports": [
+        "estimateLocChanges",
+        "analyzeTaskComplexity",
+        "AgentProviderId",
+        "TaskSource",
+        "TaskComplexity",
+        "ExecutionMode",
+        "Task",
+        "TokenEstimate",
+        "TokenCounter",
+        "resetCounters",
+        "estimateTokens",
+        "estimateEpicTokens",
+        "ExecutionPlan",
+        "buildExecutionPlan",
+        "EpicExecutionPlan",
+        "buildEpicExecutionPlan",
+        "ClaudeTokenCounter",
+        "CodexTokenCounter"
+      ],
+      "dependencies": [
+        "core"
+      ]
+    },
+    {
+      "name": "cli",
+      "path": "src/cli",
+      "files": [
+        {
+          "path": "src/cli/cli.ts",
+          "loc": 56,
+          "sizeBytes": 2605,
+          "exports": [
+            "GlobalCliOptions",
+            "createCliProgram",
+            "runCli"
+          ],
+          "imports": [
+            "commander",
+            "./commands/analyze.js",
+            "./commands/completion.js",
+            "./commands/doctor.js",
+            "./commands/explain.js",
+            "./commands/init.js",
+            "./commands/leaderboard.js",
+            "./commands/log.js",
+            "./commands/plan.js",
+            "./commands/run/index.js",
+            "./commands/scan.js",
+            "./commands/status.js"
+          ]
+        },
+        {
+          "path": "src/cli/commands/analyze.ts",
+          "loc": 143,
+          "sizeBytes": 6124,
+          "exports": [
+            "createAnalyzeCommand"
+          ],
+          "imports": [
+            "chalk",
+            "cli-table3",
+            "commander",
+            "../../core/index.js",
+            "../../discovery/analyzer.js",
+            "../../discovery/backlog.js",
+            "../../discovery/epic-grouper.js",
+            "../../discovery/index.js",
+            "../../repo/index.js",
+            "../github-auth.js",
+            "../helpers.js"
+          ]
+        },
+        {
+          "path": "src/cli/commands/completion.ts",
+          "loc": 128,
+          "sizeBytes": 3670,
+          "exports": [
+            "createCompletionCommand"
+          ],
+          "imports": [
+            "commander"
+          ]
+        },
+        {
+          "path": "src/cli/commands/doctor.ts",
+          "loc": 235,
+          "sizeBytes": 7566,
+          "exports": [
+            "createDoctorCommand"
+          ],
+          "imports": [
+            "chalk",
+            "commander",
+            "../helpers.js",
+            "execa"
+          ]
+        },
+        {
+          "path": "src/cli/commands/explain.ts",
+          "loc": 138,
+          "sizeBytes": 5662,
+          "exports": [
+            "createExplainCommand"
+          ],
+          "imports": [
+            "node:path",
+            "commander",
+            "../../discovery/index.js",
+            "../helpers.js",
+            "chalk"
+          ]
+        },
+        {
+          "path": "src/cli/commands/init.ts",
+          "loc": 274,
+          "sizeBytes": 8759,
+          "exports": [
+            "createInitCommand",
+            "default"
+          ],
+          "imports": [
+            "node:fs",
+            "node:fs/promises",
+            "node:path",
+            "@inquirer/prompts",
+            "chalk",
+            "commander",
+            "../helpers.js",
+            "@open330/oac"
+          ]
+        },
+        {
+          "path": "src/cli/commands/leaderboard.ts",
+          "loc": 227,
+          "sizeBytes": 7628,
+          "exports": [
+            "createLeaderboardCommand"
+          ],
+          "imports": [
+            "node:fs",
+            "node:fs/promises",
+            "node:path",
+            "cli-table3",
+            "commander",
+            "../../core/utils.js",
+            "../../tracking/index.js",
+            "../helpers.js"
+          ]
+        },
+        {
+          "path": "src/cli/commands/log.ts",
+          "loc": 142,
+          "sizeBytes": 4877,
+          "exports": [
+            "createLogCommand"
+          ],
+          "imports": [
+            "node:fs",
+            "node:fs/promises",
+            "node:path",
+            "cli-table3",
+            "commander",
+            "../../tracking/index.js",
+            "../helpers.js"
+          ]
+        },
+        {
+          "path": "src/cli/commands/plan.ts",
+          "loc": 182,
+          "sizeBytes": 6416,
+          "exports": [
+            "createPlanCommand"
+          ],
+          "imports": [
+            "chalk",
+            "cli-table3",
+            "commander",
+            "../../budget/index.js",
+            "../../core/index.js",
+            "../../discovery/index.js",
+            "../../repo/index.js",
+            "../github-auth.js",
+            "../helpers.js"
+          ]
+        },
+        {
+          "path": "src/cli/commands/run/epic.ts",
+          "loc": 363,
+          "sizeBytes": 12541,
+          "exports": [
+            "tryLoadOrAnalyzeEpics",
+            "buildScannerList",
+            "runEpicPipeline"
+          ],
+          "imports": [
+            "chalk",
+            "cli-table3",
+            "p-queue",
+            "../../../budget/index.js",
+            "../../../core/index.js",
+            "../../../discovery/index.js",
+            "../../../execution/index.js",
+            "../../../repo/index.js",
+            "../../helpers.js",
+            "./pr.js",
+            "./task.js",
+            "./tracking.js",
+            "./types.js"
+          ]
+        },
+        {
+          "path": "src/cli/commands/run/index.ts",
+          "loc": 59,
+          "sizeBytes": 2596,
+          "exports": [
+            "createRunCommand"
+          ],
+          "imports": [
+            "commander",
+            "../../../core/index.js",
+            "../../helpers.js",
+            "./pipeline.js",
+            "./types.js"
+          ]
+        },
+        {
+          "path": "src/cli/commands/run/pipeline.ts",
+          "loc": 207,
+          "sizeBytes": 7199,
+          "exports": [
+            "runPipeline",
+            "validateRunOptions"
+          ],
+          "imports": [
+            "node:crypto",
+            "../../../core/index.js",
+            "../../../repo/index.js",
+            "../../helpers.js",
+            "../../github-auth.js",
+            "./epic.js",
+            "./retry.js",
+            "./task.js",
+            "./tracking.js",
+            "./types.js",
+            "chalk"
+          ]
+        },
+        {
+          "path": "src/cli/commands/run/pr.ts",
+          "loc": 157,
+          "sizeBytes": 5167,
+          "exports": [
+            "createPullRequest"
+          ],
+          "imports": [
+            "../../../core/index.js",
+            "execa",
+            "./types.js"
+          ]
+        },
+        {
+          "path": "src/cli/commands/run/retry.ts",
+          "loc": 125,
+          "sizeBytes": 4268,
+          "exports": [
+            "runRetryPipeline"
+          ],
+          "imports": [
+            "node:fs/promises",
+            "node:path",
+            "../../../core/index.js",
+            "../../../budget/index.js",
+            "../../../repo/index.js",
+            "../../../tracking/index.js",
+            "../../helpers.js",
+            "./task.js",
+            "./tracking.js",
+            "./types.js"
+          ]
+        },
+        {
+          "path": "src/cli/commands/run/task.ts",
+          "loc": 499,
+          "sizeBytes": 17743,
+          "exports": [
+            "discoverTasks",
+            "printEmptySummary",
+            "printDryRunSummary",
+            "executePlan",
+            "printFinalSummary",
+            "selectScannersFromConfig",
+            "executeWithAgent",
+            "resolveAdapter",
+            "renderSelectedPlanTable",
+            "renderTaskResults"
+          ],
+          "imports": [
+            "chalk",
+            "../../../core/index.js",
+            "cli-table3",
+            "execa",
+            "p-queue",
+            "../../../budget/index.js",
+            "../../../discovery/index.js",
+            "../../../execution/index.js",
+            "../../../repo/index.js",
+            "../../helpers.js",
+            "./pr.js",
+            "./types.js"
+          ]
+        },
+        {
+          "path": "src/cli/commands/run/tracking.ts",
+          "loc": 156,
+          "sizeBytes": 5151,
+          "exports": [
+            "writeTracking",
+            "buildContributionLog",
+            "deriveTaskStatus",
+            "resolveGithubUsername",
+            "sanitizeGithubUsername"
+          ],
+          "imports": [
+            "../../../core/index.js",
+            "../../../tracking/index.js",
+            "../../helpers.js",
+            "./types.js"
+          ]
+        },
+        {
+          "path": "src/cli/commands/run/types.ts",
+          "loc": 119,
+          "sizeBytes": 4020,
+          "exports": [
+            "RunCommandOptions",
+            "SandboxInfo",
+            "RunMode",
+            "SupportedScanner",
+            "CompletionStatus",
+            "ExecutionOutcome",
+            "TaskRunResult",
+            "RunSummaryOutput",
+            "DEFAULT_TIMEOUT_SECONDS",
+            "DEFAULT_CONCURRENCY",
+            "PR_CREATION_TIMEOUT_MS",
+            "ConfigError",
+            "EXIT_SUCCESS",
+            "EXIT_GENERAL_ERROR",
+            "EXIT_CONFIG_ERROR",
+            "EXIT_ALL_FAILED",
+            "EXIT_PARTIAL_SUCCESS",
+            "resolveExitCode",
+            "PipelineContext",
+            "formatBudgetDisplay",
+            "formatDuration"
+          ],
+          "imports": [
+            "chalk",
+            "../../../core/index.js",
+            "../../helpers.js"
+          ]
+        },
+        {
+          "path": "src/cli/commands/scan.ts",
+          "loc": 218,
+          "sizeBytes": 7499,
+          "exports": [
+            "createScanCommand"
+          ],
+          "imports": [
+            "chalk",
+            "cli-table3",
+            "commander",
+            "../../core/index.js",
+            "../../discovery/index.js",
+            "../../repo/index.js",
+            "../github-auth.js",
+            "../helpers.js"
+          ]
+        },
+        {
+          "path": "src/cli/commands/status.ts",
+          "loc": 195,
+          "sizeBytes": 5696,
+          "exports": [
+            "createStatusCommand"
+          ],
+          "imports": [
+            "node:fs/promises",
+            "node:path",
+            "commander",
+            "../../core/utils.js",
+            "../helpers.js"
+          ]
+        },
+        {
+          "path": "src/cli/config-loader.ts",
+          "loc": 91,
+          "sizeBytes": 3251,
+          "exports": [
+            "ConfigLoaderOptions",
+            "loadOptionalConfigFile",
+            "default"
+          ],
+          "imports": [
+            "node:fs",
+            "node:fs/promises",
+            "node:path",
+            "node:url",
+            "../core/index.js"
+          ]
+        },
+        {
+          "path": "src/cli/github-auth.ts",
+          "loc": 63,
+          "sizeBytes": 2257,
+          "exports": [
+            "ensureGitHubAuth",
+            "checkGitHubScopes"
+          ],
+          "imports": [
+            "node:child_process"
+          ]
+        },
+        {
+          "path": "src/cli/helpers.ts",
+          "loc": 127,
+          "sizeBytes": 4984,
+          "exports": [
+            "getGlobalOptions",
+            "createUi",
+            "createSpinner",
+            "parseInteger",
+            "formatInteger",
+            "loadOptionalConfig",
+            "resolveRepoInput",
+            "resolveProviderId",
+            "resolveBudget",
+            "estimateTaskMap",
+            "truncate"
+          ],
+          "imports": [
+            "chalk",
+            "commander",
+            "ora",
+            "p-queue",
+            "../budget/index.js",
+            "../core/index.js",
+            "./cli.js",
+            "./config-loader.js"
+          ]
+        },
+        {
+          "path": "src/cli/index.ts",
+          "loc": 12,
+          "sizeBytes": 391,
+          "exports": [],
+          "imports": [
+            "./cli.js",
+            "./commands/run/types.js"
+          ]
+        }
+      ],
+      "totalLoc": 3916,
+      "exports": [
+        "GlobalCliOptions",
+        "createCliProgram",
+        "runCli",
+        "createAnalyzeCommand",
+        "createCompletionCommand",
+        "createDoctorCommand",
+        "createExplainCommand",
+        "createInitCommand",
+        "default",
+        "createLeaderboardCommand",
+        "createLogCommand",
+        "createPlanCommand",
+        "tryLoadOrAnalyzeEpics",
+        "buildScannerList",
+        "runEpicPipeline",
+        "createRunCommand",
+        "runPipeline",
+        "validateRunOptions",
+        "createPullRequest",
+        "runRetryPipeline",
+        "discoverTasks",
+        "printEmptySummary",
+        "printDryRunSummary",
+        "executePlan",
+        "printFinalSummary",
+        "selectScannersFromConfig",
+        "executeWithAgent",
+        "resolveAdapter",
+        "renderSelectedPlanTable",
+        "renderTaskResults",
+        "writeTracking",
+        "buildContributionLog",
+        "deriveTaskStatus",
+        "resolveGithubUsername",
+        "sanitizeGithubUsername",
+        "RunCommandOptions",
+        "SandboxInfo",
+        "RunMode",
+        "SupportedScanner",
+        "CompletionStatus",
+        "ExecutionOutcome",
+        "TaskRunResult",
+        "RunSummaryOutput",
+        "DEFAULT_TIMEOUT_SECONDS",
+        "DEFAULT_CONCURRENCY",
+        "PR_CREATION_TIMEOUT_MS",
+        "ConfigError",
+        "EXIT_SUCCESS",
+        "EXIT_GENERAL_ERROR",
+        "EXIT_CONFIG_ERROR",
+        "EXIT_ALL_FAILED",
+        "EXIT_PARTIAL_SUCCESS",
+        "resolveExitCode",
+        "PipelineContext",
+        "formatBudgetDisplay",
+        "formatDuration",
+        "createScanCommand",
+        "createStatusCommand",
+        "ConfigLoaderOptions",
+        "loadOptionalConfigFile",
+        "default",
+        "ensureGitHubAuth",
+        "checkGitHubScopes",
+        "getGlobalOptions",
+        "createUi",
+        "createSpinner",
+        "parseInteger",
+        "formatInteger",
+        "loadOptionalConfig",
+        "resolveRepoInput",
+        "resolveProviderId",
+        "resolveBudget",
+        "estimateTaskMap",
+        "truncate"
+      ],
+      "dependencies": [
+        "budget",
+        "core",
+        "discovery",
+        "execution",
+        "repo",
+        "tracking"
+      ]
+    },
+    {
+      "name": "completion",
+      "path": "src/completion",
+      "files": [
+        {
+          "path": "src/completion/diff-validator.ts",
+          "loc": 162,
+          "sizeBytes": 5537,
+          "exports": [
+            "DiffValidationConfig",
+            "ValidationResult",
+            "validateDiff"
+          ],
+          "imports": [
+            "node:path",
+            "simple-git",
+            "../core/index.js",
+            "../core/utils.js"
+          ]
+        },
+        {
+          "path": "src/completion/github-pr.ts",
+          "loc": 211,
+          "sizeBytes": 6480,
+          "exports": [
+            "createPR",
+            "pushBranch"
+          ],
+          "imports": [
+            "@octokit/rest",
+            "simple-git",
+            "../core/index.js",
+            "./types.js"
+          ]
+        },
+        {
+          "path": "src/completion/handler.ts",
+          "loc": 307,
+          "sizeBytes": 10762,
+          "exports": [
+            "CompletionHandlerOptions",
+            "CompletionHandlerParams",
+            "CompletionHandler"
+          ],
+          "imports": [
+            "@octokit/rest",
+            "../core/index.js",
+            "./diff-validator.js",
+            "./github-pr.js",
+            "./issue-linker.js",
+            "./types.js"
+          ]
+        },
+        {
+          "path": "src/completion/index.ts",
+          "loc": 5,
+          "sizeBytes": 162,
+          "exports": [],
+          "imports": []
+        },
+        {
+          "path": "src/completion/issue-linker.ts",
+          "loc": 56,
+          "sizeBytes": 1552,
+          "exports": [
+            "linkIssueToePR",
+            "linkIssueToPR"
+          ],
+          "imports": [
+            "@octokit/rest",
+            "../core/index.js",
+            "./types.js"
+          ]
+        },
+        {
+          "path": "src/completion/types.ts",
+          "loc": 34,
+          "sizeBytes": 942,
+          "exports": [
+            "PRCreationParams",
+            "CreatedPR",
+            "CompletionResult",
+            "ExternalTaskRef",
+            "ProjectManagementProvider"
+          ],
+          "imports": [
+            "../core/index.js"
+          ]
+        }
+      ],
+      "totalLoc": 775,
+      "exports": [
+        "DiffValidationConfig",
+        "ValidationResult",
+        "validateDiff",
+        "createPR",
+        "pushBranch",
+        "CompletionHandlerOptions",
+        "CompletionHandlerParams",
+        "CompletionHandler",
+        "linkIssueToePR",
+        "linkIssueToPR",
+        "PRCreationParams",
+        "CreatedPR",
+        "CompletionResult",
+        "ExternalTaskRef",
+        "ProjectManagementProvider"
+      ],
+      "dependencies": [
+        "core"
+      ]
+    },
+    {
+      "name": "core",
+      "path": "src/core",
+      "files": [
+        {
+          "path": "src/core/config.ts",
+          "loc": 290,
+          "sizeBytes": 8825,
+          "exports": [
+            "RepoTargetSchema",
+            "ProviderSchema",
+            "BudgetSchema",
+            "DiscoveryScannersSchema",
+            "DiscoverySchema",
+            "ValidationSchema",
+            "PrSchema",
+            "ExecutionSchema",
+            "LinearIntegrationSchema",
+            "JiraIntegrationSchema",
+            "CompletionSchema",
+            "TrackingSchema",
+            "DashboardSchema",
+            "AnalyzeSchema",
+            "OacConfigSchema",
+            "OacConfig",
+            "OacConfigInput",
+            "LoadConfigOptions",
+            "defineConfig",
+            "interpolateEnvVars",
+            "loadConfig"
+          ],
+          "imports": [
+            "zod",
+            "./errors.js"
+          ]
+        },
+        {
+          "path": "src/core/errors.ts",
+          "loc": 130,
+          "sizeBytes": 3867,
+          "exports": [
+            "OacErrorSeverity",
+            "REPO_ERROR_CODES",
+            "DISCOVERY_ERROR_CODES",
+            "BUDGET_ERROR_CODES",
+            "EXECUTION_ERROR_CODES",
+            "COMPLETION_ERROR_CODES",
+            "CONFIG_ERROR_CODES",
+            "SYSTEM_ERROR_CODES",
+            "OAC_ERROR_CODES",
+            "RepoErrorCode",
+            "DiscoveryErrorCode",
+            "BudgetErrorCode",
+            "ExecutionErrorCode",
+            "CompletionErrorCode",
+            "ConfigErrorCode",
+            "SystemErrorCode",
+            "OacErrorCode",
+            "OacErrorOptions",
+            "OacError",
+            "repoError",
+            "discoveryError",
+            "budgetError",
+            "executionError",
+            "completionError",
+            "configError"
+          ],
+          "imports": []
+        },
+        {
+          "path": "src/core/event-bus.ts",
+          "loc": 23,
+          "sizeBytes": 1062,
+          "exports": [
+            "OacEvents",
+            "OacEventBus",
+            "createEventBus"
+          ],
+          "imports": [
+            "eventemitter3",
+            "./errors.js",
+            "./types.js"
+          ]
+        },
+        {
+          "path": "src/core/index.ts",
+          "loc": 6,
+          "sizeBytes": 175,
+          "exports": [],
+          "imports": []
+        },
+        {
+          "path": "src/core/memory.ts",
+          "loc": 77,
+          "sizeBytes": 2799,
+          "exports": [
+            "MemorySnapshot",
+            "getMemorySnapshot",
+            "createMemoryMonitor"
+          ],
+          "imports": []
+        },
+        {
+          "path": "src/core/types.ts",
+          "loc": 194,
+          "sizeBytes": 4842,
+          "exports": [
+            "AgentProviderId",
+            "UNLIMITED_BUDGET",
+            "ResolvedRepo",
+            "TaskSource",
+            "TaskComplexity",
+            "ExecutionMode",
+            "Task",
+            "EpicStatus",
+            "Epic",
+            "TokenEstimate",
+            "ExecutionPlan",
+            "ContributionTask",
+            "ContributionLog",
+            "ExecutionResult",
+            "RunSummary"
+          ],
+          "imports": []
+        },
+        {
+          "path": "src/core/utils.ts",
+          "loc": 25,
+          "sizeBytes": 733,
+          "exports": [
+            "truncate",
+            "isRecord"
+          ],
+          "imports": []
+        }
+      ],
+      "totalLoc": 745,
+      "exports": [
+        "RepoTargetSchema",
+        "ProviderSchema",
+        "BudgetSchema",
+        "DiscoveryScannersSchema",
+        "DiscoverySchema",
+        "ValidationSchema",
+        "PrSchema",
+        "ExecutionSchema",
+        "LinearIntegrationSchema",
+        "JiraIntegrationSchema",
+        "CompletionSchema",
+        "TrackingSchema",
+        "DashboardSchema",
+        "AnalyzeSchema",
+        "OacConfigSchema",
+        "OacConfig",
+        "OacConfigInput",
+        "LoadConfigOptions",
+        "defineConfig",
+        "interpolateEnvVars",
+        "loadConfig",
+        "OacErrorSeverity",
+        "REPO_ERROR_CODES",
+        "DISCOVERY_ERROR_CODES",
+        "BUDGET_ERROR_CODES",
+        "EXECUTION_ERROR_CODES",
+        "COMPLETION_ERROR_CODES",
+        "CONFIG_ERROR_CODES",
+        "SYSTEM_ERROR_CODES",
+        "OAC_ERROR_CODES",
+        "RepoErrorCode",
+        "DiscoveryErrorCode",
+        "BudgetErrorCode",
+        "ExecutionErrorCode",
+        "CompletionErrorCode",
+        "ConfigErrorCode",
+        "SystemErrorCode",
+        "OacErrorCode",
+        "OacErrorOptions",
+        "OacError",
+        "repoError",
+        "discoveryError",
+        "budgetError",
+        "executionError",
+        "completionError",
+        "configError",
+        "OacEvents",
+        "OacEventBus",
+        "createEventBus",
+        "MemorySnapshot",
+        "getMemorySnapshot",
+        "createMemoryMonitor",
+        "AgentProviderId",
+        "UNLIMITED_BUDGET",
+        "ResolvedRepo",
+        "TaskSource",
+        "TaskComplexity",
+        "ExecutionMode",
+        "Task",
+        "EpicStatus",
+        "Epic",
+        "TokenEstimate",
+        "ExecutionPlan",
+        "ContributionTask",
+        "ContributionLog",
+        "ExecutionResult",
+        "RunSummary",
+        "truncate",
+        "isRecord"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "dashboard",
+      "path": "src/dashboard",
+      "files": [
+        {
+          "path": "src/dashboard/dev.ts",
+          "loc": 7,
+          "sizeBytes": 363,
+          "exports": [],
+          "imports": [
+            "node:path",
+            "./server.js"
+          ]
+        },
+        {
+          "path": "src/dashboard/index.ts",
+          "loc": 3,
+          "sizeBytes": 169,
+          "exports": [
+            "createDashboardServer",
+            "startDashboard",
+            "renderDashboardHtml"
+          ],
+          "imports": []
+        },
+        {
+          "path": "src/dashboard/pipeline.ts",
+          "loc": 529,
+          "sizeBytes": 18061,
+          "exports": [
+            "RunConfig",
+            "RunStage",
+            "RunProgress",
+            "RunState",
+            "DashboardRunEvent",
+            "RunEventCallback",
+            "executePipeline"
+          ],
+          "imports": [
+            "node:crypto",
+            "execa",
+            "p-queue",
+            "../budget/index.js",
+            "../core/index.js",
+            "../discovery/index.js",
+            "../execution/index.js",
+            "../repo/index.js",
+            "../tracking/index.js"
+          ]
+        },
+        {
+          "path": "src/dashboard/server.ts",
+          "loc": 235,
+          "sizeBytes": 8193,
+          "exports": [
+            "DashboardOptions",
+            "createDashboardServer",
+            "startDashboard"
+          ],
+          "imports": [
+            "node:crypto",
+            "node:fs",
+            "node:fs/promises",
+            "node:path",
+            "@fastify/cors",
+            "fastify",
+            "../tracking/index.js",
+            "./pipeline.js",
+            "./ui.js",
+            "node:child_process"
+          ]
+        },
+        {
+          "path": "src/dashboard/ui.ts",
+          "loc": 555,
+          "sizeBytes": 27576,
+          "exports": [
+            "renderDashboardHtml"
+          ],
+          "imports": []
+        }
+      ],
+      "totalLoc": 1329,
+      "exports": [
+        "createDashboardServer",
+        "startDashboard",
+        "renderDashboardHtml",
+        "RunConfig",
+        "RunStage",
+        "RunProgress",
+        "RunState",
+        "DashboardRunEvent",
+        "RunEventCallback",
+        "executePipeline",
+        "DashboardOptions",
+        "createDashboardServer",
+        "startDashboard",
+        "renderDashboardHtml"
+      ],
+      "dependencies": [
+        "budget",
+        "core",
+        "discovery",
+        "execution",
+        "repo",
+        "tracking"
+      ]
+    },
+    {
+      "name": "discovery",
+      "path": "src/discovery",
+      "files": [
+        {
+          "path": "src/discovery/analyzer.ts",
+          "loc": 477,
+          "sizeBytes": 19199,
+          "exports": [
+            "AnalyzeOptions",
+            "analyzeCodebase",
+            "persistContext",
+            "loadContext",
+            "isContextStale",
+            "deriveModuleFromPath",
+            "Name",
+            "Alias",
+            "...",
+            "default"
+          ],
+          "imports": [
+            "node:fs",
+            "node:fs/promises",
+            "node:readline",
+            "node:path",
+            "p-queue",
+            "../core/memory.js",
+            "../core/types.js",
+            "./context-types.js",
+            "./scanner.js",
+            "./types.js",
+            "PATH"
+          ]
+        },
+        {
+          "path": "src/discovery/backlog.ts",
+          "loc": 106,
+          "sizeBytes": 3319,
+          "exports": [
+            "persistBacklog",
+            "loadBacklog",
+            "createBacklog",
+            "updateBacklog",
+            "getPendingEpics"
+          ],
+          "imports": [
+            "node:fs/promises",
+            "node:path",
+            "../core/types.js",
+            "./context-types.js"
+          ]
+        },
+        {
+          "path": "src/discovery/context-types.ts",
+          "loc": 52,
+          "sizeBytes": 1698,
+          "exports": [
+            "FileInfo",
+            "ModuleInfo",
+            "CodebaseMap",
+            "QualityReport",
+            "Backlog"
+          ],
+          "imports": [
+            "../core/types.js",
+            "./types.js"
+          ]
+        },
+        {
+          "path": "src/discovery/epic-grouper.ts",
+          "loc": 195,
+          "sizeBytes": 8300,
+          "exports": [
+            "GrouperOptions",
+            "groupFindingsIntoEpics",
+            "findingToTask",
+            "computeEpicPriority",
+            "computeEpicComplexity",
+            "deriveModuleFromPath"
+          ],
+          "imports": [
+            "node:crypto",
+            "../core/types.js",
+            "./analyzer.js",
+            "./context-types.js",
+            "./types.js"
+          ]
+        },
+        {
+          "path": "src/discovery/index.ts",
+          "loc": 12,
+          "sizeBytes": 446,
+          "exports": [],
+          "imports": []
+        },
+        {
+          "path": "src/discovery/ranker.ts",
+          "loc": 228,
+          "sizeBytes": 6811,
+          "exports": [
+            "rankTasks"
+          ],
+          "imports": [
+            "../core/index.js",
+            "./types.js"
+          ]
+        },
+        {
+          "path": "src/discovery/scanner-factory.ts",
+          "loc": 52,
+          "sizeBytes": 1868,
+          "exports": [
+            "ScannerName",
+            "buildScanners"
+          ],
+          "imports": [
+            "../core/index.js",
+            "./scanner.js",
+            "./scanners/github-issues-scanner.js",
+            "./scanners/lint-scanner.js",
+            "./scanners/test-gap-scanner.js",
+            "./scanners/todo-scanner.js",
+            "./types.js"
+          ]
+        },
+        {
+          "path": "src/discovery/scanner.ts",
+          "loc": 109,
+          "sizeBytes": 3912,
+          "exports": [
+            "CompositeScanner",
+            "createDefaultCompositeScanner"
+          ],
+          "imports": [
+            "node:crypto",
+            "../core/index.js",
+            "./scanners/lint-scanner.js",
+            "./scanners/todo-scanner.js",
+            "./types.js"
+          ]
+        },
+        {
+          "path": "src/discovery/scanners/github-issues-scanner.ts",
+          "loc": 379,
+          "sizeBytes": 11475,
+          "exports": [
+            "GitHubIssuesScanner"
+          ],
+          "imports": [
+            "node:fs/promises",
+            "node:path",
+            "../../core/utils.js",
+            "../../core/index.js",
+            "../types.js"
+          ]
+        },
+        {
+          "path": "src/discovery/scanners/lint-scanner.ts",
+          "loc": 532,
+          "sizeBytes": 16718,
+          "exports": [
+            "LintScanner"
+          ],
+          "imports": [
+            "node:child_process",
+            "node:crypto",
+            "node:fs/promises",
+            "node:path",
+            "../../core/index.js",
+            "../types.js"
+          ]
+        },
+        {
+          "path": "src/discovery/scanners/test-gap-scanner.ts",
+          "loc": 264,
+          "sizeBytes": 9262,
+          "exports": [
+            "TestGapScanner"
+          ],
+          "imports": [
+            "node:crypto",
+            "node:fs/promises",
+            "node:path",
+            "../../core/index.js",
+            "../types.js",
+            "node:fs"
+          ]
+        },
+        {
+          "path": "src/discovery/scanners/todo-scanner.ts",
+          "loc": 476,
+          "sizeBytes": 15504,
+          "exports": [
+            "TodoScanner"
+          ],
+          "imports": [
+            "node:child_process",
+            "node:crypto",
+            "node:fs/promises",
+            "node:path",
+            "../../core/utils.js",
+            "../../core/index.js",
+            "../types.js",
+            "node:fs"
+          ]
+        },
+        {
+          "path": "src/discovery/types.ts",
+          "loc": 76,
+          "sizeBytes": 2062,
+          "exports": [
+            "ScanOptions",
+            "Scanner",
+            "PriorityWeights",
+            "ScannerTaskContext",
+            "RawFinding"
+          ],
+          "imports": [
+            "../core/index.js",
+            "../repo/index.js"
+          ]
+        }
+      ],
+      "totalLoc": 2958,
+      "exports": [
+        "AnalyzeOptions",
+        "analyzeCodebase",
+        "persistContext",
+        "loadContext",
+        "isContextStale",
+        "deriveModuleFromPath",
+        "Name",
+        "Alias",
+        "...",
+        "default",
+        "persistBacklog",
+        "loadBacklog",
+        "createBacklog",
+        "updateBacklog",
+        "getPendingEpics",
+        "FileInfo",
+        "ModuleInfo",
+        "CodebaseMap",
+        "QualityReport",
+        "Backlog",
+        "GrouperOptions",
+        "groupFindingsIntoEpics",
+        "findingToTask",
+        "computeEpicPriority",
+        "computeEpicComplexity",
+        "deriveModuleFromPath",
+        "rankTasks",
+        "ScannerName",
+        "buildScanners",
+        "CompositeScanner",
+        "createDefaultCompositeScanner",
+        "GitHubIssuesScanner",
+        "LintScanner",
+        "TestGapScanner",
+        "TodoScanner",
+        "ScanOptions",
+        "Scanner",
+        "PriorityWeights",
+        "ScannerTaskContext",
+        "RawFinding"
+      ],
+      "dependencies": [
+        "core",
+        "repo"
+      ]
+    },
+    {
+      "name": "execution",
+      "path": "src/execution",
+      "files": [
+        {
+          "path": "src/execution/agents/agent.interface.ts",
+          "loc": 67,
+          "sizeBytes": 1689,
+          "exports": [
+            "AgentAvailability",
+            "AgentExecuteParams",
+            "TokenEstimateParams",
+            "AgentEvent",
+            "AgentResult",
+            "AgentExecution",
+            "AgentProvider"
+          ],
+          "imports": [
+            "../../core/index.js"
+          ]
+        },
+        {
+          "path": "src/execution/agents/claude-code.adapter.ts",
+          "loc": 480,
+          "sizeBytes": 15639,
+          "exports": [
+            "ClaudeCodeAdapter"
+          ],
+          "imports": [
+            "node:readline",
+            "execa",
+            "../../core/index.js",
+            "./agent.interface.js",
+            "./shared.js"
+          ]
+        },
+        {
+          "path": "src/execution/agents/codex.adapter.ts",
+          "loc": 473,
+          "sizeBytes": 15142,
+          "exports": [
+            "CodexAdapter"
+          ],
+          "imports": [
+            "node:fs/promises",
+            "node:readline",
+            "execa",
+            "../../core/index.js",
+            "./agent.interface.js",
+            "./shared.js"
+          ]
+        },
+        {
+          "path": "src/execution/agents/opencode.adapter.ts",
+          "loc": 403,
+          "sizeBytes": 15009,
+          "exports": [
+            "OpenCodeAdapter"
+          ],
+          "imports": [
+            "node:fs/promises",
+            "node:readline",
+            "execa",
+            "../../core/index.js",
+            "./agent.interface.js",
+            "./shared.js"
+          ]
+        },
+        {
+          "path": "src/execution/agents/registry.ts",
+          "loc": 54,
+          "sizeBytes": 2315,
+          "exports": [
+            "AdapterFactory",
+            "adapterRegistry"
+          ],
+          "imports": [
+            "./agent.interface.js",
+            "./claude-code.adapter.js",
+            "./codex.adapter.js",
+            "./opencode.adapter.js"
+          ]
+        },
+        {
+          "path": "src/execution/agents/shared.ts",
+          "loc": 89,
+          "sizeBytes": 2856,
+          "exports": [
+            "TokenState",
+            "TokenPatch",
+            "AsyncEventQueue",
+            "readNumber",
+            "readString",
+            "isRecord"
+          ],
+          "imports": []
+        },
+        {
+          "path": "src/execution/engine.ts",
+          "loc": 309,
+          "sizeBytes": 9711,
+          "exports": [
+            "JobStatus",
+            "Job",
+            "ExecutionEngineConfig",
+            "RunResult",
+            "isTransientError",
+            "ExecutionEngine"
+          ],
+          "imports": [
+            "node:crypto",
+            "node:timers/promises",
+            "p-queue",
+            "../core/index.js",
+            "./agents/agent.interface.js",
+            "./normalize-error.js",
+            "./sandbox.js",
+            "./worker.js"
+          ]
+        },
+        {
+          "path": "src/execution/index.ts",
+          "loc": 8,
+          "sizeBytes": 309,
+          "exports": [],
+          "imports": []
+        },
+        {
+          "path": "src/execution/normalize-error.ts",
+          "loc": 73,
+          "sizeBytes": 2391,
+          "exports": [
+            "normalizeExecutionError",
+            "isRecord",
+            "toErrorMessage"
+          ],
+          "imports": [
+            "../core/index.js",
+            "../core/utils.js"
+          ]
+        },
+        {
+          "path": "src/execution/sandbox.ts",
+          "loc": 72,
+          "sizeBytes": 2335,
+          "exports": [
+            "SandboxContext",
+            "createSandbox"
+          ],
+          "imports": [
+            "node:fs/promises",
+            "node:path",
+            "simple-git",
+            "../core/index.js"
+          ]
+        },
+        {
+          "path": "src/execution/worker.ts",
+          "loc": 205,
+          "sizeBytes": 6610,
+          "exports": [
+            "ExecuteTaskOptions",
+            "executeTask",
+            "buildEpicPrompt",
+            "epicAsTask"
+          ],
+          "imports": [
+            "node:crypto",
+            "../core/index.js",
+            "./agents/agent.interface.js",
+            "./normalize-error.js",
+            "./sandbox.js"
+          ]
+        }
+      ],
+      "totalLoc": 2233,
+      "exports": [
+        "AgentAvailability",
+        "AgentExecuteParams",
+        "TokenEstimateParams",
+        "AgentEvent",
+        "AgentResult",
+        "AgentExecution",
+        "AgentProvider",
+        "ClaudeCodeAdapter",
+        "CodexAdapter",
+        "OpenCodeAdapter",
+        "AdapterFactory",
+        "adapterRegistry",
+        "TokenState",
+        "TokenPatch",
+        "AsyncEventQueue",
+        "readNumber",
+        "readString",
+        "isRecord",
+        "JobStatus",
+        "Job",
+        "ExecutionEngineConfig",
+        "RunResult",
+        "isTransientError",
+        "ExecutionEngine",
+        "normalizeExecutionError",
+        "isRecord",
+        "toErrorMessage",
+        "SandboxContext",
+        "createSandbox",
+        "ExecuteTaskOptions",
+        "executeTask",
+        "buildEpicPrompt",
+        "epicAsTask"
+      ],
+      "dependencies": [
+        "core"
+      ]
+    },
+    {
+      "name": "repo",
+      "path": "src/repo",
+      "files": [
+        {
+          "path": "src/repo/cloner.ts",
+          "loc": 189,
+          "sizeBytes": 7230,
+          "exports": [
+            "DEFAULT_REPO_CACHE_DIR",
+            "cloneRepo"
+          ],
+          "imports": [
+            "node:fs",
+            "node:fs/promises",
+            "node:os",
+            "node:path",
+            "simple-git",
+            "./types.js"
+          ]
+        },
+        {
+          "path": "src/repo/index.ts",
+          "loc": 4,
+          "sizeBytes": 125,
+          "exports": [],
+          "imports": []
+        },
+        {
+          "path": "src/repo/metadata-cache.ts",
+          "loc": 114,
+          "sizeBytes": 3561,
+          "exports": [
+            "MetadataCacheOptions",
+            "DEFAULT_METADATA_CACHE_PATH",
+            "DEFAULT_METADATA_CACHE_TTL_MS",
+            "MetadataCache"
+          ],
+          "imports": [
+            "node:fs",
+            "node:fs/promises",
+            "node:os",
+            "node:path",
+            "./types.js"
+          ]
+        },
+        {
+          "path": "src/repo/resolver.ts",
+          "loc": 266,
+          "sizeBytes": 8450,
+          "exports": [
+            "RepoResolutionErrorCode",
+            "RepoResolutionError",
+            "resolveRepo"
+          ],
+          "imports": [
+            "node:child_process",
+            "node:os",
+            "node:path",
+            "@octokit/rest",
+            "./metadata-cache.js",
+            "./types.js"
+          ]
+        },
+        {
+          "path": "src/repo/types.ts",
+          "loc": 33,
+          "sizeBytes": 714,
+          "exports": [
+            "RepoPermissions",
+            "ResolvedRepoMeta",
+            "ResolvedRepoGitState",
+            "ResolvedRepo"
+          ],
+          "imports": []
+        }
+      ],
+      "totalLoc": 606,
+      "exports": [
+        "DEFAULT_REPO_CACHE_DIR",
+        "cloneRepo",
+        "MetadataCacheOptions",
+        "DEFAULT_METADATA_CACHE_PATH",
+        "DEFAULT_METADATA_CACHE_TTL_MS",
+        "MetadataCache",
+        "RepoResolutionErrorCode",
+        "RepoResolutionError",
+        "resolveRepo",
+        "RepoPermissions",
+        "ResolvedRepoMeta",
+        "ResolvedRepoGitState",
+        "ResolvedRepo"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "tracking",
+      "path": "src/tracking",
+      "files": [
+        {
+          "path": "src/tracking/index.ts",
+          "loc": 16,
+          "sizeBytes": 443,
+          "exports": [
+            "contributionLogSchema",
+            "contributionTaskSchema",
+            "parseContributionLog",
+            "writeContributionLog",
+            "buildLeaderboard"
+          ],
+          "imports": []
+        },
+        {
+          "path": "src/tracking/leaderboard.ts",
+          "loc": 233,
+          "sizeBytes": 8327,
+          "exports": [
+            "Leaderboard",
+            "LeaderboardEntry",
+            "buildLeaderboard"
+          ],
+          "imports": [
+            "node:crypto",
+            "node:fs/promises",
+            "node:path",
+            "./log-schema.js"
+          ]
+        },
+        {
+          "path": "src/tracking/log-schema.ts",
+          "loc": 84,
+          "sizeBytes": 2974,
+          "exports": [
+            "taskSourceValues",
+            "taskComplexityValues",
+            "contributionTaskStatusValues",
+            "TaskSource",
+            "TaskComplexity",
+            "ContributionTaskStatus",
+            "AgentProviderId",
+            "contributionTaskSchema",
+            "contributionLogSchema",
+            "ContributionTask",
+            "ContributionLog",
+            "parseContributionLog"
+          ],
+          "imports": [
+            "zod"
+          ]
+        },
+        {
+          "path": "src/tracking/logger.ts",
+          "loc": 55,
+          "sizeBytes": 2385,
+          "exports": [
+            "writeContributionLog"
+          ],
+          "imports": [
+            "node:crypto",
+            "node:fs/promises",
+            "node:path",
+            "./leaderboard.js",
+            "./log-schema.js"
+          ]
+        }
+      ],
+      "totalLoc": 388,
+      "exports": [
+        "contributionLogSchema",
+        "contributionTaskSchema",
+        "parseContributionLog",
+        "writeContributionLog",
+        "buildLeaderboard",
+        "Leaderboard",
+        "LeaderboardEntry",
+        "buildLeaderboard",
+        "taskSourceValues",
+        "taskComplexityValues",
+        "contributionTaskStatusValues",
+        "TaskSource",
+        "TaskComplexity",
+        "ContributionTaskStatus",
+        "AgentProviderId",
+        "contributionTaskSchema",
+        "contributionLogSchema",
+        "ContributionTask",
+        "ContributionLog",
+        "parseContributionLog",
+        "writeContributionLog"
+      ],
+      "dependencies": []
+    }
+  ],
+  "totalFiles": 80,
+  "totalLoc": 13532
 }

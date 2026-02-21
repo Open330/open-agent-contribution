@@ -154,23 +154,66 @@ describe("CodexAdapter", () => {
     const adapter = new CodexAdapter();
     const availability = await adapter.checkAvailability();
 
-    expect(execa).toHaveBeenCalledWith("codex", ["--version"], { reject: false });
+    expect(execa).toHaveBeenCalledWith("codex", ["--version"], {
+      reject: false,
+      timeout: 5_000,
+      stdin: "ignore",
+    });
     expect(availability).toEqual({
       available: true,
       version: "1.2.3",
     });
   });
 
+  it("checkAvailability falls back to which when --version fails", async () => {
+    // First call: codex --version fails (TUI hangs / times out)
+    vi.mocked(execa).mockImplementationOnce(
+      () =>
+        Promise.resolve({
+          exitCode: null,
+          stdout: "",
+          stderr: "",
+        }) as unknown as ReturnType<typeof execa>,
+    );
+    // Second call: which codex succeeds
+    vi.mocked(execa).mockImplementationOnce(
+      () =>
+        Promise.resolve({
+          exitCode: 0,
+          stdout: "/opt/homebrew/bin/codex\n",
+          stderr: "",
+        }) as unknown as ReturnType<typeof execa>,
+    );
+
+    const adapter = new CodexAdapter();
+    const availability = await adapter.checkAvailability();
+
+    expect(availability).toEqual({
+      available: true,
+      version: undefined,
+    });
+  });
+
   it("checkAvailability returns unavailable when codex is not found", async () => {
+    // First call: codex --version throws ENOENT
     vi.mocked(execa).mockImplementationOnce(
       () => Promise.reject(new Error("spawn codex ENOENT")) as unknown as ReturnType<typeof execa>,
+    );
+    // Second call: which codex also fails
+    vi.mocked(execa).mockImplementationOnce(
+      () =>
+        Promise.resolve({
+          exitCode: 1,
+          stdout: "",
+          stderr: "",
+        }) as unknown as ReturnType<typeof execa>,
     );
 
     const adapter = new CodexAdapter();
     const availability = await adapter.checkAvailability();
 
     expect(availability.available).toBe(false);
-    expect(availability.error).toContain("ENOENT");
+    expect(availability.error).toBe("codex is not installed or not in PATH.");
   });
 
   it("execute spawns codex process with correct args", async () => {

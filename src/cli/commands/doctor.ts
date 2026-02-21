@@ -102,16 +102,8 @@ async function runDoctorChecks(): Promise<DoctorCheck[]> {
     message: claudeResult.ok ? undefined : explainCommandFailure("claude", claudeResult),
   });
 
-  const codexResult = await runCommand("codex", ["--version"]);
-  const codexVersion = extractVersion(codexResult.stdout) ?? "--";
-  checks.push({
-    id: "codex",
-    name: "Codex CLI",
-    requirement: "installed",
-    value: codexVersion,
-    status: codexResult.ok ? "pass" : "fail",
-    message: codexResult.ok ? undefined : explainCommandFailure("codex", codexResult),
-  });
+  const codexCheck = await checkCodexCli();
+  checks.push(codexCheck);
 
   const opencodeResult = await runCommand("opencode", ["--version"]);
   const opencodeVersion = extractVersion(opencodeResult.stdout) ?? "--";
@@ -161,6 +153,46 @@ async function checkGithubAuth(): Promise<DoctorCheck> {
     value: "--",
     status: "fail",
     message: "No GitHub authentication detected. Set GITHUB_TOKEN or run `gh auth login`.",
+  };
+}
+
+/**
+ * Codex CLI v0.104+ is a native TUI binary that may not respond to `--version`
+ * in headless environments. Fall back to verifying the binary exists in PATH.
+ */
+async function checkCodexCli(): Promise<DoctorCheck> {
+  const codexResult = await runCommand("codex", ["--version"]);
+  if (codexResult.ok) {
+    const version = extractVersion(codexResult.stdout) ?? "--";
+    return {
+      id: "codex",
+      name: "Codex CLI",
+      requirement: "installed",
+      value: version,
+      status: "pass",
+    };
+  }
+
+  // codex --version may hang (TUI binary). Fallback: check binary existence.
+  const whichResult = await runCommand("which", ["codex"]);
+  if (whichResult.ok && whichResult.stdout.trim().length > 0) {
+    return {
+      id: "codex",
+      name: "Codex CLI",
+      requirement: "installed",
+      value: "installed",
+      status: "pass",
+      message: "Version check timed out — binary found in PATH.",
+    };
+  }
+
+  return {
+    id: "codex",
+    name: "Codex CLI",
+    requirement: "installed",
+    value: "--",
+    status: "fail",
+    message: explainCommandFailure("codex", codexResult),
   };
 }
 
@@ -255,7 +287,7 @@ async function runCommand(command: string, args: string[]): Promise<CommandResul
     const { execa } = await import("execa");
     const result = await execa(command, args, {
       reject: false,
-      timeout: 30_000,
+      timeout: 10_000,
       stdin: "ignore",
     });
     return {
