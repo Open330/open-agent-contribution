@@ -158,6 +158,7 @@ describe("CodexAdapter", () => {
       reject: false,
       timeout: 5_000,
       stdin: "ignore",
+      env: expect.objectContaining({ CODEX_MANAGED_BY_NPM: "1" }),
     });
     expect(availability).toEqual({
       available: true,
@@ -237,7 +238,7 @@ describe("CodexAdapter", () => {
     expect(execution.providerId).toBe("codex");
     expect(execa).toHaveBeenCalledWith(
       "codex",
-      ["exec", "--full-auto", "-C", "/tmp/project", "Fix all issues"],
+      ["exec", "--full-auto", "--json", "--ephemeral", "-C", "/tmp/project", "Fix all issues"],
       expect.objectContaining({
         cwd: "/tmp/project",
         reject: false,
@@ -246,6 +247,7 @@ describe("CodexAdapter", () => {
           CUSTOM_ENV: "abc",
           OAC_TOKEN_BUDGET: "7777",
           OAC_ALLOW_COMMITS: "true",
+          CODEX_MANAGED_BY_NPM: "1",
         }),
       }),
     );
@@ -340,6 +342,82 @@ describe("CodexAdapter", () => {
     });
     expect(result.filesChanged).toEqual(["src/new-file.ts"]);
     expect(result.totalTokensUsed).toBe(17);
+  });
+
+  it("execute parses Codex JSONL envelope events", async () => {
+    vi.mocked(execa).mockReturnValueOnce(
+      createMockSubprocess({
+        stdoutLines: [
+          // Codex thread lifecycle
+          JSON.stringify({ type: "thread.started", thread_id: "t-123" }),
+          JSON.stringify({ type: "turn.started" }),
+          // Codex command execution → tool_use
+          JSON.stringify({
+            type: "item.completed",
+            item: {
+              id: "item_0",
+              type: "command_execution",
+              command: "/bin/zsh -lc 'npm test'",
+              aggregated_output: "ok\n",
+              exit_code: 0,
+              status: "completed",
+            },
+          }),
+          // Codex file change → file_edit
+          JSON.stringify({
+            type: "item.completed",
+            item: {
+              id: "item_1",
+              type: "file_change",
+              path: "src/index.ts",
+              action: "modify",
+            },
+          }),
+          // Codex turn.completed → tokens
+          JSON.stringify({
+            type: "turn.completed",
+            usage: { input_tokens: 15328, cached_input_tokens: 13184, output_tokens: 283 },
+          }),
+        ],
+      }),
+    );
+
+    const adapter = new CodexAdapter();
+    const execution = adapter.execute(makeParams());
+    const eventsPromise = collectEvents(execution.events);
+    const result = await execution.result;
+    const events = await eventsPromise;
+
+    const tokenEvent = events.find(
+      (event): event is Extract<AgentEvent, { type: "tokens" }> => event.type === "tokens",
+    );
+    expect(tokenEvent).toEqual({
+      type: "tokens",
+      inputTokens: 15328,
+      outputTokens: 283,
+      cumulativeTokens: 15328 + 283,
+    });
+
+    const fileEditEvent = events.find(
+      (event): event is Extract<AgentEvent, { type: "file_edit" }> => event.type === "file_edit",
+    );
+    expect(fileEditEvent).toEqual({
+      type: "file_edit",
+      path: "src/index.ts",
+      action: "modify",
+    });
+
+    const toolUseEvent = events.find(
+      (event): event is Extract<AgentEvent, { type: "tool_use" }> => event.type === "tool_use",
+    );
+    expect(toolUseEvent).toEqual({
+      type: "tool_use",
+      tool: "shell",
+      input: { command: "/bin/zsh -lc 'npm test'" },
+    });
+
+    expect(result.filesChanged).toEqual(["src/index.ts"]);
+    expect(result.totalTokensUsed).toBe(15328 + 283);
   });
 
   it("execute handles process exit", async () => {

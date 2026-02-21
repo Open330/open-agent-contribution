@@ -310,6 +310,7 @@ export class OpenCodeAdapter implements AgentProvider {
         env: processEnv,
         reject: false,
         timeout: params.timeoutMs,
+        stdin: "ignore",
       },
     );
 

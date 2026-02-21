@@ -386,6 +386,7 @@ export class ClaudeCodeAdapter implements AgentProvider {
       extendEnv: false,
       reject: false,
       timeout: params.timeoutMs,
+      stdin: "ignore",
     });
 
     this.runningExecutions.set(params.executionId, subprocess);

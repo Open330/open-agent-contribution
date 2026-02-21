@@ -148,6 +148,18 @@ function parseFileEditFromPayload(
     }
   }
 
+  // Codex JSONL envelope: {"type":"item.completed","item":{"type":"file_change",...}}
+  if (payload.type === "item.completed") {
+    const item = isRecord(payload.item) ? payload.item : undefined;
+    if (item?.type === "file_change") {
+      const action = normalizeFileAction(item.action) ?? "modify";
+      const path = readString(item.path ?? item.filename);
+      if (path) {
+        return { type: "file_edit", action, path };
+      }
+    }
+  }
+
   const tool = readString(payload.tool ?? payload.tool_name ?? payload.name);
   const input = isRecord(payload.input) ? payload.input : undefined;
   const inputPath = readString(input?.path ?? input?.file_path ?? input?.filePath);
@@ -171,6 +183,17 @@ function parseFileEditFromPayload(
 function parseToolUseFromPayload(
   payload: Record<string, unknown>,
 ): Extract<AgentEvent, { type: "tool_use" }> | undefined {
+  // Codex JSONL envelope: {"type":"item.completed","item":{"type":"command_execution","command":"..."}}
+  if (payload.type === "item.completed") {
+    const item = isRecord(payload.item) ? payload.item : undefined;
+    if (item?.type === "command_execution") {
+      const command = readString(item.command);
+      if (command) {
+        return { type: "tool_use", tool: "shell", input: { command } };
+      }
+    }
+  }
+
   const tool = readString(payload.tool ?? payload.tool_name ?? payload.name);
   if (!tool) {
     return undefined;
@@ -340,6 +363,7 @@ export class CodexAdapter implements AgentProvider {
         reject: false,
         timeout: 5_000,
         stdin: "ignore",
+        env: { ...process.env, CODEX_MANAGED_BY_NPM: "1" },
       });
       if (result.exitCode === 0) {
         const versionLine = result.stdout.trim().split("\n")[0] ?? "";
@@ -377,16 +401,26 @@ export class CodexAdapter implements AgentProvider {
       ...params.env,
       OAC_TOKEN_BUDGET: `${params.tokenBudget}`,
       OAC_ALLOW_COMMITS: `${params.allowCommits}`,
+      CODEX_MANAGED_BY_NPM: "1",
     };
 
     const subprocess = execa(
       "codex",
-      ["exec", "--full-auto", "-C", params.workingDirectory, params.prompt],
+      [
+        "exec",
+        "--full-auto",
+        "--json",
+        "--ephemeral",
+        "-C",
+        params.workingDirectory,
+        params.prompt,
+      ],
       {
         cwd: params.workingDirectory,
         env: processEnv,
         reject: false,
         timeout: params.timeoutMs,
+        stdin: "ignore",
       },
     );
 
