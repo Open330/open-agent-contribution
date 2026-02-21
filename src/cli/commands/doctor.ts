@@ -157,42 +157,47 @@ async function checkGithubAuth(): Promise<DoctorCheck> {
 }
 
 /**
- * Codex CLI v0.104+ is a native TUI binary that may not respond to `--version`
- * in headless environments. Fall back to verifying the binary exists in PATH.
+ * Codex CLI v0.104+ is a native TUI binary. The Homebrew installation lacks
+ * sibling helper binaries and hangs in headless mode. OAC invokes Codex via
+ * `npx @openai/codex` which bundles everything needed. Check that path.
  */
 async function checkCodexCli(): Promise<DoctorCheck> {
+  // Preferred: check via npx which is how OAC actually invokes Codex
+  const npxResult = await runCommand("npx", ["--yes", "@openai/codex", "--version"]);
+  if (npxResult.ok) {
+    const version = extractVersion(npxResult.stdout) ?? "--";
+    return {
+      id: "codex",
+      name: "Codex CLI",
+      requirement: "installed (npm)",
+      value: version,
+      status: "pass",
+    };
+  }
+
+  // npx failed — try bare codex as a secondary signal
   const codexResult = await runCommand("codex", ["--version"]);
   if (codexResult.ok) {
     const version = extractVersion(codexResult.stdout) ?? "--";
     return {
       id: "codex",
       name: "Codex CLI",
-      requirement: "installed",
+      requirement: "installed (npm)",
       value: version,
-      status: "pass",
-    };
-  }
-
-  // codex --version may hang (TUI binary). Fallback: check binary existence.
-  const whichResult = await runCommand("which", ["codex"]);
-  if (whichResult.ok && whichResult.stdout.trim().length > 0) {
-    return {
-      id: "codex",
-      name: "Codex CLI",
-      requirement: "installed",
-      value: "installed",
-      status: "pass",
-      message: "Version check timed out — binary found in PATH.",
+      status: "warn",
+      message:
+        "Codex binary found but npm package not available. " +
+        "OAC requires the npm package: npm install -g @openai/codex",
     };
   }
 
   return {
     id: "codex",
     name: "Codex CLI",
-    requirement: "installed",
+    requirement: "installed (npm)",
     value: "--",
     status: "fail",
-    message: explainCommandFailure("codex", codexResult),
+    message: "Codex CLI not found. Install via: npm install -g @openai/codex",
   };
 }
 

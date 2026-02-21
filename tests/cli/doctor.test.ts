@@ -64,7 +64,7 @@ function passingCommandResults(
     git: { stdout: "git version 2.43.0\n", exitCode: 0 },
     gh: { stdout: "Logged in to github.com", exitCode: 0 },
     claude: { stdout: "Claude Code v1.0.16\n", exitCode: 0 },
-    codex: { stdout: "v0.2.0\n", exitCode: 0 },
+    npx: { stdout: "v0.2.0\n", exitCode: 0 },
     opencode: { stdout: "v0.1.0\n", exitCode: 0 },
     ...overrides,
   };
