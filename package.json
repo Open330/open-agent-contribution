@@ -1,6 +1,6 @@
 {
   "name": "@open330/oac",
-  "version": "2026.221.2",
+  "version": "2026.222.1",
   "description": "Open Agent Contribution - automate open source contributions with AI agents",
   "license": "MIT",
   "repository": {
@@ -23,7 +23,13 @@
       "types": "./dist/core/index.d.ts"
     }
   },
-  "files": ["dist", "README.md", "LICENSE", "CHANGELOG.md", "docs"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "docs"
+  ],
   "publishConfig": {
     "access": "public"
   },
