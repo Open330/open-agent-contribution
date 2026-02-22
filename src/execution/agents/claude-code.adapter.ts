@@ -82,18 +82,37 @@ function patchTokenState(state: TokenState, patch: TokenPatch): AgentEvent | und
 }
 
 function parseTokenPatchFromPayload(payload: Record<string, unknown>): TokenPatch {
-  const usage = isRecord(payload.usage) ? payload.usage : undefined;
+  // Claude Code stream-json nests usage under `message.usage` for assistant events
+  // and under `usage` for result events
+  const message = isRecord(payload.message) ? payload.message : undefined;
+  const usage =
+    isRecord(payload.usage) ? payload.usage
+    : isRecord(message?.usage) ? (message.usage as Record<string, unknown>)
+    : undefined;
+  // Claude Code includes cache tokens separately — sum them for effective input count
+  const baseInput = readNumber(
+    payload.inputTokens ??
+      payload.input_tokens ??
+      payload.promptTokens ??
+      payload.prompt_tokens ??
+      usage?.inputTokens ??
+      usage?.input_tokens ??
+      usage?.promptTokens ??
+      usage?.prompt_tokens,
+  );
+  const cacheRead = readNumber(
+    usage?.cache_read_input_tokens ?? usage?.cacheReadInputTokens,
+  );
+  const cacheCreate = readNumber(
+    usage?.cache_creation_input_tokens ?? usage?.cacheCreationInputTokens,
+  );
+  const effectiveInput =
+    baseInput !== undefined
+      ? (baseInput ?? 0) + (cacheRead ?? 0) + (cacheCreate ?? 0)
+      : undefined;
+
   return {
-    inputTokens: readNumber(
-      payload.inputTokens ??
-        payload.input_tokens ??
-        payload.promptTokens ??
-        payload.prompt_tokens ??
-        usage?.inputTokens ??
-        usage?.input_tokens ??
-        usage?.promptTokens ??
-        usage?.prompt_tokens,
-    ),
+    inputTokens: effectiveInput,
     outputTokens: readNumber(
       payload.outputTokens ??
         payload.output_tokens ??
@@ -333,7 +352,7 @@ export class ClaudeCodeAdapter implements AgentProvider {
 
   public async checkAvailability(): Promise<AgentAvailability> {
     try {
-      const result = await execa("claude", ["--version"], { reject: false });
+      const result = await execa("claude", ["--version"], { reject: false, stdin: "ignore" });
       const version = result.stdout.trim().split("\n")[0];
       if (result.exitCode === 0) {
         return {
@@ -380,14 +399,25 @@ export class ClaudeCodeAdapter implements AgentProvider {
       OAC_ALLOW_COMMITS: `${params.allowCommits}`,
     };
 
-    const subprocess = execa("claude", ["-p", params.prompt], {
-      cwd: params.workingDirectory,
-      env: processEnv,
-      extendEnv: false,
-      reject: false,
-      timeout: params.timeoutMs,
-      stdin: "ignore",
-    });
+    const subprocess = execa(
+      "claude",
+      [
+        "-p",
+        "--dangerously-skip-permissions",
+        "--verbose",
+        "--output-format",
+        "stream-json",
+        params.prompt,
+      ],
+      {
+        cwd: params.workingDirectory,
+        env: processEnv,
+        extendEnv: false,
+        reject: false,
+        timeout: params.timeoutMs,
+        stdin: "ignore",
+      },
+    );
 
     this.runningExecutions.set(params.executionId, subprocess);
 

@@ -369,8 +369,9 @@ export async function executeWithAgent(input: {
       timeoutMs: input.timeoutSeconds * 1_000,
     });
 
-    // Agent may edit files without committing — stage and commit any changes
-    const commitResult = await commitSandboxChanges(sandbox.path, input.task);
+    // Agent may edit files without committing — stage and commit any changes.
+    // Also detects changes the agent committed itself (e.g. Claude Code).
+    const commitResult = await commitSandboxChanges(sandbox.path, input.task, input.baseBranch);
 
     const filesChanged =
       commitResult.filesChanged.length > 0
@@ -392,7 +393,7 @@ export async function executeWithAgent(input: {
     };
   } catch (error) {
     // Even on error, check if agent left uncommitted changes
-    const commitResult = await commitSandboxChanges(sandbox.path, input.task);
+    const commitResult = await commitSandboxChanges(sandbox.path, input.task, input.baseBranch);
     if (commitResult.hasChanges) {
       return {
         execution: {
@@ -424,28 +425,31 @@ export async function executeWithAgent(input: {
 async function commitSandboxChanges(
   sandboxPath: string,
   task: Task,
+  baseBranch: string,
 ): Promise<{ hasChanges: boolean; filesChanged: string[] }> {
   try {
-    // Check for any uncommitted changes (staged + unstaged + untracked)
+    // Stage and commit any uncommitted changes (staged + unstaged + untracked)
     const statusResult = await execa("git", ["status", "--porcelain"], { cwd: sandboxPath });
-    if (!statusResult.stdout.trim()) {
-      return { hasChanges: false, filesChanged: [] };
+    if (statusResult.stdout.trim()) {
+      await execa("git", ["add", "-A"], { cwd: sandboxPath });
+      await execa(
+        "git",
+        ["commit", "-m", `[OAC] ${task.title}\n\nAutomated contribution by OAC.`],
+        { cwd: sandboxPath },
+      );
     }
 
-    await execa("git", ["add", "-A"], { cwd: sandboxPath });
-    await execa(
+    // Detect ALL changes vs the base branch — covers both OAC-committed and
+    // agent-committed changes (e.g. Claude Code with --dangerously-skip-permissions
+    // can commit directly during execution).
+    const diffResult = await execa(
       "git",
-      ["commit", "-m", `[OAC] ${task.title}\n\nAutomated contribution by OAC using Codex CLI.`],
+      ["diff", "--name-only", `origin/${baseBranch}`, "HEAD"],
       { cwd: sandboxPath },
     );
-
-    // Get the list of changed files from the commit
-    const diffResult = await execa("git", ["diff", "--name-only", "HEAD~1", "HEAD"], {
-      cwd: sandboxPath,
-    });
     const changedFiles = diffResult.stdout.trim().split("\n").filter(Boolean);
 
-    return { hasChanges: true, filesChanged: changedFiles };
+    return { hasChanges: changedFiles.length > 0, filesChanged: changedFiles };
   } catch {
     return { hasChanges: false, filesChanged: [] };
   }

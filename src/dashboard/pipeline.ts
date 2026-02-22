@@ -151,7 +151,7 @@ async function executeWithCodex(input: {
       timeoutMs: input.timeoutSeconds * 1_000,
     });
 
-    const commitResult = await commitSandboxChanges(sandbox.path, input.task);
+    const commitResult = await commitSandboxChanges(sandbox.path, input.task, input.baseBranch);
     const filesChanged =
       commitResult.filesChanged.length > 0
         ? commitResult.filesChanged
@@ -171,7 +171,7 @@ async function executeWithCodex(input: {
       sandbox: sandboxInfo,
     };
   } catch (error) {
-    const commitResult = await commitSandboxChanges(sandbox.path, input.task);
+    const commitResult = await commitSandboxChanges(sandbox.path, input.task, input.baseBranch);
     if (commitResult.hasChanges) {
       return {
         execution: {
@@ -203,23 +203,28 @@ async function executeWithCodex(input: {
 async function commitSandboxChanges(
   sandboxPath: string,
   task: Task,
+  baseBranch: string,
 ): Promise<{ hasChanges: boolean; filesChanged: string[] }> {
   try {
+    // Stage and commit any uncommitted changes
     const statusResult = await execa("git", ["status", "--porcelain"], { cwd: sandboxPath });
-    if (!statusResult.stdout.trim()) {
-      return { hasChanges: false, filesChanged: [] };
+    if (statusResult.stdout.trim()) {
+      await execa("git", ["add", "-A"], { cwd: sandboxPath });
+      await execa(
+        "git",
+        ["commit", "-m", `[OAC] ${task.title}\n\nAutomated contribution by OAC.`],
+        { cwd: sandboxPath },
+      );
     }
 
-    await execa("git", ["add", "-A"], { cwd: sandboxPath });
-    await execa("git", ["commit", "-m", `[OAC] ${task.title}\n\nAutomated contribution by OAC.`], {
-      cwd: sandboxPath,
-    });
-
-    const diffResult = await execa("git", ["diff", "--name-only", "HEAD~1", "HEAD"], {
-      cwd: sandboxPath,
-    });
+    // Detect ALL changes vs base branch (handles agent-committed changes too)
+    const diffResult = await execa(
+      "git",
+      ["diff", "--name-only", `origin/${baseBranch}`, "HEAD"],
+      { cwd: sandboxPath },
+    );
     const changedFiles = diffResult.stdout.trim().split("\n").filter(Boolean);
-    return { hasChanges: true, filesChanged: changedFiles };
+    return { hasChanges: changedFiles.length > 0, filesChanged: changedFiles };
   } catch {
     return { hasChanges: false, filesChanged: [] };
   }
