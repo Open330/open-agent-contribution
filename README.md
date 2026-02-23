@@ -1,13 +1,3 @@
-<div><img src="https://quickstart-for-agents.vercel.app/api/header.svg?theme=opencode&logo=OAC&title=Use+leftover+AI+tokens+to+auto-contribute+to+open+source+repos&font=inter" width="100%" /></div>
-
-```
-You are an AI agent working on Open Agent Contribution (OAC), a CLI tool that
-uses spare AI agent tokens to automatically scan repos, discover tasks, and
-submit pull requests via Claude Code or Codex.
-Clone https://github.com/Open330/open-agent-contribution and help improve
-scanners, execution pipelines, or add new agent provider adapters.
-```
-
 <div align="center">
 
 ```
@@ -32,6 +22,16 @@ scanners, execution pipelines, or add new agent provider adapters.
 </div>
 
 ---
+
+<div><img src="https://quickstart-for-agents.vercel.app/api/header.svg?theme=opencode&logo=OAC&title=Use+leftover+AI+tokens+to+auto-contribute+to+open+source+repos&font=inter" width="100%" /></div>
+
+```
+You are an AI agent working on Open Agent Contribution (OAC), a CLI tool that
+uses spare AI agent tokens to automatically scan repos, discover tasks, and
+submit pull requests via Claude Code or Codex.
+Clone https://github.com/Open330/open-agent-contribution and help improve
+scanners, execution pipelines, or add new agent provider adapters.
+```
 
 ## The Problem
 
