@@ -17,7 +17,7 @@
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-3178C6?logo=typescript&logoColor=white)](https://typescriptlang.org/)
 
-[Getting Started](#-getting-started) · [How It Works](#-how-it-works) · [Commands](#commands) · [Configuration](#configuration) · [Architecture](#architecture) · [Contributing](#contributing)
+[Getting Started](#-getting-started) · [How It Works](#-how-it-works) · [Commands](#commands) · [Configuration](#configuration) · [Concurrency & Multi-User Safety](#concurrency--multi-user-safety) · [Architecture](#architecture) · [Contributing](#contributing)
 
 </div>
 
@@ -273,6 +273,74 @@ export default defineConfig({
 ```
 
 > 📖 **Full reference**: See [docs/config-reference.md](docs/config-reference.md) for every option, type, default, and constraint — auto-generated from the Zod schema.
+
+---
+
+## Concurrency & Multi-User Safety
+
+When multiple OAC instances run against the same repository simultaneously (e.g., several team members running `oac run` at the same time), there is a risk of duplicate PRs targeting the same issue. OAC prevents this with a **2-layer guard system** that checks for existing OAC pull requests at two critical points in the pipeline.
+
+```
+  Instance A                          Instance B
+  ─────────                           ─────────
+  oac run                             oac run
+      │                                   │
+      ▼                                   ▼
+  ┌──────────────┐                   ┌──────────────┐
+  │  Layer 1     │                   │  Layer 1     │
+  │  Discovery   │ ◄── Both scan ──►│  Discovery   │
+  │  PR check    │     GitHub PRs    │  PR check    │
+  └──────┬───────┘                   └──────┬───────┘
+         │                                  │
+    Issue #42 not                      Issue #42 not
+    claimed → keep                     claimed → keep
+         │                                  │
+         ▼                                  ▼
+    (analyze, plan,                    (analyze, plan,
+     execute...)                        execute...)
+         │                                  │
+         ▼                                  ▼
+  ┌──────────────┐                   ┌──────────────┐
+  │  Layer 3     │                   │  Layer 3     │
+  │  Pre-PR      │                   │  Pre-PR      │
+  │  guard       │                   │  guard       │
+  └──────┬───────┘                   └──────┬───────┘
+         │                                  │
+    No OAC PR yet                     Instance A's PR
+    → create PR ✔                     now exists → skip ✘
+```
+
+### Layer 1: Discovery-Time Filtering
+
+During task discovery, the GitHub Issues scanner fetches all open PRs whose title starts with `[OAC]` and extracts the issue numbers they reference (via `Fixes #N`, `Closes #N`, or `Resolves #N` in the PR body). Any issue that already has a matching OAC PR is filtered out of the task list entirely — the agent never even attempts work on it.
+
+- **When:** Runs at the start of every `oac run`, during the scan phase
+- **Effect:** Issues with existing OAC PRs are excluded from the task list
+- **Failure mode:** Fail-open — if the GitHub API is unreachable, no issues are filtered out and the pipeline continues normally
+
+### Layer 3: Pre-PR Guard
+
+Even after Layer 1, a race condition is possible: two instances might discover the same issue before either has created a PR. Layer 3 closes this gap by performing a second check immediately before pushing the branch and creating the PR. If another OAC PR for the same issue now exists, the PR creation is skipped.
+
+- **When:** Runs after code execution and diff validation, just before `git push` and PR creation
+- **Effect:** Skips PR creation if a duplicate OAC PR is detected, avoiding wasted pushes
+- **Failure mode:** Fail-open — if the check fails, the PR is created anyway (better to create a possible duplicate than to silently discard completed work)
+
+### How OAC PRs Are Identified
+
+Both layers use the same detection logic:
+1. Fetch up to 100 most recently updated open PRs from the target repository
+2. Filter to PRs whose title starts with **`[OAC]`**
+3. Scan the PR body for **`Fixes #N`**, **`Closes #N`**, or **`Resolves #N`**
+4. Match the extracted issue number against the current task's linked issue
+
+### Best Practices for Teams
+
+- **No configuration needed.** The guards are always active — there is nothing to enable or disable.
+- **Stagger start times slightly** (even 30 seconds apart) to give Layer 1 the best chance of catching duplicates before any work begins.
+- **Use a shared config** (`oac.config.ts`) with the same `issueLabels` filter so all instances target the same pool of issues and the guards can detect overlaps.
+- **Check `oac log`** after runs to see if any tasks were skipped due to duplicate detection.
+- **Don't worry about edge cases.** Both layers are fail-open by design — in the worst case, a duplicate PR is created, which is easy to close manually. No work is ever silently lost.
 
 ---
 
