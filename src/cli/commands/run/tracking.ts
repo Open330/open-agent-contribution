@@ -1,3 +1,8 @@
+import { mkdir, writeFile } from "node:fs/promises";
+import { join, resolve } from "node:path";
+
+import { execa } from "execa";
+
 import type { Task } from "../../../core/index.js";
 import type { ContributionLog } from "../../../tracking/index.js";
 import { writeContributionLog } from "../../../tracking/index.js";
@@ -182,4 +187,70 @@ export function sanitizeGithubUsername(value: string): string | null {
   }
 
   return cleaned;
+}
+
+
+/**
+ * Write a per-task contribution metadata file into the sandbox worktree so it
+ * gets included in the PR branch.  The file is staged and committed
+ * automatically — callers should invoke this **before** `createPullRequest()`.
+ */
+export async function writeContributionToSandbox(input: {
+  sandboxPath: string;
+  task: Task;
+  execution: ExecutionOutcome;
+  runId: string;
+  repoFullName: string;
+  repoOwner: string;
+}): Promise<void> {
+  const { sandboxPath, task, execution, runId, repoOwner } = input;
+
+  const contributionsDir = resolve(sandboxPath, ".oac", "contributions");
+  await mkdir(contributionsDir, { recursive: true });
+
+  const timestamp = new Date().toISOString();
+  const contributor = resolveGithubUsername(repoOwner);
+  const datePrefix = timestamp.replace(/[:.]/g, "").replace("T", "-").slice(0, 15);
+  const safeTaskId = task.id
+    .replace(/[^A-Za-z0-9-]/g, "-")
+    .replace(/-+/g, "-")
+    .slice(0, 40);
+  const filename = `${datePrefix}-${safeTaskId}.json`;
+
+  const metadata = {
+    version: "1.0",
+    runId,
+    timestamp,
+    contributor,
+    task: {
+      id: task.id,
+      title: task.title,
+      source: task.source,
+      complexity: task.complexity,
+      linkedIssue: task.linkedIssue
+        ? { number: task.linkedIssue.number, url: task.linkedIssue.url }
+        : undefined,
+    },
+    execution: {
+      success: execution.success,
+      tokensUsed: execution.totalTokensUsed,
+      duration: execution.duration,
+      filesChanged: execution.filesChanged,
+    },
+  };
+
+  const filePath = join(contributionsDir, filename);
+  await writeFile(filePath, `${JSON.stringify(metadata, null, 2)}\n`, "utf8");
+
+  try {
+    await execa("git", ["add", filePath], { cwd: sandboxPath });
+    await execa(
+      "git",
+      ["commit", "-m", "[OAC] Add contribution metadata"],
+      { cwd: sandboxPath },
+    );
+  } catch {
+    // If commit fails (e.g. nothing to commit), that's fine — the file is
+    // still on disk and will be picked up by any subsequent commit.
+  }
 }

@@ -22,6 +22,7 @@ import {
   truncate,
 } from "../../helpers.js";
 import { createPullRequest } from "./pr.js";
+import { writeContributionToSandbox } from "./tracking.js";
 import type {
   ExecutionOutcome,
   PipelineContext,
@@ -250,6 +251,19 @@ export async function executePlan(
       (result) =>
         completionQueue.add(async (): Promise<TaskRunResult> => {
           if (mode === "direct-commit" || !result.execution.success) return result;
+
+          // Write per-task contribution metadata into the sandbox so it's
+          // included in the PR branch (closes the ".oac not in PR" gap).
+          if (result.sandbox) {
+            await writeContributionToSandbox({
+              sandboxPath: result.sandbox.sandboxPath,
+              task: result.task,
+              execution: result.execution,
+              runId: ctx.runId,
+              repoFullName: resolvedRepo.fullName,
+              repoOwner: resolvedRepo.owner,
+            });
+          }
 
           const pr = await createPullRequest({
             task: result.task,

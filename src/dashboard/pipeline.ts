@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { mkdir, writeFile } from "node:fs/promises";
+import { join, resolve } from "node:path";
 
 import { execa } from "execa";
 import PQueue from "p-queue";
@@ -333,6 +335,66 @@ function resolveGithubUsername(): string {
   return "oac-user";
 }
 
+/**
+ * Write per-task contribution metadata into the sandbox worktree so it gets
+ * included in the PR branch.
+ */
+async function writeContributionToSandbox(input: {
+  sandboxPath: string;
+  task: Task;
+  execution: ExecutionOutcome;
+  runId: string;
+  repoOwner: string;
+}): Promise<void> {
+  const { sandboxPath, task, execution, runId, repoOwner } = input;
+
+  const contributionsDir = resolve(sandboxPath, ".oac", "contributions");
+  await mkdir(contributionsDir, { recursive: true });
+
+  const timestamp = new Date().toISOString();
+  const contributor = resolveGithubUsername();
+  const datePrefix = timestamp.replace(/[:.]/g, "").replace("T", "-").slice(0, 15);
+  const safeTaskId = task.id
+    .replace(/[^A-Za-z0-9-]/g, "-")
+    .replace(/-+/g, "-")
+    .slice(0, 40);
+  const filename = `${datePrefix}-${safeTaskId}.json`;
+
+  const metadata = {
+    version: "1.0",
+    runId,
+    timestamp,
+    contributor,
+    task: {
+      id: task.id,
+      title: task.title,
+      source: task.source,
+      complexity: task.complexity,
+      linkedIssue: task.linkedIssue
+        ? { number: task.linkedIssue.number, url: task.linkedIssue.url }
+        : undefined,
+    },
+    execution: {
+      success: execution.success,
+      tokensUsed: execution.totalTokensUsed,
+      duration: execution.duration,
+      filesChanged: execution.filesChanged,
+    },
+  };
+
+  const filePath = join(contributionsDir, filename);
+  await writeFile(filePath, `${JSON.stringify(metadata, null, 2)}\n`, "utf8");
+
+  try {
+    await execa("git", ["add", filePath], { cwd: sandboxPath });
+    await execa("git", ["commit", "-m", "[OAC] Add contribution metadata"], {
+      cwd: sandboxPath,
+    });
+  } catch {
+    // Non-fatal: file is on disk and will be picked up by any subsequent commit.
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Main Pipeline
 // ---------------------------------------------------------------------------
@@ -488,6 +550,15 @@ export async function executePipeline(
             // Create PR if execution produced changes
             let pr: TaskResult["pr"];
             if (execution.success && sandbox && execution.filesChanged.length > 0) {
+              // Write per-task contribution metadata so it's included in the PR
+              await writeContributionToSandbox({
+                sandboxPath: sandbox.sandboxPath,
+                task: entry.task,
+                execution,
+                runId,
+                repoOwner: resolvedRepo.owner,
+              });
+
               emit({
                 type: "run:stage",
                 stage: "creating-pr",
