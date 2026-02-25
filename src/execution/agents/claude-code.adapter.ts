@@ -85,10 +85,11 @@ function parseTokenPatchFromPayload(payload: Record<string, unknown>): TokenPatc
   // Claude Code stream-json nests usage under `message.usage` for assistant events
   // and under `usage` for result events
   const message = isRecord(payload.message) ? payload.message : undefined;
-  const usage =
-    isRecord(payload.usage) ? payload.usage
-    : isRecord(message?.usage) ? (message.usage as Record<string, unknown>)
-    : undefined;
+  const usage = isRecord(payload.usage)
+    ? payload.usage
+    : isRecord(message?.usage)
+      ? (message.usage as Record<string, unknown>)
+      : undefined;
   // Claude Code includes cache tokens separately — sum them for effective input count
   const baseInput = readNumber(
     payload.inputTokens ??
@@ -100,16 +101,12 @@ function parseTokenPatchFromPayload(payload: Record<string, unknown>): TokenPatc
       usage?.promptTokens ??
       usage?.prompt_tokens,
   );
-  const cacheRead = readNumber(
-    usage?.cache_read_input_tokens ?? usage?.cacheReadInputTokens,
-  );
+  const cacheRead = readNumber(usage?.cache_read_input_tokens ?? usage?.cacheReadInputTokens);
   const cacheCreate = readNumber(
     usage?.cache_creation_input_tokens ?? usage?.cacheCreationInputTokens,
   );
   const effectiveInput =
-    baseInput !== undefined
-      ? (baseInput ?? 0) + (cacheRead ?? 0) + (cacheCreate ?? 0)
-      : undefined;
+    baseInput !== undefined ? (baseInput ?? 0) + (cacheRead ?? 0) + (cacheCreate ?? 0) : undefined;
 
   return {
     inputTokens: effectiveInput,

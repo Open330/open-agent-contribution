@@ -220,11 +220,9 @@ async function commitSandboxChanges(
     }
 
     // Detect ALL changes vs base branch (handles agent-committed changes too)
-    const diffResult = await execa(
-      "git",
-      ["diff", "--name-only", `origin/${baseBranch}`, "HEAD"],
-      { cwd: sandboxPath },
-    );
+    const diffResult = await execa("git", ["diff", "--name-only", `origin/${baseBranch}`, "HEAD"], {
+      cwd: sandboxPath,
+    });
     const changedFiles = diffResult.stdout.trim().split("\n").filter(Boolean);
     return { hasChanges: changedFiles.length > 0, filesChanged: changedFiles };
   } catch {

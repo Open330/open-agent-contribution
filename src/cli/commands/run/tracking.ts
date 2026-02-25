@@ -189,7 +189,6 @@ export function sanitizeGithubUsername(value: string): string | null {
   return cleaned;
 }
 
-
 /**
  * Write a per-task contribution metadata file into the sandbox worktree so it
  * gets included in the PR branch.  The file is staged and committed
@@ -244,11 +243,7 @@ export async function writeContributionToSandbox(input: {
 
   try {
     await execa("git", ["add", filePath], { cwd: sandboxPath });
-    await execa(
-      "git",
-      ["commit", "-m", "[OAC] Add contribution metadata"],
-      { cwd: sandboxPath },
-    );
+    await execa("git", ["commit", "-m", "[OAC] Add contribution metadata"], { cwd: sandboxPath });
   } catch {
     // If commit fails (e.g. nothing to commit), that's fine — the file is
     // still on disk and will be picked up by any subsequent commit.

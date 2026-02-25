@@ -23,13 +23,7 @@
       "types": "./dist/core/index.d.ts"
     }
   },
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE",
-    "CHANGELOG.md",
-    "docs"
-  ],
+  "files": ["dist", "README.md", "LICENSE", "CHANGELOG.md", "docs"],
   "publishConfig": {
     "access": "public"
   },
