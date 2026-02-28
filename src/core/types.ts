@@ -1,4 +1,4 @@
-export type AgentProviderId = "claude-code" | "codex" | "opencode" | (string & {});
+export type AgentProviderId = "claude-code" | "codex" | "opencode" | "gemini" | (string & {});
 
 /**
  * Sentinel value representing an unlimited token budget.

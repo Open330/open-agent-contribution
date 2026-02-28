@@ -6,8 +6,9 @@ import type { Epic } from "../core/types.js";
 import { analyzeTaskComplexity } from "./complexity.js";
 import { ClaudeTokenCounter } from "./providers/claude-counter.js";
 import { CodexTokenCounter } from "./providers/codex-counter.js";
+import { GeminiTokenCounter } from "./providers/gemini-counter.js";
 
-export type AgentProviderId = "claude-code" | "codex" | "opencode" | string;
+export type AgentProviderId = "claude-code" | "codex" | "opencode" | "gemini" | string;
 
 export type TaskSource = "lint" | "todo" | "test-gap" | "dead-code" | "github-issue" | "custom";
 
@@ -88,6 +89,7 @@ const COMPLEXITY_ORDER: Record<TaskComplexity, number> = {
 
 const claudeCounter = new ClaudeTokenCounter();
 const codexCounter = new CodexTokenCounter();
+const geminiCounter = new GeminiTokenCounter();
 
 /**
  * Free cached tiktoken encoders held by the module-level counter singletons.
@@ -96,11 +98,16 @@ const codexCounter = new CodexTokenCounter();
 export function resetCounters(): void {
   claudeCounter.reset();
   codexCounter.reset();
+  geminiCounter.reset();
 }
 
 function getTokenCounter(provider: AgentProviderId): TokenCounter {
   if (provider === "claude-code") {
     return claudeCounter;
+  }
+
+  if (provider === "gemini") {
+    return geminiCounter;
   }
 
   return codexCounter;
