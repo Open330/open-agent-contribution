@@ -207,10 +207,7 @@ describe("SecurityScanner", () => {
   });
 
   it("detects SQL injection patterns", async () => {
-    addVirtualFile(
-      "src/db.ts",
-      "db.query(`SELECT * FROM users WHERE id = ${userId}`);",
-    );
+    addVirtualFile("src/db.ts", "db.query(`SELECT * FROM users WHERE id = ${userId}`);");
 
     const scanner = new SecurityScanner();
     const tasks = await scanner.scan(REPO_PATH);
@@ -325,10 +322,7 @@ describe("SecurityScanner", () => {
   // ── Additional hardcoded secret patterns ────────────────────
 
   it("detects RSA private key material", async () => {
-    addVirtualFile(
-      "src/rsa.ts",
-      'const key = "-----BEGIN RSA PRIVATE KEY-----\\nMIIE...";',
-    );
+    addVirtualFile("src/rsa.ts", 'const key = "-----BEGIN RSA PRIVATE KEY-----\\nMIIE...";');
 
     const scanner = new SecurityScanner();
     const tasks = await scanner.scan(REPO_PATH);
@@ -406,10 +400,7 @@ describe("SecurityScanner", () => {
   // ── Additional SQL injection patterns ───────────────────────
 
   it("detects SQL injection via string concatenation in query()", async () => {
-    addVirtualFile(
-      "src/sql-concat.ts",
-      'db.query("SELECT * FROM users WHERE id = " + userId);',
-    );
+    addVirtualFile("src/sql-concat.ts", 'db.query("SELECT * FROM users WHERE id = " + userId);');
 
     const scanner = new SecurityScanner();
     const tasks = await scanner.scan(REPO_PATH);
@@ -422,10 +413,7 @@ describe("SecurityScanner", () => {
   // ── Additional XSS patterns ─────────────────────────────────
 
   it("detects dangerouslySetInnerHTML", async () => {
-    addVirtualFile(
-      "src/component.tsx",
-      '<div dangerouslySetInnerHTML={{ __html: html }} />',
-    );
+    addVirtualFile("src/component.tsx", "<div dangerouslySetInnerHTML={{ __html: html }} />");
 
     const scanner = new SecurityScanner();
     const tasks = await scanner.scan(REPO_PATH);
@@ -638,7 +626,7 @@ describe("SecurityScanner", () => {
     expect(finding).toBeDefined();
     const meta = finding?.metadata as Record<string, unknown>;
     expect(meta.line).toBe(3);
-    expect((meta.column as number)).toBeGreaterThan(0);
+    expect(meta.column as number).toBeGreaterThan(0);
   });
 
   // ── Clean source files ──────────────────────────────────────

@@ -6,16 +6,7 @@ import type { ScanOptions, Scanner } from "../types.js";
 
 const MAX_SCAN_FILE_SIZE_BYTES = 1_048_576;
 const DEFAULT_EXCLUDES = [".git", "node_modules", "dist", "build"] as const;
-const SCANNABLE_EXTENSIONS = new Set([
-  ".ts",
-  ".tsx",
-  ".js",
-  ".jsx",
-  ".py",
-  ".go",
-  ".java",
-  ".rb",
-]);
+const SCANNABLE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".py", ".go", ".java", ".rb"]);
 
 type SecurityCategory =
   | "hardcoded-secrets"
@@ -118,19 +109,16 @@ const SECURITY_RULES: SecurityRule[] = [
     priority: 70,
     complexity: "complex",
     summary: "Dynamic code execution via Function constructor can enable injection.",
-    remediation:
-      "Replace dynamic function generation with static logic or validated templates.",
+    remediation: "Replace dynamic function generation with static logic or validated templates.",
   },
   {
     id: "child-process-exec-interpolation",
     title: "Command injection risk in child_process.exec",
     category: "unsafe-code-execution",
-    pattern:
-      /\b(?:child_process\.)?(?:exec|execSync)\s*\(\s*`[^`\n]*\$\{[^}\n]+\}[^`\n]*`/g,
+    pattern: /\b(?:child_process\.)?(?:exec|execSync)\s*\(\s*`[^`\n]*\$\{[^}\n]+\}[^`\n]*`/g,
     priority: 70,
     complexity: "complex",
-    summary:
-      "Executing shell commands with template interpolation can enable command injection.",
+    summary: "Executing shell commands with template interpolation can enable command injection.",
     remediation:
       "Use execFile/spawn with argument arrays and strict input validation or allow-lists.",
   },
@@ -164,8 +152,7 @@ const SECURITY_RULES: SecurityRule[] = [
     priority: 60,
     complexity: "moderate",
     summary: "Assigning untrusted data to innerHTML can introduce cross-site scripting.",
-    remediation:
-      "Use textContent or trusted sanitization before rendering user-controlled HTML.",
+    remediation: "Use textContent or trusted sanitization before rendering user-controlled HTML.",
   },
   {
     id: "dangerously-set-inner-html",
@@ -186,8 +173,7 @@ const SECURITY_RULES: SecurityRule[] = [
     priority: 60,
     complexity: "moderate",
     summary: "document.write with untrusted data can introduce cross-site scripting.",
-    remediation:
-      "Replace document.write with safer DOM APIs and sanitize any untrusted content.",
+    remediation: "Replace document.write with safer DOM APIs and sanitize any untrusted content.",
   },
   {
     id: "insecure-http-url",
