@@ -76,7 +76,10 @@ describe("normalizeExecutionError", () => {
   });
 
   it("detects git lock conflicts (index.lock)", () => {
-    const result = normalizeExecutionError(new Error("fatal: Unable to create '.git/index.lock'"), ctx);
+    const result = normalizeExecutionError(
+      new Error("fatal: Unable to create '.git/index.lock'"),
+      ctx,
+    );
     expect(result.code).toBe("GIT_LOCK_FAILED");
     expect(result.severity).toBe("recoverable");
   });

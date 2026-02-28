@@ -279,8 +279,16 @@ describe("OpenCodeAdapter", () => {
       const outputEvents = events.filter(
         (e): e is Extract<AgentEvent, { type: "output" }> => e.type === "output",
       );
-      expect(outputEvents).toContainEqual({ type: "output", content: "stdout line", stream: "stdout" });
-      expect(outputEvents).toContainEqual({ type: "output", content: "stderr line", stream: "stderr" });
+      expect(outputEvents).toContainEqual({
+        type: "output",
+        content: "stdout line",
+        stream: "stdout",
+      });
+      expect(outputEvents).toContainEqual({
+        type: "output",
+        content: "stderr line",
+        stream: "stderr",
+      });
     });
 
     it("parses structured JSON events from stdout", async () => {
@@ -474,9 +482,7 @@ describe("OpenCodeAdapter", () => {
 
     it("passes through OacError unchanged", async () => {
       const oce = new OacError("already oac", "AGENT_EXECUTION_FAILED", "fatal");
-      vi.mocked(execa).mockReturnValueOnce(
-        createMockSubprocess({ rejectWith: oce }),
-      );
+      vi.mocked(execa).mockReturnValueOnce(createMockSubprocess({ rejectWith: oce }));
 
       const adapter = new OpenCodeAdapter();
       const execution = adapter.execute(makeParams({ executionId: "exec-oc-oac" }));

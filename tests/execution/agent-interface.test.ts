@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import type {
   AgentAvailability,
   AgentEvent,
-  AgentExecution,
   AgentExecuteParams,
+  AgentExecution,
   AgentProvider,
   AgentResult,
   TokenEstimateParams,
