@@ -1,0 +1,67 @@
+{
+  "version": "1.0",
+  "runId": "oac-pipeline-improvements-20260228",
+  "timestamp": "2026-02-28T07:30:00Z",
+  "contributor": {
+    "githubUsername": "jiunbae",
+    "email": "jiunbae.623@gmail.com"
+  },
+  "repo": {
+    "fullName": "Open330/open-agent-contribution",
+    "headSha": "f086211cd6be60787aa9bf8f5509fbda55a6e003",
+    "defaultBranch": "main"
+  },
+  "budget": {
+    "provider": "claude-code",
+    "totalTokensBudgeted": 100000,
+    "totalTokensUsed": 62448,
+    "estimatedCostUsd": 0
+  },
+  "tasks": [
+    {
+      "taskId": "engine-resilience",
+      "title": "Add exponential backoff, error classification, and circuit breaker to execution engine",
+      "source": "custom",
+      "complexity": "complex",
+      "status": "success",
+      "tokensUsed": 35000,
+      "duration": 100,
+      "filesChanged": [
+        "src/execution/engine.ts",
+        "tests/execution/engine.test.ts"
+      ],
+      "pr": {
+        "number": 35,
+        "url": "https://github.com/Open330/open-agent-contribution/pull/35",
+        "status": "open"
+      }
+    },
+    {
+      "taskId": "epic-grouper-improvements",
+      "title": "Add complexity-aware splitting and file overlap grouping to epic grouper",
+      "source": "custom",
+      "complexity": "moderate",
+      "status": "success",
+      "tokensUsed": 27448,
+      "duration": 78,
+      "filesChanged": [
+        "src/discovery/epic-grouper.ts"
+      ],
+      "pr": {
+        "number": 35,
+        "url": "https://github.com/Open330/open-agent-contribution/pull/35",
+        "status": "open"
+      }
+    }
+  ],
+  "metrics": {
+    "tasksDiscovered": 2,
+    "tasksAttempted": 2,
+    "tasksSucceeded": 2,
+    "tasksFailed": 0,
+    "totalDuration": 178,
+    "totalFilesChanged": 3,
+    "totalLinesAdded": 337,
+    "totalLinesRemoved": 19
+  }
+}
