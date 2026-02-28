@@ -21,6 +21,15 @@ export interface GrouperOptions {
 const DEFAULT_MAX_SUBTASKS = 10;
 const DEFAULT_MIN_FINDINGS = 2;
 const MAX_CONTEXT_FILES = 20;
+const MAX_WEIGHT_PER_EPIC = 20;
+
+/** Weight map for complexity-aware splitting. */
+const COMPLEXITY_WEIGHT: Record<TaskComplexity, number> = {
+  trivial: 1,
+  simple: 2,
+  moderate: 4,
+  complex: 8,
+};
 
 // ── Main entry point ─────────────────────────────────────────
 
@@ -47,23 +56,23 @@ export function groupFindingsIntoEpics(findings: RawFinding[], options?: Grouper
     group.push(finding);
   }
 
-  // Step 3 & 4: Apply size limits and handle singletons
+  // Step 3 & 4: Apply size limits (count-based and complexity-weight-based) and handle singletons
   const epics: Epic[] = [];
 
   for (const [key, groupFindings] of groups) {
     const [module, source] = key.split(":") as [string, TaskSource];
 
-    if (groupFindings.length <= maxSubtasks) {
-      // Fits in a single epic (including singletons)
+    // Split using complexity-weight-aware chunking, then further by maxSubtasks
+    const weightChunks = chunkByWeight(groupFindings, MAX_WEIGHT_PER_EPIC, maxSubtasks);
+
+    if (weightChunks.length <= 1) {
       epics.push(buildEpic(source, module, groupFindings, codebaseMap));
     } else {
-      // Split into multiple epics
-      const chunks = chunkArray(groupFindings, maxSubtasks);
-      for (let i = 0; i < chunks.length; i++) {
+      for (let i = 0; i < weightChunks.length; i++) {
         epics.push(
-          buildEpic(source, module, chunks[i], codebaseMap, {
+          buildEpic(source, module, weightChunks[i], codebaseMap, {
             partIndex: i + 1,
-            totalParts: chunks.length,
+            totalParts: weightChunks.length,
           }),
         );
       }
@@ -88,7 +97,9 @@ function buildEpic(
   partInfo?: PartInfo,
 ): Epic {
   const epicId = randomUUID().slice(0, 16);
-  const subtasks = findings.map((f) => findingToTask(f, epicId));
+  const subtasks = findings
+    .map((f) => findingToTask(f, epicId))
+    .sort((a, b) => b.priority - a.priority);
 
   let title = buildEpicTitle(source, module, subtasks);
   if (partInfo) {
@@ -223,6 +234,28 @@ export function computeEpicComplexity(subtasks: Task[]): TaskComplexity {
 // Re-export deriveModuleFromPath from analyzer so it is part of epic-grouper's public API
 export { deriveModuleFromPath } from "./analyzer.js";
 
+// ── File overlap helper ──────────────────────────────────────
+
+/**
+ * Jaccard similarity of two file-path arrays.
+ * Returns a number between 0 (no overlap) and 1 (identical sets).
+ */
+export function calculateFileOverlap(a: string[], b: string[]): number {
+  if (a.length === 0 && b.length === 0) return 1;
+  if (a.length === 0 || b.length === 0) return 0;
+
+  const setA = new Set(a);
+  const setB = new Set(b);
+
+  let intersection = 0;
+  for (const item of setA) {
+    if (setB.has(item)) intersection += 1;
+  }
+
+  const union = new Set([...setA, ...setB]).size;
+  return union === 0 ? 0 : intersection / union;
+}
+
 // ── Utility ──────────────────────────────────────────────────
 
 function chunkArray<T>(array: T[], size: number): T[][] {
@@ -230,5 +263,51 @@ function chunkArray<T>(array: T[], size: number): T[][] {
   for (let i = 0; i < array.length; i += size) {
     chunks.push(array.slice(i, i + size));
   }
+  return chunks;
+}
+
+/**
+ * Split findings into chunks where each chunk's total complexity weight
+ * does not exceed `maxWeight` and each chunk has at most `maxCount` items.
+ */
+function chunkByWeight(
+  findings: RawFinding[],
+  maxWeight: number,
+  maxCount: number,
+): RawFinding[][] {
+  const totalWeight = findings.reduce(
+    (sum, f) => sum + COMPLEXITY_WEIGHT[f.complexity],
+    0,
+  );
+
+  // If everything fits within both limits, return a single chunk
+  if (totalWeight <= maxWeight && findings.length <= maxCount) {
+    return [findings];
+  }
+
+  const chunks: RawFinding[][] = [];
+  let currentChunk: RawFinding[] = [];
+  let currentWeight = 0;
+
+  for (const finding of findings) {
+    const w = COMPLEXITY_WEIGHT[finding.complexity];
+
+    if (
+      currentChunk.length > 0 &&
+      (currentWeight + w > maxWeight || currentChunk.length >= maxCount)
+    ) {
+      chunks.push(currentChunk);
+      currentChunk = [];
+      currentWeight = 0;
+    }
+
+    currentChunk.push(finding);
+    currentWeight += w;
+  }
+
+  if (currentChunk.length > 0) {
+    chunks.push(currentChunk);
+  }
+
   return chunks;
 }

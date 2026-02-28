@@ -105,7 +105,12 @@ import {
   executionError,
 } from "../../src/core/index.js";
 import type { AgentProvider } from "../../src/execution/agents/agent.interface.js";
-import { ExecutionEngine, isTransientError } from "../../src/execution/engine.js";
+import {
+  CircuitBreaker,
+  ExecutionEngine,
+  calculateBackoff,
+  isTransientError,
+} from "../../src/execution/engine.js";
 import { createSandbox } from "../../src/execution/sandbox.js";
 import { executeTask } from "../../src/execution/worker.js";
 
@@ -439,5 +444,137 @@ describe("isTransientError", () => {
     for (const error of nonTransientErrors) {
       expect(isTransientError(error)).toBe(false);
     }
+  });
+
+  it("returns true for plain Error with timeout message", () => {
+    expect(isTransientError(new Error("Request timed out"))).toBe(true);
+    expect(isTransientError(new Error("ETIMEDOUT"))).toBe(true);
+  });
+
+  it("returns true for plain Error with ECONNRESET message", () => {
+    expect(isTransientError(new Error("read ECONNRESET"))).toBe(true);
+  });
+
+  it("returns true for rate-limit / 429 errors", () => {
+    expect(isTransientError(new Error("rate limit exceeded"))).toBe(true);
+    expect(isTransientError(new Error("HTTP 429 Too Many Requests"))).toBe(true);
+  });
+
+  it("returns true for 503 / service unavailable errors", () => {
+    expect(isTransientError(new Error("503 Service Unavailable"))).toBe(true);
+    expect(isTransientError(new Error("service unavailable"))).toBe(true);
+  });
+
+  it("returns false for plain non-transient errors and non-error values", () => {
+    expect(isTransientError(new Error("syntax error in file.ts"))).toBe(false);
+    expect(isTransientError("just a string")).toBe(false);
+    expect(isTransientError(null)).toBe(false);
+    expect(isTransientError(undefined)).toBe(false);
+  });
+});
+
+describe("calculateBackoff", () => {
+  it("returns a value >= base (1000ms) for attempt 0", () => {
+    const value = calculateBackoff(0);
+    // base * 2^0 = 1000, plus jitter 0-500
+    expect(value).toBeGreaterThanOrEqual(1000);
+    expect(value).toBeLessThanOrEqual(1500);
+  });
+
+  it("increases exponentially with attempt number", () => {
+    // For attempt 3: min(1000 * 2^3, 30000) = 8000, plus jitter 0-500
+    const value = calculateBackoff(3);
+    expect(value).toBeGreaterThanOrEqual(8000);
+    expect(value).toBeLessThanOrEqual(8500);
+  });
+
+  it("caps at 30000ms plus jitter", () => {
+    // For attempt 10: min(1000 * 2^10, 30000) = 30000, plus jitter 0-500
+    const value = calculateBackoff(10);
+    expect(value).toBeGreaterThanOrEqual(30000);
+    expect(value).toBeLessThanOrEqual(30500);
+  });
+
+  it("includes random jitter (not always same value)", () => {
+    // Run multiple times and check we don't always get the exact same result
+    const values = new Set(Array.from({ length: 20 }, () => calculateBackoff(0)));
+    // With 20 samples and a jitter range of 0-500, we almost certainly get > 1 distinct value
+    expect(values.size).toBeGreaterThan(1);
+  });
+});
+
+describe("CircuitBreaker", () => {
+  it("starts in closed state", () => {
+    const cb = new CircuitBreaker();
+    expect(cb.getState()).toBe("closed");
+    expect(cb.isOpen()).toBe(false);
+  });
+
+  it("remains closed after fewer failures than threshold", () => {
+    const cb = new CircuitBreaker();
+    cb.recordFailure();
+    cb.recordFailure();
+    expect(cb.getState()).toBe("closed");
+    expect(cb.isOpen()).toBe(false);
+  });
+
+  it("opens after 3 consecutive failures", () => {
+    const cb = new CircuitBreaker();
+    cb.recordFailure();
+    cb.recordFailure();
+    cb.recordFailure();
+    expect(cb.getState()).toBe("open");
+    expect(cb.isOpen()).toBe(true);
+  });
+
+  it("resets failure count on success", () => {
+    const cb = new CircuitBreaker();
+    cb.recordFailure();
+    cb.recordFailure();
+    cb.recordSuccess();
+    // After success, counter resets — one more failure should not open
+    cb.recordFailure();
+    expect(cb.getState()).toBe("closed");
+    expect(cb.isOpen()).toBe(false);
+  });
+
+  it("transitions to half-open after cooldown period", () => {
+    const cb = new CircuitBreaker();
+    cb.recordFailure();
+    cb.recordFailure();
+    cb.recordFailure();
+    expect(cb.isOpen()).toBe(true);
+
+    // Advance time past the 60s cooldown
+    vi.spyOn(Date, "now").mockReturnValue(Date.now() + 61_000);
+    expect(cb.isOpen()).toBe(false); // probe allowed
+    expect(cb.getState()).toBe("half-open");
+    vi.restoreAllMocks();
+  });
+
+  it("closes from half-open on success", () => {
+    const cb = new CircuitBreaker();
+    cb.recordFailure();
+    cb.recordFailure();
+    cb.recordFailure();
+
+    vi.spyOn(Date, "now").mockReturnValue(Date.now() + 61_000);
+    cb.isOpen(); // triggers half-open
+    cb.recordSuccess();
+    expect(cb.getState()).toBe("closed");
+    expect(cb.isOpen()).toBe(false);
+    vi.restoreAllMocks();
+  });
+
+  it("reset() force-closes the circuit", () => {
+    const cb = new CircuitBreaker();
+    cb.recordFailure();
+    cb.recordFailure();
+    cb.recordFailure();
+    expect(cb.getState()).toBe("open");
+
+    cb.reset();
+    expect(cb.getState()).toBe("closed");
+    expect(cb.isOpen()).toBe(false);
   });
 });
