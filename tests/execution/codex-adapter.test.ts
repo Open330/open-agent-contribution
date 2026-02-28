@@ -300,7 +300,7 @@ describe("CodexAdapter", () => {
           JSON.stringify({
             type: "tool_use",
             tool: "rg",
-            input: { pattern: "TODO" },
+            input: { pattern: "unused_var" },
           }),
           JSON.stringify({
             type: "error",
@@ -344,7 +344,7 @@ describe("CodexAdapter", () => {
     expect(toolUseEvent).toEqual({
       type: "tool_use",
       tool: "rg",
-      input: { pattern: "TODO" },
+      input: { pattern: "unused_var" },
     });
     expect(errorEvent).toEqual({
       type: "error",
