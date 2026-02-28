@@ -1,0 +1,50 @@
+{
+  "version": "1.0",
+  "runId": "oac-security-scanner-20260228",
+  "timestamp": "2026-02-28T07:45:00Z",
+  "contributor": {
+    "githubUsername": "jiunbae",
+    "email": "jiunbae.623@gmail.com"
+  },
+  "repo": {
+    "fullName": "Open330/open-agent-contribution",
+    "headSha": "f086211cd6be60787aa9bf8f5509fbda55a6e003",
+    "defaultBranch": "main"
+  },
+  "budget": {
+    "provider": "claude-code",
+    "totalTokensBudgeted": 150000,
+    "totalTokensUsed": 89154,
+    "estimatedCostUsd": 0
+  },
+  "tasks": [
+    {
+      "taskId": "security-vulnerability-scanner",
+      "title": "Add security vulnerability scanner",
+      "source": "custom",
+      "complexity": "complex",
+      "status": "success",
+      "tokensUsed": 89154,
+      "duration": 312,
+      "filesChanged": [
+        "src/discovery/scanners/security-scanner.ts",
+        "tests/discovery/security-scanner.test.ts"
+      ],
+      "pr": {
+        "number": 36,
+        "url": "https://github.com/Open330/open-agent-contribution/pull/36",
+        "status": "open"
+      }
+    }
+  ],
+  "metrics": {
+    "tasksDiscovered": 1,
+    "tasksAttempted": 1,
+    "tasksSucceeded": 1,
+    "tasksFailed": 0,
+    "totalDuration": 312,
+    "totalFilesChanged": 2,
+    "totalLinesAdded": 1184,
+    "totalLinesRemoved": 0
+  }
+}

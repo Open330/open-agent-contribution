@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Task } from "../../src/core/index.js";
 import { CompositeScanner, createDefaultCompositeScanner } from "../../src/discovery/scanner.js";
 import { LintScanner } from "../../src/discovery/scanners/lint-scanner.js";
+import { SecurityScanner } from "../../src/discovery/scanners/security-scanner.js";
 import { TodoScanner } from "../../src/discovery/scanners/todo-scanner.js";
 import type { ScanOptions, Scanner } from "../../src/discovery/types.js";
 
@@ -58,6 +59,16 @@ describe("CompositeScanner", () => {
     expect(scanners).toHaveLength(2);
     expect(scanners[0]).toBeInstanceOf(LintScanner);
     expect(scanners[1]).toBeInstanceOf(TodoScanner);
+  });
+
+  it("createDefaultCompositeScanner can opt in to SecurityScanner", () => {
+    const composite = createDefaultCompositeScanner({ includeSecurity: true });
+    const scanners = getInnerScanners(composite);
+
+    expect(scanners).toHaveLength(3);
+    expect(scanners[0]).toBeInstanceOf(LintScanner);
+    expect(scanners[1]).toBeInstanceOf(TodoScanner);
+    expect(scanners[2]).toBeInstanceOf(SecurityScanner);
   });
 
   it("custom constructor accepts an explicit scanner array", () => {
