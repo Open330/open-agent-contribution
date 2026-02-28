@@ -1,0 +1,68 @@
+{
+  "version": "1.0",
+  "runId": "oac-scanner-tests-20260228",
+  "timestamp": "2026-02-28T07:00:00Z",
+  "contributor": {
+    "githubUsername": "jiunbae",
+    "email": "jiunbae.623@gmail.com"
+  },
+  "repo": {
+    "fullName": "Open330/open-agent-contribution",
+    "headSha": "f086211cd6be60787aa9bf8f5509fbda55a6e003",
+    "defaultBranch": "main"
+  },
+  "budget": {
+    "provider": "claude-code",
+    "totalTokensBudgeted": 200000,
+    "totalTokensUsed": 165063,
+    "estimatedCostUsd": 0
+  },
+  "tasks": [
+    {
+      "taskId": "lint-scanner-tests",
+      "title": "Add unit tests for LintScanner",
+      "source": "test-gap",
+      "complexity": "moderate",
+      "status": "success",
+      "tokensUsed": 90000,
+      "duration": 500,
+      "filesChanged": [
+        "tests/discovery/lint-scanner.test.ts",
+        "src/discovery/scanners/lint-scanner.ts"
+      ],
+      "pr": {
+        "number": 33,
+        "url": "https://github.com/Open330/open-agent-contribution/pull/33",
+        "status": "open"
+      }
+    },
+    {
+      "taskId": "todo-scanner-tests",
+      "title": "Add unit tests for TodoScanner",
+      "source": "test-gap",
+      "complexity": "moderate",
+      "status": "success",
+      "tokensUsed": 75063,
+      "duration": 358,
+      "filesChanged": [
+        "tests/discovery/todo-scanner.test.ts",
+        "src/discovery/scanners/todo-scanner.ts"
+      ],
+      "pr": {
+        "number": 33,
+        "url": "https://github.com/Open330/open-agent-contribution/pull/33",
+        "status": "open"
+      }
+    }
+  ],
+  "metrics": {
+    "tasksDiscovered": 2,
+    "tasksAttempted": 2,
+    "tasksSucceeded": 2,
+    "tasksFailed": 0,
+    "totalDuration": 858,
+    "totalFilesChanged": 4,
+    "totalLinesAdded": 1717,
+    "totalLinesRemoved": 2
+  }
+}
