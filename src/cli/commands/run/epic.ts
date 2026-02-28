@@ -22,7 +22,7 @@ import { createSpinner, formatInteger, truncate } from "../../helpers.js";
 import { createPullRequest } from "./pr.js";
 import { executeWithAgent, resolveAdapter } from "./task.js";
 import { writeTracking } from "./tracking.js";
-import type { PipelineContext, RunMode, TaskRunResult } from "./types.js";
+import type { ContextAck, PipelineContext, RunMode, TaskRunResult } from "./types.js";
 import { formatBudgetDisplay, formatDuration } from "./types.js";
 
 export async function tryLoadOrAnalyzeEpics(
@@ -118,10 +118,11 @@ async function executeEpicEntry(
     timeoutSeconds: number;
     mode: RunMode;
     ghToken?: string;
+    contextAck?: ContextAck;
   },
 ): Promise<TaskRunResult> {
-  const { adapter, resolvedRepo, providerId, timeoutSeconds, mode, ghToken } = params;
-  const task = epicAsTask(entry.epic);
+  const { adapter, resolvedRepo, providerId, timeoutSeconds, mode, ghToken, contextAck } = params;
+  const task = withContextAck(epicAsTask(entry.epic), contextAck);
   const estimate = makeStubEstimate(task.id, providerId, entry.estimatedTokens);
 
   const result = await executeWithAgent({
@@ -237,6 +238,7 @@ export async function runEpicPipeline(
             timeoutSeconds,
             mode,
             ghToken,
+            contextAck: ctx.contextAck,
           });
 
           epicCompletedCount += 1;
@@ -396,4 +398,18 @@ function renderEpicPlanTable(
       );
     }
   }
+}
+
+function withContextAck(
+  task: import("../../../core/index.js").Task,
+  contextAck: ContextAck | undefined,
+): import("../../../core/index.js").Task {
+  if (!contextAck) return task;
+  return {
+    ...task,
+    metadata: {
+      ...task.metadata,
+      contextAck,
+    },
+  };
 }

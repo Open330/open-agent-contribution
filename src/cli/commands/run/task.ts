@@ -24,6 +24,7 @@ import {
 import { createPullRequest } from "./pr.js";
 import { writeContributionToSandbox } from "./tracking.js";
 import type {
+  ContextAck,
   ExecutionOutcome,
   PipelineContext,
   RunCommandOptions,
@@ -220,8 +221,9 @@ export async function executePlan(
     plan.selectedTasks.map(
       (entry) =>
         taskQueue.add(async (): Promise<TaskRunResult> => {
+          const taskForExecution = withContextAck(entry.task, ctx.contextAck);
           const result = await executeWithAgent({
-            task: entry.task,
+            task: taskForExecution,
             estimate: entry.estimate,
             adapter,
             repoPath: resolvedRepo.localPath,
@@ -237,7 +239,7 @@ export async function executePlan(
             executionSpinner.text = `Executing tasks... (${completedCount}/${total} — ${pct}%)`;
           }
 
-          return { task: entry.task, estimate: entry.estimate, execution, sandbox };
+          return { task: taskForExecution, estimate: entry.estimate, execution, sandbox };
         }) as Promise<TaskRunResult>,
     ),
   );
@@ -352,6 +354,20 @@ export function printFinalSummary(
 export function selectScannersFromConfig(config: OacConfig | null, hasGitHubAuth: boolean) {
   const { names, composite } = buildScanners(config, hasGitHubAuth);
   return { enabled: names, scanner: composite };
+}
+
+function withContextAck(task: Task, contextAck: ContextAck | undefined): Task {
+  if (!contextAck) {
+    return task;
+  }
+
+  return {
+    ...task,
+    metadata: {
+      ...task.metadata,
+      contextAck,
+    },
+  };
 }
 
 export async function executeWithAgent(input: {

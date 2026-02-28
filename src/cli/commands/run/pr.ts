@@ -77,6 +77,24 @@ export async function createPullRequest(input: {
       prBodyLines.push(`- **Resolves:** #${input.task.linkedIssue.number}`);
     }
 
+    const contextAck = readContextAck(input.task);
+    if (contextAck) {
+      prBodyLines.push("", "## Repository Policy Acknowledgement", "");
+      prBodyLines.push("- **Context files read:**");
+      for (const file of contextAck.files.slice(0, 5)) {
+        prBodyLines.push(`  - \`${file}\``);
+      }
+      if (contextAck.summary.length > 0) {
+        prBodyLines.push("", "- **Policy summary used:**");
+        for (const line of contextAck.summary.slice(0, 5)) {
+          prBodyLines.push(`  - ${line}`);
+        }
+      }
+      if (contextAck.digest) {
+        prBodyLines.push("", `- **Context digest:** \`${contextAck.digest}\``);
+      }
+    }
+
     prBodyLines.push(
       "",
       "---",
@@ -119,6 +137,39 @@ export async function createPullRequest(input: {
     console.warn(`[oac] PR creation failed: ${message}`);
     return undefined;
   }
+}
+
+function readContextAck(task: Task):
+  | {
+      files: string[];
+      summary: string[];
+      digest?: string;
+    }
+  | undefined {
+  if (!task.metadata || typeof task.metadata !== "object" || task.metadata === null) {
+    return undefined;
+  }
+  const raw = (task.metadata as Record<string, unknown>).contextAck;
+  if (!raw || typeof raw !== "object") return undefined;
+  const record = raw as Record<string, unknown>;
+
+  const files = Array.isArray(record.files)
+    ? record.files.filter(
+        (item): item is string => typeof item === "string" && item.trim().length > 0,
+      )
+    : [];
+  if (files.length === 0) return undefined;
+
+  const summary = Array.isArray(record.summary)
+    ? record.summary.filter(
+        (item): item is string => typeof item === "string" && item.trim().length > 0,
+      )
+    : [];
+  const digest =
+    typeof record.digest === "string" && record.digest.trim().length > 0
+      ? record.digest
+      : undefined;
+  return { files, summary, digest };
 }
 
 /**

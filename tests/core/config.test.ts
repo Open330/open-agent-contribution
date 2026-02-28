@@ -75,6 +75,14 @@ describe("default config values", () => {
     expect(config.dashboard.openBrowser).toBe(true);
   });
 
+  it("has correct context policy defaults", () => {
+    const config = loadConfig({});
+
+    expect(config.context.mode).toBe("off");
+    expect(config.context.requiredGlobs).toEqual([".context/plans/**/*.md"]);
+    expect(config.context.maxAckItems).toBe(3);
+  });
+
   it("has correct completion defaults", () => {
     const config = loadConfig({});
 

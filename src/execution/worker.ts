@@ -28,8 +28,43 @@ function readMetadataNumber(task: Task, key: string): number | undefined {
   return readPositiveNumber(task.metadata[key]);
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function readContextAck(task: Task):
+  | {
+      files: string[];
+      summary: string[];
+      digest?: string;
+    }
+  | undefined {
+  const raw = task.metadata.contextAck;
+  if (!isRecord(raw)) {
+    return undefined;
+  }
+
+  const files = Array.isArray(raw.files)
+    ? raw.files.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    : [];
+  const summary = Array.isArray(raw.summary)
+    ? raw.summary.filter(
+        (item): item is string => typeof item === "string" && item.trim().length > 0,
+      )
+    : [];
+  const digest =
+    typeof raw.digest === "string" && raw.digest.trim().length > 0 ? raw.digest : undefined;
+
+  if (files.length === 0) {
+    return undefined;
+  }
+
+  return { files, summary, digest };
+}
+
 function buildTaskPrompt(task: Task): string {
   const fileList = task.targetFiles.length > 0 ? task.targetFiles.join("\n") : "(none provided)";
+  const contextAck = readContextAck(task);
 
   const lines = [
     "You are implementing a scoped repository contribution task.",
@@ -60,6 +95,27 @@ function buildTaskPrompt(task: Task): string {
     "",
     "Apply minimal, safe changes and ensure the repository remains buildable.",
   );
+
+  if (contextAck) {
+    lines.push(
+      "",
+      "Repository contribution policy (MUST FOLLOW):",
+      ...contextAck.files.map((file) => `- ${file}`),
+    );
+
+    if (contextAck.summary.length > 0) {
+      lines.push("", "Policy summary:", ...contextAck.summary.map((item) => `- ${item}`));
+    }
+
+    if (contextAck.digest) {
+      lines.push("", `Context digest: ${contextAck.digest}`);
+    }
+
+    lines.push(
+      "",
+      "Treat these policy files as authoritative. Stay within scope and satisfy all Must/Must Not constraints.",
+    );
+  }
 
   return lines.filter((l) => l !== undefined).join("\n");
 }

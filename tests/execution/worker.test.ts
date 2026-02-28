@@ -357,4 +357,32 @@ describe("executeTask", () => {
     expect(prompt).toContain("src/parser.ts");
     expect(prompt).toContain("tests/parser.test.ts");
   });
+
+  it("task prompt includes repository policy acknowledgement when contextAck metadata exists", async () => {
+    const agent = createMockAgent();
+    const task = makeTask({
+      id: "task-policy",
+      metadata: {
+        contextAck: {
+          files: [".context/plans/ISSUE-26.md"],
+          summary: ["- Allowed paths: README.md"],
+          digest: "abc123",
+        },
+      },
+    });
+    const sandbox = makeSandbox();
+    const eventBus = createEventBus();
+
+    mockExecution(agent, [], Promise.resolve(makeAgentResult()));
+
+    await executeTask(agent, task, sandbox, eventBus, {
+      executionId: "prompt-policy-1",
+    });
+
+    const prompt = vi.mocked(agent.execute).mock.calls[0][0].prompt;
+    expect(prompt).toContain("Repository contribution policy (MUST FOLLOW):");
+    expect(prompt).toContain(".context/plans/ISSUE-26.md");
+    expect(prompt).toContain("Policy summary:");
+    expect(prompt).toContain("Context digest: abc123");
+  });
 });

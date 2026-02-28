@@ -217,6 +217,15 @@ export const AnalyzeSchema = z
   .strict()
   .default({});
 
+export const ContextPolicySchema = z
+  .object({
+    mode: z.enum(["off", "warn", "enforce"]).default("off"),
+    requiredGlobs: z.array(z.string().min(1)).default([".context/plans/**/*.md"]),
+    maxAckItems: z.number().int().positive().default(3),
+  })
+  .strict()
+  .default({});
+
 export const OacConfigSchema = z
   .object({
     repos: z.array(RepoTargetSchema).default([]),
@@ -228,6 +237,7 @@ export const OacConfigSchema = z
     tracking: TrackingSchema,
     dashboard: DashboardSchema,
     analyze: AnalyzeSchema,
+    context: ContextPolicySchema,
   })
   .strict();
 

@@ -11,6 +11,7 @@ import {
   resolveProviderId,
   resolveRepoInput,
 } from "../../helpers.js";
+import { resolveContextAck } from "./context-policy.js";
 import { runEpicPipeline, tryLoadOrAnalyzeEpics } from "./epic.js";
 import { runRetryPipeline } from "./retry.js";
 import {
@@ -65,6 +66,8 @@ export async function runPipeline(
   const cloneSpinner = createSpinner(ctx.suppressOutput, "Preparing local clone...");
   await cloneRepo(resolvedRepo);
   cloneSpinner?.succeed(`Repository ready at ${resolvedRepo.localPath}`);
+
+  ctx.contextAck = await resolveContextAck(resolvedRepo.localPath, config, ui, ctx.suppressOutput);
 
   // ── Retry-failed shortcut ──────────────────────────────────
   if (options.retryFailed) {

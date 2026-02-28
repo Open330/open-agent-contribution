@@ -226,6 +226,19 @@ export async function writeContributionToSandbox(input: {
       title: task.title,
       source: task.source,
       complexity: task.complexity,
+      contextAck:
+        isRecord(task.metadata.contextAck) && Array.isArray(task.metadata.contextAck.files)
+          ? {
+              files: task.metadata.contextAck.files,
+              summary: Array.isArray(task.metadata.contextAck.summary)
+                ? task.metadata.contextAck.summary
+                : [],
+              digest:
+                typeof task.metadata.contextAck.digest === "string"
+                  ? task.metadata.contextAck.digest
+                  : undefined,
+            }
+          : undefined,
       linkedIssue: task.linkedIssue
         ? { number: task.linkedIssue.number, url: task.linkedIssue.url }
         : undefined,
@@ -248,4 +261,8 @@ export async function writeContributionToSandbox(input: {
     // If commit fails (e.g. nothing to commit), that's fine — the file is
     // still on disk and will be picked up by any subsequent commit.
   }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
 }

@@ -17,6 +17,14 @@ export interface RunCommandOptions {
   retryFailed?: boolean;
 }
 
+export interface ContextAck {
+  mode: "warn" | "enforce";
+  requiredGlobs: string[];
+  files: string[];
+  summary: string[];
+  digest: string;
+}
+
 export interface SandboxInfo {
   branchName: string;
   sandboxPath: string;
@@ -111,6 +119,7 @@ export interface PipelineContext {
   suppressOutput: boolean;
   runId: string;
   runStartedAt: number;
+  contextAck?: ContextAck;
 }
 
 export function formatBudgetDisplay(budget: number): string {
