@@ -355,12 +355,7 @@ describe("LintScanner", () => {
     const [command, args] = mockedSpawn.mock.calls[0] as [string, string[]];
     expect(command).toBe("npx");
     expect(args).toEqual(
-      expect.arrayContaining([
-        "--ignore-pattern",
-        "dist/**",
-        "--ignore-pattern",
-        "coverage/**",
-      ]),
+      expect.arrayContaining(["--ignore-pattern", "dist/**", "--ignore-pattern", "coverage/**"]),
     );
   });
 
@@ -758,7 +753,13 @@ describe("LintScanner", () => {
           filePath: "/repo/src/alpha.ts",
           messages: [
             { ruleId: "no-unused-vars", message: "Var x unused", line: 1, column: 2, severity: 2 },
-            { ruleId: "no-console", message: "Unexpected console", line: 5, column: 1, severity: 1 },
+            {
+              ruleId: "no-console",
+              message: "Unexpected console",
+              line: 5,
+              column: 1,
+              severity: 1,
+            },
           ],
         },
         {

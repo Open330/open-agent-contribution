@@ -1,8 +1,8 @@
 import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import { spawn } from "node:child_process";
+import { EventEmitter } from "node:events";
 import type { Dirent } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
-import { EventEmitter } from "node:events";
 import { resolve } from "node:path";
 import { PassThrough } from "node:stream";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -132,10 +132,7 @@ function makeRipgrepMatch(input: {
   text: string;
   keywordColumn?: number;
 }): string {
-  const fallbackColumn = Math.max(
-    0,
-    input.text.search(/\b(TODO|FIXME|HACK|XXX)\b/i),
-  );
+  const fallbackColumn = Math.max(0, input.text.search(/\b(TODO|FIXME|HACK|XXX)\b/i));
   const start = input.keywordColumn !== undefined ? input.keywordColumn - 1 : fallbackColumn;
 
   return JSON.stringify({
@@ -178,7 +175,8 @@ describe("TodoScanner", () => {
       exitCode: 0,
     });
     setFileContents({
-      [resolve(REPO_PATH, "src/todo.ts")]: "export function parse() {\n  // TODO: improve parser\n}\n",
+      [resolve(REPO_PATH, "src/todo.ts")]:
+        "export function parse() {\n  // TODO: improve parser\n}\n",
     });
     const scanner = new TodoScanner();
 
@@ -200,8 +198,7 @@ describe("TodoScanner", () => {
       [resolve(REPO_PATH, "src")]: [{ name: "fallback.ts", type: "file" }],
     });
     setFileContents({
-      [resolve(REPO_PATH, "src/fallback.ts")]:
-        "export const value = 1;\n// TODO: add validation\n",
+      [resolve(REPO_PATH, "src/fallback.ts")]: "export const value = 1;\n// TODO: add validation\n",
     });
     const scanner = new TodoScanner();
 
@@ -309,8 +306,9 @@ describe("TodoScanner", () => {
     const scanner = new TodoScanner();
 
     const tasks = await scanner.scan(REPO_PATH);
-    const keywordSets = tasks.map((task) => ((task.metadata as Record<string, unknown>).keywordSet ??
-      []) as string[]);
+    const keywordSets = tasks.map(
+      (task) => ((task.metadata as Record<string, unknown>).keywordSet ?? []) as string[],
+    );
 
     expect(tasks).toHaveLength(2);
     expect(keywordSets).toEqual(expect.arrayContaining([["HACK"], ["XXX"]]));
@@ -324,9 +322,7 @@ describe("TodoScanner", () => {
 
     const [command, args] = mockedSpawn.mock.calls[0] as [string, string[]];
     expect(command).toBe("rg");
-    expect(args).toEqual(
-      expect.arrayContaining(["--glob", "!tmp/**", "--glob", "!generated/*"]),
-    );
+    expect(args).toEqual(expect.arrayContaining(["--glob", "!tmp/**", "--glob", "!generated/*"]));
   });
 
   it("respects maxTasks limit", async () => {

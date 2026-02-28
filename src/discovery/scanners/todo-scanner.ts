@@ -350,7 +350,7 @@ function buildTodoTask(cluster: TodoCluster, fileLines: string[], discoveredAt: 
 }
 
 function scoreTodoPriority(cluster: TodoCluster, complexity: TaskComplexity): number {
-  let maxKeywordWeight = TODO_PRIORITY_WEIGHTS.TODO;
+  let maxKeywordWeight: number = TODO_PRIORITY_WEIGHTS.TODO;
   for (const match of cluster.matches) {
     const keyword = match.keyword.toUpperCase();
     const weight = TODO_PRIORITY_WEIGHTS[keyword as keyof typeof TODO_PRIORITY_WEIGHTS];
