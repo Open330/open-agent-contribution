@@ -14,6 +14,12 @@ const TODO_TEXT_PATTERN = /\b(TODO|FIXME|HACK|XXX)\b[:\s-]?(.*)$/i;
 const COMMENT_CONTINUATION_PATTERN = /^\s*(?:\/\/|\/\*+|\*|#|--)/;
 const MAX_FUNCTION_LOOKBACK_LINES = 80;
 const DEFAULT_EXCLUDES = [".git", "node_modules", "dist", "build", "coverage"];
+const TODO_PRIORITY_WEIGHTS = {
+  FIXME: 80,
+  HACK: 65,
+  XXX: 60,
+  TODO: 50,
+} as const;
 
 const FUNCTION_PATTERNS = [
   /^\s*(?:export\s+)?(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(/,
@@ -284,6 +290,7 @@ function buildTodoTask(cluster: TodoCluster, fileLines: string[], discoveredAt: 
   const isMultiLine = cluster.matches.some((match) => isMultiLineTodo(match, fileLines));
   const complexity: TaskComplexity =
     cluster.matches.length > 1 || isMultiLine ? "simple" : "trivial";
+  const priority = scoreTodoPriority(cluster, complexity);
 
   const title = first
     ? `Address TODO comments in ${cluster.filePath}:${first.line}`
@@ -318,7 +325,7 @@ function buildTodoTask(cluster: TodoCluster, fileLines: string[], discoveredAt: 
     title,
     description,
     targetFiles: [cluster.filePath],
-    priority: 0,
+    priority,
     complexity,
     executionMode: "new-pr",
     metadata: {
@@ -340,6 +347,21 @@ function buildTodoTask(cluster: TodoCluster, fileLines: string[], discoveredAt: 
   };
 
   return task;
+}
+
+function scoreTodoPriority(cluster: TodoCluster, complexity: TaskComplexity): number {
+  let maxKeywordWeight: number = TODO_PRIORITY_WEIGHTS.TODO;
+  for (const match of cluster.matches) {
+    const keyword = match.keyword.toUpperCase();
+    const weight = TODO_PRIORITY_WEIGHTS[keyword as keyof typeof TODO_PRIORITY_WEIGHTS];
+    if (weight !== undefined && weight > maxKeywordWeight) {
+      maxKeywordWeight = weight;
+    }
+  }
+
+  const countBonus = Math.min(10, Math.max(0, cluster.matches.length - 1) * 2);
+  const complexityBonus = complexity === "simple" ? 5 : 0;
+  return Math.min(100, maxKeywordWeight + countBonus + complexityBonus);
 }
 
 function findNearestFunctionName(fileLines: string[], lineNumber: number): string | undefined {

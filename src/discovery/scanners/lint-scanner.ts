@@ -53,10 +53,11 @@ export class LintScanner implements Scanner {
     }
 
     const result = await runLinter(repoPath, detection, options);
-    const findings =
+    const rawFindings =
       detection.kind === "eslint"
         ? parseEslintFindings(result.stdout, repoPath)
         : parseBiomeFindings(result.stdout, repoPath);
+    const findings = deduplicateFindingsByFileAndRule(rawFindings);
 
     if (findings.length === 0) {
       return [];
@@ -231,6 +232,19 @@ function parseEslintFindings(output: string, repoPath: string): LintFinding[] {
   }
 
   return findings;
+}
+
+function deduplicateFindingsByFileAndRule(findings: LintFinding[]): LintFinding[] {
+  const deduplicated = new Map<string, LintFinding>();
+
+  for (const finding of findings) {
+    const key = `${finding.filePath}::${finding.ruleId}`;
+    if (!deduplicated.has(key)) {
+      deduplicated.set(key, finding);
+    }
+  }
+
+  return [...deduplicated.values()];
 }
 
 function parseBiomeFindings(output: string, repoPath: string): LintFinding[] {
