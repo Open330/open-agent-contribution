@@ -260,7 +260,7 @@ describe("executeTask", () => {
         {
           type: "tool_use",
           tool: "rg",
-          input: { pattern: "TODO" },
+          input: { pattern: "unused_var" },
         },
         {
           type: "error",

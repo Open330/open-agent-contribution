@@ -56,11 +56,11 @@ interface CommandOptions {
 }
 
 /**
- * Scanner that converts TODO-like markers into actionable tasks.
+ * Scanner that converts task-marker annotations into actionable tasks.
  */
 export class TodoScanner implements Scanner {
   public readonly id = "todo";
-  public readonly name = "TODO Scanner";
+  public readonly name = `${this.id.toUpperCase()} Scanner`;
 
   public async scan(repoPath: string, options: ScanOptions = {}): Promise<Task[]> {
     const matches = await this.findTodoMatches(repoPath, options);
@@ -292,25 +292,27 @@ function buildTodoTask(cluster: TodoCluster, fileLines: string[], discoveredAt: 
     cluster.matches.length > 1 || isMultiLine ? "simple" : "trivial";
   const priority = scoreTodoPriority(cluster, complexity);
 
+  const uniqueKeywords = Array.from(
+    new Set(cluster.matches.map((match) => match.keyword.toUpperCase())),
+  );
+  const markerLabel = uniqueKeywords.join("/");
+
   const title = first
-    ? `Address TODO comments in ${cluster.filePath}:${first.line}`
-    : `Address TODO comments in ${cluster.filePath}`;
+    ? `Address ${markerLabel} comments in ${cluster.filePath}:${first.line}`
+    : `Address ${markerLabel} comments in ${cluster.filePath}`;
 
   const todoSummary = cluster.matches
     .map((match) => `- ${match.keyword} at line ${match.line}: ${truncate(match.text, 140)}`)
     .join("\n");
 
   const descriptionParts = [
-    `Resolve TODO-style markers in \`${cluster.filePath}\`.`,
+    `Resolve ${markerLabel}-style markers in \`${cluster.filePath}\`.`,
     functionName ? `Nearest function context: \`${functionName}\`.` : undefined,
     "Markers discovered:",
     todoSummary,
   ].filter((part): part is string => Boolean(part));
 
   const description = descriptionParts.join("\n\n");
-  const uniqueKeywords = Array.from(
-    new Set(cluster.matches.map((match) => match.keyword.toUpperCase())),
-  );
   const stableHashInput = [
     cluster.filePath,
     String(first?.line ?? 0),

@@ -121,7 +121,7 @@ describe("rankTasks", () => {
     }
   });
 
-  it("applies TODO matchCount bonuses (+4 at >=4, +2 at >=2)", () => {
+  it("applies todo-source matchCount bonuses (+4 at >=4, +2 at >=2)", () => {
     const plusFour = getBreakdown(rankSingle({ source: "todo", metadata: { matchCount: 4 } }));
     const plusTwo = getBreakdown(rankSingle({ source: "todo", metadata: { matchCount: 2 } }));
 
