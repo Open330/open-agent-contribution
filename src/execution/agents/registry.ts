@@ -1,6 +1,7 @@
 import type { AgentProvider } from "./agent.interface.js";
 import { ClaudeCodeAdapter } from "./claude-code.adapter.js";
 import { CodexAdapter } from "./codex.adapter.js";
+import { GeminiAdapter } from "./gemini.adapter.js";
 import { OpenCodeAdapter } from "./opencode.adapter.js";
 
 /**
@@ -14,7 +15,7 @@ export type AdapterFactory = () => AgentProvider;
 /**
  * Maintains a registry of agent adapter factories keyed by provider ID.
  *
- * Built-in adapters (claude-code, codex, opencode) are registered at
+ * Built-in adapters (claude-code, codex, gemini, opencode) are registered at
  * module load time.  Custom adapters can be added at runtime with
  * `adapterRegistry.register(id, factory)`.
  */
@@ -59,4 +60,5 @@ export const adapterRegistry = new AdapterRegistry();
 // ── Register built-in adapters ───────────────────────────────
 adapterRegistry.register("claude-code", () => new ClaudeCodeAdapter());
 adapterRegistry.register("codex", () => new CodexAdapter());
+adapterRegistry.register("gemini", () => new GeminiAdapter());
 adapterRegistry.register("opencode", () => new OpenCodeAdapter());

@@ -1,0 +1,56 @@
+{
+  "version": "1.0",
+  "runId": "oac-gemini-adapter-20260228",
+  "timestamp": "2026-02-28T07:15:00Z",
+  "contributor": {
+    "githubUsername": "jiunbae",
+    "email": "jiunbae.623@gmail.com"
+  },
+  "repo": {
+    "fullName": "Open330/open-agent-contribution",
+    "headSha": "f086211cd6be60787aa9bf8f5509fbda55a6e003",
+    "defaultBranch": "main"
+  },
+  "budget": {
+    "provider": "claude-code",
+    "totalTokensBudgeted": 150000,
+    "totalTokensUsed": 111005,
+    "estimatedCostUsd": 0
+  },
+  "tasks": [
+    {
+      "taskId": "gemini-agent-adapter",
+      "title": "Add Gemini CLI agent provider adapter",
+      "source": "custom",
+      "complexity": "complex",
+      "status": "success",
+      "tokensUsed": 111005,
+      "duration": 461,
+      "filesChanged": [
+        "src/execution/agents/gemini.adapter.ts",
+        "src/budget/providers/gemini-counter.ts",
+        "src/execution/agents/registry.ts",
+        "src/core/types.ts",
+        "src/budget/estimator.ts",
+        "src/budget/index.ts",
+        "src/execution/index.ts",
+        "tests/execution/gemini-adapter.test.ts"
+      ],
+      "pr": {
+        "number": 34,
+        "url": "https://github.com/Open330/open-agent-contribution/pull/34",
+        "status": "open"
+      }
+    }
+  ],
+  "metrics": {
+    "tasksDiscovered": 1,
+    "tasksAttempted": 1,
+    "tasksSucceeded": 1,
+    "tasksFailed": 0,
+    "totalDuration": 461,
+    "totalFilesChanged": 8,
+    "totalLinesAdded": 1216,
+    "totalLinesRemoved": 3
+  }
+}
