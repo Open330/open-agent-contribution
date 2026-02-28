@@ -9,6 +9,7 @@ vi.mock("tiktoken", () => ({
 function createMockEncoder(tokens: number[]): Tiktoken {
   return {
     encode: vi.fn().mockReturnValue(tokens),
+    free: vi.fn(),
   } as unknown as Tiktoken;
 }
 
@@ -101,6 +102,92 @@ describe("CodexTokenCounter", () => {
 
     const { CodexTokenCounter } = await loadProvider();
     const counter = new CodexTokenCounter();
+
+    expect(counter.encoding).toBe("cl100k_base");
+  });
+
+  it("returns zero for an empty string", async () => {
+    const { get_encoding } = await import("tiktoken");
+    vi.mocked(get_encoding).mockReturnValue(createMockEncoder([]));
+
+    const { CodexTokenCounter } = await loadProvider();
+    const counter = new CodexTokenCounter();
+
+    expect(counter.countTokens("")).toBe(0);
+  });
+});
+
+describe("CodexTokenCounter.reset", () => {
+  it("frees the cached encoder and clears the selected encoding", async () => {
+    const { get_encoding } = await import("tiktoken");
+    const mockedGetEncoding = vi.mocked(get_encoding);
+    const encoder = createMockEncoder([1, 2]);
+    mockedGetEncoding.mockReturnValue(encoder);
+
+    const { CodexTokenCounter } = await loadProvider();
+    const counter = new CodexTokenCounter();
+
+    counter.countTokens("init");
+    expect(encoder.free).not.toHaveBeenCalled();
+
+    counter.reset();
+    expect(encoder.free).toHaveBeenCalledOnce();
+  });
+
+  it("allows the encoder to be re-created on next use after reset", async () => {
+    const { get_encoding } = await import("tiktoken");
+    const mockedGetEncoding = vi.mocked(get_encoding);
+    const encoder = createMockEncoder([1]);
+    mockedGetEncoding.mockReturnValue(encoder);
+
+    const { CodexTokenCounter } = await loadProvider();
+    const counter = new CodexTokenCounter();
+
+    counter.countTokens("before");
+    expect(mockedGetEncoding).toHaveBeenCalledTimes(1);
+
+    counter.reset();
+    counter.countTokens("after");
+    expect(mockedGetEncoding).toHaveBeenCalledTimes(2);
+  });
+
+  it("is a no-op when no encoder has been initialized", async () => {
+    const { get_encoding } = await import("tiktoken");
+    const mockedGetEncoding = vi.mocked(get_encoding);
+    const encoder = createMockEncoder([]);
+    mockedGetEncoding.mockReturnValue(encoder);
+
+    const { CodexTokenCounter } = await loadProvider();
+    const counter = new CodexTokenCounter();
+
+    counter.reset();
+    expect(encoder.free).not.toHaveBeenCalled();
+  });
+
+  it("resets encoding selection so it is re-detected on next access", async () => {
+    const { get_encoding } = await import("tiktoken");
+    const mockedGetEncoding = vi.mocked(get_encoding);
+
+    // First: primary works
+    const primaryEncoder = createMockEncoder([1]);
+    mockedGetEncoding.mockReturnValue(primaryEncoder);
+
+    const { CodexTokenCounter } = await loadProvider();
+    const counter = new CodexTokenCounter();
+
+    expect(counter.encoding).toBe("o200k_base");
+
+    counter.reset();
+
+    // After reset: primary fails, fallback used
+    const fallbackEncoder = createMockEncoder([2]);
+    mockedGetEncoding.mockImplementation((name) => {
+      if (name === "o200k_base") {
+        throw new Error("now unavailable");
+      }
+
+      return fallbackEncoder;
+    });
 
     expect(counter.encoding).toBe("cl100k_base");
   });
