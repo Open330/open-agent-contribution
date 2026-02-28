@@ -6,7 +6,7 @@ describe("AdapterRegistry", () => {
   it("has built-in claude-code adapter registered", () => {
     const factory = adapterRegistry.get("claude-code");
     expect(factory).toBeDefined();
-    const adapter = factory!();
+    const adapter = factory?.();
     expect(adapter.id).toBe("claude-code");
     expect(adapter.name).toBe("Claude Code");
   });
@@ -14,7 +14,7 @@ describe("AdapterRegistry", () => {
   it("has built-in codex adapter registered", () => {
     const factory = adapterRegistry.get("codex");
     expect(factory).toBeDefined();
-    const adapter = factory!();
+    const adapter = factory?.();
     expect(adapter.id).toBe("codex");
     expect(adapter.name).toBe("Codex CLI");
   });
@@ -22,7 +22,7 @@ describe("AdapterRegistry", () => {
   it("has built-in opencode adapter registered", () => {
     const factory = adapterRegistry.get("opencode");
     expect(factory).toBeDefined();
-    const adapter = factory!();
+    const adapter = factory?.();
     expect(adapter.id).toBe("opencode");
     expect(adapter.name).toBe("OpenCode");
   });
@@ -30,7 +30,7 @@ describe("AdapterRegistry", () => {
   it("resolves codex-cli alias to codex", () => {
     const factory = adapterRegistry.get("codex-cli");
     expect(factory).toBeDefined();
-    const adapter = factory!();
+    const adapter = factory?.();
     expect(adapter.id).toBe("codex");
   });
 
@@ -71,7 +71,7 @@ describe("AdapterRegistry", () => {
     adapterRegistry.register("custom" as never, mockFactory as never);
     const factory = adapterRegistry.get("custom" as never);
     expect(factory).toBeDefined();
-    expect(factory!().name).toBe("Custom Agent");
+    expect(factory?.().name).toBe("Custom Agent");
   });
 
   it("register replaces existing factory for same ID", () => {
@@ -102,21 +102,22 @@ describe("AdapterRegistry", () => {
 
     adapterRegistry.register("replaceable" as never, factory1 as never);
     adapterRegistry.register("replaceable" as never, factory2 as never);
-    expect(adapterRegistry.get("replaceable" as never)!().name).toBe("V2");
+    expect(adapterRegistry.get("replaceable" as never)?.().name).toBe("V2");
   });
 
   it("alias maps a new alias to an existing canonical ID", () => {
     adapterRegistry.alias("cc", "claude-code");
     const factory = adapterRegistry.get("cc");
     expect(factory).toBeDefined();
-    expect(factory!().id).toBe("claude-code");
+    expect(factory?.().id).toBe("claude-code");
     expect(adapterRegistry.resolveId("cc")).toBe("claude-code");
   });
 
   it("each factory call creates a fresh adapter instance", () => {
-    const factory = adapterRegistry.get("claude-code")!;
-    const a = factory();
-    const b = factory();
+    const factory = adapterRegistry.get("claude-code");
+    expect(factory).toBeDefined();
+    const a = factory?.();
+    const b = factory?.();
     expect(a).not.toBe(b);
   });
 });

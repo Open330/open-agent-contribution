@@ -253,9 +253,9 @@ describe("ClaudeCodeAdapter", () => {
         expect(env).not.toHaveProperty("CLAUDECODE");
         expect(env).not.toHaveProperty("CLAUDE_CODE_SESSION");
       } finally {
-        if (origClaudeCode === undefined) delete process.env.CLAUDECODE;
+        if (origClaudeCode === undefined) process.env.CLAUDECODE = undefined;
         else process.env.CLAUDECODE = origClaudeCode;
-        if (origSession === undefined) delete process.env.CLAUDE_CODE_SESSION;
+        if (origSession === undefined) process.env.CLAUDE_CODE_SESSION = undefined;
         else process.env.CLAUDE_CODE_SESSION = origSession;
       }
     });
@@ -413,9 +413,21 @@ describe("ClaudeCodeAdapter", () => {
       const fileEvents = events.filter(
         (e): e is Extract<AgentEvent, { type: "file_edit" }> => e.type === "file_edit",
       );
-      expect(fileEvents).toContainEqual({ type: "file_edit", action: "modify", path: "src/bar.ts" });
-      expect(fileEvents).toContainEqual({ type: "file_edit", action: "create", path: "src/new.ts" });
-      expect(fileEvents).toContainEqual({ type: "file_edit", action: "delete", path: "src/old.ts" });
+      expect(fileEvents).toContainEqual({
+        type: "file_edit",
+        action: "modify",
+        path: "src/bar.ts",
+      });
+      expect(fileEvents).toContainEqual({
+        type: "file_edit",
+        action: "create",
+        path: "src/new.ts",
+      });
+      expect(fileEvents).toContainEqual({
+        type: "file_edit",
+        action: "delete",
+        path: "src/old.ts",
+      });
     });
 
     it("parses file_edit from text lines (fallback)", async () => {
@@ -440,9 +452,7 @@ describe("ClaudeCodeAdapter", () => {
     it("parses tool_use events from JSON", async () => {
       vi.mocked(execa).mockReturnValueOnce(
         createMockSubprocess({
-          stdoutLines: [
-            JSON.stringify({ tool: "rg", input: { pattern: "TODO" } }),
-          ],
+          stdoutLines: [JSON.stringify({ tool: "rg", input: { pattern: "TODO" } })],
         }),
       );
 
@@ -503,9 +513,7 @@ describe("ClaudeCodeAdapter", () => {
     it("handles non-recoverable error event", async () => {
       vi.mocked(execa).mockReturnValueOnce(
         createMockSubprocess({
-          stdoutLines: [
-            JSON.stringify({ type: "error", message: "fatal", recoverable: false }),
-          ],
+          stdoutLines: [JSON.stringify({ type: "error", message: "fatal", recoverable: false })],
         }),
       );
 
@@ -659,9 +667,7 @@ describe("ClaudeCodeAdapter", () => {
 
     it("passes through OacError unchanged", async () => {
       const oce = new OacError("already oac", "AGENT_EXECUTION_FAILED", "fatal");
-      vi.mocked(execa).mockReturnValueOnce(
-        createMockSubprocess({ rejectWith: oce }),
-      );
+      vi.mocked(execa).mockReturnValueOnce(createMockSubprocess({ rejectWith: oce }));
 
       const adapter = new ClaudeCodeAdapter();
       const execution = adapter.execute(makeParams({ executionId: "exec-oac" }));
@@ -672,11 +678,7 @@ describe("ClaudeCodeAdapter", () => {
     it("ignores non-JSON and non-matching text lines gracefully", async () => {
       vi.mocked(execa).mockReturnValueOnce(
         createMockSubprocess({
-          stdoutLines: [
-            "plain text with no relevant patterns",
-            "not valid json {",
-            "",
-          ],
+          stdoutLines: ["plain text with no relevant patterns", "not valid json {", ""],
         }),
       );
 

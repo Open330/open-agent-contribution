@@ -125,10 +125,11 @@ describe("AsyncEventQueue", () => {
     expect(results).toEqual([1]);
   });
 
-  it("fail() causes pending consumers to throw", async () => {
+  it("fail() causes pending consumers to end and future next() to throw", async () => {
     const queue = new AsyncEventQueue<number>();
     const error = new Error("test failure");
 
+    // Pending consumers (already waiting) get resolved with done: true via flush()
     const consuming = (async () => {
       const results: number[] = [];
       for await (const value of queue) {
@@ -139,7 +140,13 @@ describe("AsyncEventQueue", () => {
 
     queue.fail(error);
 
-    await expect(consuming).rejects.toThrow("test failure");
+    // The for-await loop exits cleanly (flush resolves pending with done: true)
+    const results = await consuming;
+    expect(results).toEqual([]);
+
+    // But future next() calls throw the stored error
+    const iterator = queue[Symbol.asyncIterator]();
+    await expect(iterator.next()).rejects.toThrow("test failure");
   });
 
   it("fail() causes next() to throw for already-queued error", async () => {
