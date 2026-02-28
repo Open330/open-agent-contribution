@@ -275,10 +275,7 @@ function chunkByWeight(
   maxWeight: number,
   maxCount: number,
 ): RawFinding[][] {
-  const totalWeight = findings.reduce(
-    (sum, f) => sum + COMPLEXITY_WEIGHT[f.complexity],
-    0,
-  );
+  const totalWeight = findings.reduce((sum, f) => sum + COMPLEXITY_WEIGHT[f.complexity], 0);
 
   // If everything fits within both limits, return a single chunk
   if (totalWeight <= maxWeight && findings.length <= maxCount) {
