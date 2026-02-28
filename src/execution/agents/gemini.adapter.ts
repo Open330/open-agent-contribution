@@ -1,5 +1,5 @@
+import { type ChildProcess, spawn } from "node:child_process";
 import { stat } from "node:fs/promises";
-import { spawn, type ChildProcess } from "node:child_process";
 import { createInterface } from "node:readline";
 
 import {
@@ -394,7 +394,11 @@ function parseVersion(output: string): string | undefined {
   return match[1];
 }
 
-async function runCommand(command: string, args: string[], timeoutMs: number): Promise<CommandResult> {
+async function runCommand(
+  command: string,
+  args: string[],
+  timeoutMs: number,
+): Promise<CommandResult> {
   return new Promise((resolve) => {
     const child = spawn(command, args, {
       stdio: ["ignore", "pipe", "pipe"],

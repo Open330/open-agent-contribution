@@ -1,7 +1,7 @@
-import { EventEmitter } from "node:events";
-import { mkdtemp, writeFile } from "node:fs/promises";
 import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import { spawn } from "node:child_process";
+import { EventEmitter } from "node:events";
+import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Readable } from "node:stream";
@@ -81,8 +81,7 @@ function createMockProcess(options: MockProcessOptions = {}): ChildProcessWithou
         streamsEnded++;
         if (streamsEnded >= 2) {
           (proc as { exitCode: number | null }).exitCode = options.closeCode ?? 0;
-          (proc as { signalCode: NodeJS.Signals | null }).signalCode =
-            options.closeSignal ?? null;
+          (proc as { signalCode: NodeJS.Signals | null }).signalCode = options.closeSignal ?? null;
           proc.emit("close", options.closeCode ?? 0, options.closeSignal ?? null);
         }
       };
