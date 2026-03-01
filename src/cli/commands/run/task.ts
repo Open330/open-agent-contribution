@@ -21,7 +21,7 @@ import {
   resolveProviderId,
   truncate,
 } from "../../helpers.js";
-import { createPullRequest } from "./pr.js";
+import { createPullRequest, pushBranchOnly } from "./pr.js";
 import { writeContributionToSandbox } from "./tracking.js";
 import type {
   ContextAck,
@@ -252,7 +252,14 @@ export async function executePlan(
     executedTasks.map(
       (result) =>
         completionQueue.add(async (): Promise<TaskRunResult> => {
-          if (mode === "direct-commit" || !result.execution.success) return result;
+          if (mode === "direct-commit" || !result.execution.success) {
+            return result;
+          }
+
+          if (mode === "branch-only") {
+            await pushBranchOnly({ sandbox: result.sandbox, ghToken });
+            return result;
+          }
 
           // Write per-task contribution metadata into the sandbox so it's
           // included in the PR branch (closes the ".oac not in PR" gap).

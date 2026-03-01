@@ -1,13 +1,16 @@
+import { homedir } from "node:os";
+import { resolve } from "node:path";
 import chalk, { Chalk, type ChalkInstance } from "chalk";
 import type { Command } from "commander";
 import ora, { type Ora } from "ora";
 import PQueue from "p-queue";
 
 import { estimateTokens } from "../budget/index.js";
-import type { OacConfig, Task, TokenEstimate } from "../core/index.js";
+import { type OacConfig, type Task, type TokenEstimate, loadConfig } from "../core/index.js";
 export type { GlobalCliOptions } from "./cli.js";
 import type { GlobalCliOptions } from "./cli.js";
-import { loadOptionalConfigFile } from "./config-loader.js";
+import { loadOptionalConfigCandidateFile, loadOptionalConfigFile } from "./config-loader.js";
+import { detectGitRoot } from "./preferences.js";
 
 // ── Global options ──────────────────────────────────────────
 
@@ -70,6 +73,13 @@ export async function loadOptionalConfig(
   verbose: boolean,
   ui: ChalkInstance,
 ): Promise<OacConfig | null> {
+  if (configPath === "oac.config.ts") {
+    const layered = await loadLayeredConfig(configPath, verbose, ui);
+    if (layered) {
+      return layered;
+    }
+  }
+
   return loadOptionalConfigFile(configPath, {
     onWarning: verbose
       ? (message) => {
@@ -77,6 +87,93 @@ export async function loadOptionalConfig(
         }
       : undefined,
   });
+}
+
+async function loadLayeredConfig(
+  configPath: string,
+  verbose: boolean,
+  ui: ChalkInstance,
+): Promise<OacConfig | null> {
+  const warning = verbose
+    ? (message: string) => {
+        console.warn(ui.yellow(`[oac] ${message}`));
+      }
+    : undefined;
+
+  const repoRoot = await detectGitRoot(process.cwd());
+  const globalConfigPath = resolve(homedir(), ".config", "oac", configPath);
+  const cwdConfigPath = resolve(process.cwd(), configPath);
+  const repoScopedConfigPath = repoRoot ? resolve(repoRoot, ".oac", configPath) : null;
+
+  const [globalCandidate, cwdCandidate, repoCandidate] = await Promise.all([
+    loadOptionalConfigCandidateFile(globalConfigPath, {
+      cwd: "/",
+      onWarning: warning,
+    }),
+    loadOptionalConfigCandidateFile(cwdConfigPath, {
+      cwd: "/",
+      onWarning: warning,
+    }),
+    repoScopedConfigPath
+      ? loadOptionalConfigCandidateFile(repoScopedConfigPath, {
+          cwd: "/",
+          onWarning: warning,
+        })
+      : Promise.resolve(null),
+  ]);
+
+  const merged = mergeConfigCandidates(globalCandidate, cwdCandidate, repoCandidate);
+  if (!merged) {
+    return null;
+  }
+
+  try {
+    return loadConfig(merged);
+  } catch (error) {
+    warning?.(
+      `Failed to load layered config (${configPath}): ${error instanceof Error ? error.message : String(error)}`,
+    );
+    return null;
+  }
+}
+
+function mergeConfigCandidates(
+  ...candidates: Array<unknown | null>
+): Record<string, unknown> | null {
+  let merged: Record<string, unknown> | null = null;
+
+  for (const candidate of candidates) {
+    if (!isRecord(candidate)) {
+      continue;
+    }
+
+    merged = merged ? deepMergeRecords(merged, candidate) : deepMergeRecords({}, candidate);
+  }
+
+  return merged;
+}
+
+function deepMergeRecords(
+  base: Record<string, unknown>,
+  override: Record<string, unknown>,
+): Record<string, unknown> {
+  const output: Record<string, unknown> = { ...base };
+
+  for (const [key, value] of Object.entries(override)) {
+    const current = output[key];
+    if (isRecord(current) && isRecord(value)) {
+      output[key] = deepMergeRecords(current, value);
+      continue;
+    }
+
+    output[key] = value;
+  }
+
+  return output;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 export function resolveRepoInput(repoOption: string | undefined, config: OacConfig | null): string {

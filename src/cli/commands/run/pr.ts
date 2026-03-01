@@ -21,12 +21,7 @@ export async function createPullRequest(input: {
   const { branchName, sandboxPath } = input.sandbox;
 
   try {
-    // Build env with explicit GitHub token to avoid interactive device flow
-    const ghEnv: Record<string, string> = { ...process.env } as Record<string, string>;
-    if (input.ghToken) {
-      ghEnv.GH_TOKEN = input.ghToken;
-      ghEnv.GITHUB_TOKEN = input.ghToken;
-    }
+    const ghEnv = buildGhEnv(input.ghToken);
 
     // Pre-PR guard: skip if another OAC instance already created a PR for this issue
     if (input.task.linkedIssue && input.ghToken) {
@@ -43,12 +38,10 @@ export async function createPullRequest(input: {
       }
     }
 
-    // Push the branch from the sandbox worktree
-    await execa("git", ["push", "--set-upstream", "origin", branchName], {
-      cwd: sandboxPath,
-      env: ghEnv,
-      timeout: PR_CREATION_TIMEOUT_MS,
-    });
+    const pushed = await pushBranchFromSandbox(input.sandbox, ghEnv);
+    if (!pushed) {
+      return undefined;
+    }
 
     // Create PR using gh CLI
     const prTitle = `[OAC] ${input.task.title}`;
@@ -136,6 +129,45 @@ export async function createPullRequest(input: {
     const message = error instanceof Error ? error.message : String(error);
     console.warn(`[oac] PR creation failed: ${message}`);
     return undefined;
+  }
+}
+
+export async function pushBranchOnly(input: {
+  sandbox?: SandboxInfo;
+  ghToken?: string;
+}): Promise<boolean> {
+  if (!input.sandbox) {
+    return false;
+  }
+
+  const ghEnv = buildGhEnv(input.ghToken);
+  return await pushBranchFromSandbox(input.sandbox, ghEnv);
+}
+
+function buildGhEnv(ghToken: string | undefined): Record<string, string> {
+  const ghEnv: Record<string, string> = { ...process.env } as Record<string, string>;
+  if (ghToken) {
+    ghEnv.GH_TOKEN = ghToken;
+    ghEnv.GITHUB_TOKEN = ghToken;
+  }
+  return ghEnv;
+}
+
+async function pushBranchFromSandbox(
+  sandbox: SandboxInfo,
+  ghEnv: Record<string, string>,
+): Promise<boolean> {
+  try {
+    await execa("git", ["push", "--set-upstream", "origin", sandbox.branchName], {
+      cwd: sandbox.sandboxPath,
+      env: ghEnv,
+      timeout: PR_CREATION_TIMEOUT_MS,
+    });
+    return true;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`[oac] Branch push failed: ${message}`);
+    return false;
   }
 }
 

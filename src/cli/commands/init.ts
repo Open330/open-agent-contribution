@@ -2,11 +2,12 @@ import { constants as fsConstants } from "node:fs";
 import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
-import { checkbox, confirm, input } from "@inquirer/prompts";
+import { checkbox, confirm, input, select } from "@inquirer/prompts";
 import type { ChalkInstance } from "chalk";
 import { Command } from "commander";
 
 import { type GlobalCliOptions, createUi, getGlobalOptions } from "../helpers.js";
+import { type PreferredRunMode, detectGitRoot, saveCliPreferences } from "../preferences.js";
 
 type ProviderId = "claude-code" | "codex" | "opencode";
 
@@ -17,6 +18,9 @@ interface InitSummary {
   providers: ProviderId[];
   budgetTokens: number;
   repo: string;
+  preferencesPath?: string;
+  defaultRunMode?: PreferredRunMode;
+  promptForRunMode?: boolean;
 }
 
 const OAC_LOGO = [
@@ -170,9 +174,36 @@ async function runInteractiveInit(
   const repo = normalizeRepoInput(firstRepoInput);
   const budgetTokens = Number.parseInt(budgetInput, 10);
   const provider = selectedProviders[0] ?? "claude-code";
+  const modeSelection = await select<"direct-commit" | "new-pr" | "branch-only" | "ask-every-run">({
+    message: "Default run completion strategy:",
+    default: "new-pr",
+    choices: [
+      {
+        name: "Create PR automatically (recommended)",
+        value: "new-pr",
+        description: "Commit to a feature branch and open a pull request",
+      },
+      {
+        name: "Commit and push directly to base branch",
+        value: "direct-commit",
+        description: "Applies changes to the base branch without opening a PR",
+      },
+      {
+        name: "Branch only (no PR)",
+        value: "branch-only",
+        description: "Pushes a feature branch and leaves follow-up to you",
+      },
+      {
+        name: "Ask every run",
+        value: "ask-every-run",
+        description: "No default; prompt every time when no --mode is provided",
+      },
+    ],
+  });
 
   const configPath = resolve(process.cwd(), "oac.config.ts");
   const trackingDirectory = resolve(process.cwd(), ".oac");
+  const gitRoot = await detectGitRoot(process.cwd());
 
   if (await pathExists(configPath)) {
     const shouldOverwrite = await confirm({
@@ -220,6 +251,25 @@ async function runInteractiveInit(
     repo,
   };
 
+  const preferencePayload =
+    modeSelection === "ask-every-run"
+      ? { promptForRunMode: true }
+      : { defaultRunMode: modeSelection, promptForRunMode: false };
+
+  const scope: "repo" | "global" = gitRoot ? "repo" : "global";
+  const preferencesPath = await saveCliPreferences({
+    cwd: process.cwd(),
+    scope,
+    preferences: preferencePayload,
+  });
+
+  if (preferencesPath) {
+    summary.preferencesPath = preferencesPath;
+    summary.defaultRunMode =
+      modeSelection === "ask-every-run" ? undefined : (modeSelection as PreferredRunMode);
+    summary.promptForRunMode = modeSelection === "ask-every-run";
+  }
+
   if (globalOptions.json) {
     console.log(JSON.stringify(summary, null, 2));
     return;
@@ -227,6 +277,9 @@ async function runInteractiveInit(
 
   console.log(ui.green("Created: oac.config.ts"));
   console.log(ui.green("Created: .oac/"));
+  if (preferencesPath) {
+    console.log(ui.green(`Created: ${preferencesPath}`));
+  }
   console.log("");
   console.log("Run `oac run` to start the full pipeline, or `oac doctor` to verify setup.");
 }

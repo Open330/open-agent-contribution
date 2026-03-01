@@ -19,14 +19,32 @@ export async function loadOptionalConfigFile(
   configPath: string,
   options: ConfigLoaderOptions = {},
 ): Promise<OacConfig | null> {
+  const candidate = await loadOptionalConfigCandidateFile(configPath, options);
+  if (candidate === null) {
+    return null;
+  }
+
+  try {
+    return loadConfig(candidate);
+  } catch (error) {
+    options.onWarning?.(
+      `Failed to load config at ${configPath}: ${error instanceof Error ? error.message : String(error)}`,
+    );
+    return null;
+  }
+}
+
+export async function loadOptionalConfigCandidateFile(
+  configPath: string,
+  options: ConfigLoaderOptions = {},
+): Promise<unknown | null> {
   const absolutePath = resolve(options.cwd ?? process.cwd(), configPath);
   if (!(await pathExists(absolutePath))) {
     return null;
   }
 
   try {
-    const candidate = await importConfigCandidate(absolutePath);
-    return loadConfig(candidate);
+    return await importConfigCandidate(absolutePath);
   } catch (error) {
     options.onWarning?.(
       `Failed to load config at ${configPath}: ${error instanceof Error ? error.message : String(error)}`,

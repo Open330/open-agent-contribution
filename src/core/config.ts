@@ -88,7 +88,7 @@ export const ExecutionSchema = z
     concurrency: z.number().int().positive().default(2),
     taskTimeout: z.number().int().positive().default(300),
     maxRetries: z.number().int().min(0).default(2),
-    mode: z.enum(["new-pr", "update-pr", "direct-commit"]).default("new-pr"),
+    mode: z.enum(["new-pr", "update-pr", "direct-commit", "branch-only"]).default("new-pr"),
     branchPattern: z.string().min(1).default("oac/{date}/{task}"),
     validation: ValidationSchema,
     pr: PrSchema,

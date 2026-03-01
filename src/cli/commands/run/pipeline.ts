@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 
+import { select } from "@inquirer/prompts";
 import type { OacConfig } from "../../../core/index.js";
 import { cloneRepo, resolveRepo } from "../../../repo/index.js";
 import { checkGitHubScopes, ensureGitHubAuth } from "../../github-auth.js";
@@ -11,6 +12,7 @@ import {
   resolveProviderId,
   resolveRepoInput,
 } from "../../helpers.js";
+import { loadCliPreferences } from "../../preferences.js";
 import { resolveContextAck } from "./context-policy.js";
 import { runEpicPipeline, tryLoadOrAnalyzeEpics } from "./epic.js";
 import { runRetryPipeline } from "./retry.js";
@@ -47,9 +49,10 @@ export async function runPipeline(
   };
 
   const config = await loadOptionalConfig(globalOptions.config, globalOptions.verbose, ui);
+  const preferences = await loadCliPreferences(process.cwd());
   const providerId = resolveProviderId(options.provider, config);
   const totalBudget = resolveBudget(options.tokens, config);
-  const mode = resolveMode(options.mode, config);
+  const mode = await resolveMode(options.mode, config, preferences.effective, ctx.suppressOutput);
   const concurrency = resolveConcurrency(options.concurrency, config);
   const timeoutSeconds = resolveTimeout(options.timeout, config);
   const ghToken = ensureGitHubAuth();
@@ -203,9 +206,66 @@ export function validateRunOptions(options: RunCommandOptions): void {
   }
 }
 
-function resolveMode(modeOption: string | undefined, config: OacConfig | null): RunMode {
-  const candidate = (modeOption ?? config?.execution.mode ?? "new-pr").trim();
-  if (candidate === "new-pr" || candidate === "update-pr" || candidate === "direct-commit") {
+async function resolveMode(
+  modeOption: string | undefined,
+  config: OacConfig | null,
+  preferences: { defaultRunMode?: string; promptForRunMode?: boolean },
+  suppressOutput: boolean,
+): Promise<RunMode> {
+  const fromFlag = parseRunMode(modeOption);
+  if (fromFlag) {
+    return fromFlag;
+  }
+
+  const fromConfig = parseRunMode(config?.execution.mode);
+  if (fromConfig) {
+    return fromConfig;
+  }
+
+  const fromPreference = parseRunMode(preferences.defaultRunMode);
+  if (fromPreference) {
+    return fromPreference;
+  }
+
+  const shouldPrompt =
+    !suppressOutput && process.stdin.isTTY === true && process.stdout.isTTY === true;
+  if (shouldPrompt && (preferences.promptForRunMode ?? true)) {
+    return await select<RunMode>({
+      message: "How should this run complete?",
+      default: "new-pr",
+      choices: [
+        {
+          name: "Create PR (recommended)",
+          value: "new-pr",
+          description: "Commit to branch and open pull request",
+        },
+        {
+          name: "Direct commit",
+          value: "direct-commit",
+          description: "Commit and push straight to base branch",
+        },
+        {
+          name: "Branch only",
+          value: "branch-only",
+          description: "Push a branch but do not create a PR",
+        },
+      ],
+    });
+  }
+
+  return "new-pr";
+}
+
+function parseRunMode(value: string | undefined): RunMode | null {
+  if (!value) return null;
+
+  const candidate = value.trim();
+  if (
+    candidate === "new-pr" ||
+    candidate === "update-pr" ||
+    candidate === "direct-commit" ||
+    candidate === "branch-only"
+  ) {
     return candidate;
   }
 

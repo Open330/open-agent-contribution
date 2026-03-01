@@ -22,7 +22,7 @@ export function createRunCommand(): Command {
     .option("--provider <id>", "Agent provider id")
     .option("--concurrency <number>", "Maximum parallel task executions", parseInteger)
     .option("--dry-run", "Show plan without executing tasks", false)
-    .option("--mode <mode>", "Execution mode: new-pr|update-pr|direct-commit")
+    .option("--mode <mode>", "Execution mode: new-pr|update-pr|direct-commit|branch-only")
     .option("--max-tasks <number>", "Maximum number of discovered tasks to consider", parseInteger)
     .option("--timeout <seconds>", "Per-task timeout in seconds", parseInteger)
     .option("--source <source>", "Filter tasks by source: lint, todo, github-issue, test-gap")

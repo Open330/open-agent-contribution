@@ -31,7 +31,7 @@ export interface SandboxInfo {
   cleanup: () => Promise<void>;
 }
 
-export type RunMode = "new-pr" | "update-pr" | "direct-commit";
+export type RunMode = "new-pr" | "update-pr" | "direct-commit" | "branch-only";
 export type SupportedScanner = "lint" | "todo" | "github-issues" | "test-gap";
 export type CompletionStatus = "success" | "partial" | "failed";
 

@@ -29,8 +29,10 @@
 You are an AI agent working on Open Agent Contribution (OAC), a CLI tool that
 uses spare AI agent tokens to automatically scan repos, discover tasks, and
 submit pull requests via Claude Code or Codex.
-Clone https://github.com/Open330/open-agent-contribution and help improve
-scanners, execution pipelines, or add new agent provider adapters.
+For normal usage, install with `npm install -g @open330/oac` or run via
+`npx @open330/oac`.
+Clone https://github.com/Open330/open-agent-contribution only when you want to
+contribute to OAC itself (scanners, execution pipelines, provider adapters).
 ```
 
 ## The Problem
@@ -123,6 +125,9 @@ pnpm install
 pnpm build
 ```
 
+Most users should install from npm (`npm i -g`) or run one-off with `npx`.
+Clone-from-source is for contributing to OAC itself.
+
 ### Setup
 
 ```bash
@@ -146,9 +151,11 @@ oac init --minimal --repo owner/repo
 ? Select your AI providers: › Claude Code, Codex CLI
 ? Monthly token budget for OAC: › 100000
 ? Add your first repo (owner/repo): › facebook/react
+? Default run completion strategy: › Create PR automatically (recommended)
 
 ✔ Config written to oac.config.ts
 ✔ Created .oac/ tracking directory
+✔ Preferences saved
 Ready! Run 'oac doctor' to verify or 'oac run' to start.
 ```
 
@@ -204,7 +211,7 @@ oac run \
   --tokens 50000 \          # Token budget (or "unlimited")
   --provider claude-code \  # AI agent to use (claude-code or codex)
   --concurrency 2 \         # Parallel agents (default: 2)
-  --mode new-pr \           # Create PRs (or: direct-commit)
+  --mode new-pr \           # new-pr|update-pr|direct-commit|branch-only
   --dry-run \               # Preview without executing (with colored diff)
   --quiet \                 # Suppress spinner/progress output (for CI)
   --retry-failed            # Re-run only previously failed tasks
@@ -261,7 +268,7 @@ export default defineConfig({
   execution: {
     provider: "claude-code",  // or "codex"
     concurrency: 2,
-    mode: "new-pr",
+    mode: "new-pr",           // new-pr | update-pr | direct-commit | branch-only
     taskTimeout: 300,
     tokenBudget: 100_000,     // or "unlimited"
   },
@@ -283,6 +290,47 @@ export default defineConfig({
 ```
 
 > 📖 **Full reference**: See [docs/config-reference.md](docs/config-reference.md) for every option, type, default, and constraint — auto-generated from the Zod schema.
+
+### Run Modes
+
+| Mode | Behavior |
+|------|----------|
+| `new-pr` | Creates a feature branch, pushes, and opens a pull request (default) |
+| `update-pr` | Pushes to an existing PR branch and updates it |
+| `direct-commit` | Commits and pushes straight to the base branch |
+| `branch-only` | Pushes a feature branch but does **not** create a PR — useful when you want to review the branch before opening a PR yourself |
+
+### Layered Config Resolution
+
+OAC resolves configuration from three layers, merged with deep-override priority:
+
+```
+~/.config/oac/oac.config.ts   ← global defaults (applied first)
+./oac.config.ts                ← project-level config (overrides global)
+.oac/oac.config.ts             ← repo-scoped config (highest priority)
+```
+
+Each layer is optional. Values from higher-priority layers override lower ones; nested objects are deep-merged.
+
+### CLI Preferences
+
+Separate from the config file, OAC stores lightweight CLI preferences (default run mode, prompt behavior) in JSON:
+
+```
+~/.config/oac/preferences.json   ← global preferences
+.oac/preferences.json            ← repo-scoped preferences (overrides global)
+```
+
+These are created automatically by `oac init` when you choose a default run completion strategy. You can also edit them manually:
+
+```json
+{
+  "defaultRunMode": "new-pr",
+  "promptForRunMode": false
+}
+```
+
+When no `--mode` flag is passed and no config sets a mode, OAC checks preferences. If `promptForRunMode` is `true` (or no preference is set), an interactive prompt asks you to choose on each run.
 
 ---
 
@@ -640,7 +688,7 @@ export class MyAgentAdapter implements AgentProvider {
 We welcome contributions! OAC is designed to contribute to repos — and it can contribute to itself too.
 
 ```bash
-# Clone and setup
+# Clone and setup (for developing OAC itself)
 git clone https://github.com/Open330/open-agent-contribution.git
 cd open-agent-contribution
 pnpm install

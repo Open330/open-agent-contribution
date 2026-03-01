@@ -14,7 +14,7 @@ export type TaskSource = "lint" | "todo" | "test-gap" | "dead-code" | "github-is
 
 export type TaskComplexity = "trivial" | "simple" | "moderate" | "complex";
 
-export type ExecutionMode = "new-pr" | "update-pr" | "direct-commit";
+export type ExecutionMode = "new-pr" | "update-pr" | "direct-commit" | "branch-only";
 
 export interface Task {
   id: string;

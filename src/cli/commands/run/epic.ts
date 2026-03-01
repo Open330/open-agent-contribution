@@ -19,7 +19,7 @@ import {
 import { epicAsTask } from "../../../execution/index.js";
 import type { resolveRepo } from "../../../repo/index.js";
 import { createSpinner, formatInteger, truncate } from "../../helpers.js";
-import { createPullRequest } from "./pr.js";
+import { createPullRequest, pushBranchOnly } from "./pr.js";
 import { executeWithAgent, resolveAdapter } from "./task.js";
 import { writeTracking } from "./tracking.js";
 import type { ContextAck, PipelineContext, RunMode, TaskRunResult } from "./types.js";
@@ -136,7 +136,9 @@ async function executeEpicEntry(
   const { execution, sandbox } = result;
 
   let pr: TaskRunResult["pr"];
-  if (mode !== "direct-commit" && execution.success && sandbox) {
+  if (mode === "branch-only" && execution.success && sandbox) {
+    await pushBranchOnly({ sandbox, ghToken });
+  } else if ((mode === "new-pr" || mode === "update-pr") && execution.success && sandbox) {
     pr =
       (await createPullRequest({
         task,
