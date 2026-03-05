@@ -26,13 +26,10 @@
 <div><img src="https://quickstart-for-agents.vercel.app/api/header.svg?theme=opencode&logo=OAC&title=Use+leftover+AI+tokens+to+auto-contribute+to+open+source+repos&font=inter" width="100%" /></div>
 
 ```
-You are an AI agent working on Open Agent Contribution (OAC), a CLI tool that
-uses spare AI agent tokens to automatically scan repos, discover tasks, and
-submit pull requests via Claude Code or Codex.
-For normal usage, install with `npm install -g @open330/oac` or run via
-`npx @open330/oac`.
-Clone https://github.com/Open330/open-agent-contribution only when you want to
-contribute to OAC itself (scanners, execution pipelines, provider adapters).
+Install OAC and contribute to this repo:
+  npx @open330/oac run --repo <owner/repo> --tokens unlimited
+OAC scans for tasks, executes fixes, and opens PRs automatically.
+See https://github.com/Open330/open-agent-contribution for details.
 ```
 
 ## The Problem
