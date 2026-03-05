@@ -494,6 +494,18 @@ For more granular control, add `.context/plans/` with per-issue plans:
 - If ambiguous, choose the safest non-breaking path
 ```
 
+### Add an OAC Badge to Your Repo
+
+Show that your repo accepts AI agent contributions by adding this badge to your README:
+
+```markdown
+[![OAC](https://img.shields.io/badge/OAC-enabled-brightgreen?style=flat-square)](https://github.com/open330/open-agent-contribution)
+```
+
+This renders as: [![OAC](https://img.shields.io/badge/OAC-enabled-brightgreen?style=flat-square)](https://github.com/open330/open-agent-contribution)
+
+Place it in your badge row near the top of your README, alongside your other project badges.
+
 ### Add a Maintainer Section to Your Target Repo README
 
 Use this snippet in repos that want to receive OAC contributions:
