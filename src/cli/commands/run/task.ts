@@ -420,11 +420,20 @@ export async function executeWithAgent(input: {
     cleanup: sandbox.cleanup,
   };
 
+  // Track tokens independently so they survive even if the agent throws
+  let observedTokens = 0;
+  const wrappedOnEvent = (event: import("../../../execution/index.js").AgentEvent) => {
+    if (event.type === "tokens") {
+      observedTokens = Math.max(observedTokens, event.cumulativeTokens);
+    }
+    input.onEvent?.(event);
+  };
+
   try {
     const result = await workerExecuteTask(input.adapter, input.task, sandbox, eventBus, {
       tokenBudget: input.estimate.totalEstimatedTokens,
       timeoutMs: input.timeoutSeconds * 1_000,
-      onEvent: input.onEvent,
+      onEvent: wrappedOnEvent,
     });
 
     // Agent may edit files without committing — stage and commit any changes.
@@ -438,11 +447,13 @@ export async function executeWithAgent(input: {
           ? result.filesChanged
           : [];
 
+    const totalTokensUsed = Math.max(result.totalTokensUsed, observedTokens);
+
     return {
       execution: {
         success: result.success || commitResult.hasChanges,
         exitCode: result.exitCode,
-        totalTokensUsed: result.totalTokensUsed,
+        totalTokensUsed,
         filesChanged,
         duration: result.duration > 0 ? result.duration / 1_000 : (Date.now() - startedAt) / 1_000,
         error: result.error,
@@ -457,7 +468,7 @@ export async function executeWithAgent(input: {
         execution: {
           success: true,
           exitCode: 0,
-          totalTokensUsed: 0,
+          totalTokensUsed: observedTokens,
           filesChanged: commitResult.filesChanged,
           duration: (Date.now() - startedAt) / 1_000,
         },
@@ -470,7 +481,7 @@ export async function executeWithAgent(input: {
       execution: {
         success: false,
         exitCode: 1,
-        totalTokensUsed: 0,
+        totalTokensUsed: observedTokens,
         filesChanged: [],
         duration: (Date.now() - startedAt) / 1_000,
         error: message,

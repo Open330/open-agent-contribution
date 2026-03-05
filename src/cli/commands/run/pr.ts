@@ -38,6 +38,23 @@ export async function createPullRequest(input: {
       }
     }
 
+    // Pre-PR guard for non-issue tasks (e.g. TODO): skip if an open OAC PR
+    // with the same title already exists
+    if (!input.task.linkedIssue && input.ghToken) {
+      const prTitle = `${OAC_PR_TITLE_PREFIX} ${input.task.title}`;
+      const duplicate = await findExistingOacPRByTitle(
+        input.repoFullName,
+        prTitle,
+        input.ghToken,
+      );
+      if (duplicate) {
+        console.warn(
+          `[oac] Skipping PR: existing OAC PR #${duplicate} already has title "${prTitle}"`,
+        );
+        return undefined;
+      }
+    }
+
     const pushed = await pushBranchFromSandbox(input.sandbox, ghEnv);
     if (!pushed) {
       return undefined;
@@ -256,6 +273,52 @@ async function findExistingOacPR(
     return undefined;
   } catch {
     // Guard failure should not block PR creation.
+    return undefined;
+  }
+}
+
+/**
+ * Pre-PR guard for non-issue tasks: checks for an existing open OAC pull
+ * request with the exact same title. Returns the PR number if found.
+ */
+async function findExistingOacPRByTitle(
+  repoFullName: string,
+  prTitle: string,
+  token: string,
+): Promise<number | undefined> {
+  const url = `${GITHUB_API_BASE_URL}/repos/${repoFullName}/pulls?state=open&per_page=100&sort=updated&direction=desc`;
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github.v3+json",
+      },
+      signal: AbortSignal.timeout(15_000),
+    });
+
+    if (!response.ok) {
+      return undefined;
+    }
+
+    const pulls: unknown = await response.json();
+    if (!Array.isArray(pulls)) {
+      return undefined;
+    }
+
+    for (const pr of pulls) {
+      if (!pr || typeof pr !== "object") continue;
+
+      const record = pr as Record<string, unknown>;
+      const title = typeof record.title === "string" ? record.title : "";
+      if (title === prTitle) {
+        return typeof record.number === "number" ? record.number : undefined;
+      }
+    }
+
+    return undefined;
+  } catch {
     return undefined;
   }
 }
