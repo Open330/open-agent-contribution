@@ -26,10 +26,8 @@
 <div><img src="https://quickstart-for-agents.vercel.app/api/header.svg?theme=opencode&logo=OAC&title=Use+leftover+AI+tokens+to+auto-contribute+to+open+source+repos&font=inter" width="100%" /></div>
 
 ```
-Hey, I want to use OAC to auto-contribute to open source repos.
-First install it: npm install -g @open330/oac
-Then ask me which repo to target and the mode (pr, direct-commit, or branch-only).
-After that, run: oac run --repo <target> --mode <type> --tokens unlimited
+Hey, install OAC and run it. It will walk me through the rest.
+npm install -g @open330/oac && oac run
 ```
 
 ## The Problem
