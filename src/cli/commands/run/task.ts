@@ -4,7 +4,7 @@ import { execa } from "execa";
 import PQueue from "p-queue";
 import { buildExecutionPlan } from "../../../budget/index.js";
 import type { OacConfig, Task, TokenEstimate } from "../../../core/index.js";
-import { createEventBus } from "../../../core/index.js";
+import { createEventBus, filterRealChanges } from "../../../core/index.js";
 import { type ScannerName, buildScanners, rankTasks } from "../../../discovery/index.js";
 import {
   type AgentProvider,
@@ -277,6 +277,17 @@ export async function executePlan(
             });
           }
 
+          // Quality gate: skip PR if no real files were changed
+          const realFiles = filterRealChanges(result.execution.filesChanged);
+          if (realFiles.length === 0) {
+            if (!ctx.suppressOutput) {
+              console.warn(
+                `[oac] Skipping PR for "${result.task.title}": no real file changes.`,
+              );
+            }
+            return result;
+          }
+
           const pr = await createPullRequest({
             task: result.task,
             execution: result.execution,
@@ -374,7 +385,6 @@ export function selectScannersFromConfig(config: OacConfig | null, hasGitHubAuth
 function sourceToScannerName(source: string): ScannerName[] | undefined {
   const map: Record<string, ScannerName> = {
     lint: "lint",
-    todo: "todo",
     "test-gap": "test-gap",
     "github-issue": "github-issues",
   };
@@ -451,7 +461,8 @@ export async function executeWithAgent(input: {
 
     return {
       execution: {
-        success: result.success || commitResult.hasChanges,
+        // Only count as success if there are real (non-metadata) file changes
+        success: result.success && commitResult.filesChanged.length > 0,
         exitCode: result.exitCode,
         totalTokensUsed,
         filesChanged,
@@ -461,9 +472,9 @@ export async function executeWithAgent(input: {
       sandbox: sandboxInfo,
     };
   } catch (error) {
-    // Even on error, check if agent left uncommitted changes
+    // Even on error, check if agent left real uncommitted changes
     const commitResult = await commitSandboxChanges(sandbox.path, input.task, input.baseBranch);
-    if (commitResult.hasChanges) {
+    if (commitResult.filesChanged.length > 0) {
       return {
         execution: {
           success: true,
@@ -514,7 +525,9 @@ async function commitSandboxChanges(
     const diffResult = await execa("git", ["diff", "--name-only", `origin/${baseBranch}`, "HEAD"], {
       cwd: sandboxPath,
     });
-    const changedFiles = diffResult.stdout.trim().split("\n").filter(Boolean);
+    const allChangedFiles = diffResult.stdout.trim().split("\n").filter(Boolean);
+    // Exclude .oac/ metadata files — only count real code changes
+    const changedFiles = filterRealChanges(allChangedFiles);
 
     return { hasChanges: changedFiles.length > 0, filesChanged: changedFiles };
   } catch {

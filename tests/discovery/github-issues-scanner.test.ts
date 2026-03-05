@@ -176,7 +176,7 @@ describe("GitHubIssuesScanner", () => {
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "https://api.github.com/repos/octocat/hello-world/issues?state=open&per_page=30&sort=updated",
+      "https://api.github.com/repos/octocat/hello-world/issues?state=open&per_page=50&sort=updated",
       expect.objectContaining({
         method: "GET",
         headers: {
@@ -253,7 +253,7 @@ describe("GitHubIssuesScanner", () => {
 
   it("truncates long title and description values", async () => {
     const longTitle = "T".repeat(200);
-    const longBody = "B".repeat(1_200);
+    const longBody = "B".repeat(5_000);
     mockFetchJson([makeIssue({ title: longTitle, body: longBody })]);
     const scanner = new GitHubIssuesScanner();
 
@@ -262,7 +262,7 @@ describe("GitHubIssuesScanner", () => {
     expect(tasks).toHaveLength(1);
     expect(tasks[0]?.title.length).toBe(120);
     expect(tasks[0]?.title.endsWith("…")).toBe(true);
-    expect(tasks[0]?.description.length).toBe(500);
+    expect(tasks[0]?.description.length).toBe(4000);
     expect(tasks[0]?.description.endsWith("…")).toBe(true);
   });
 
@@ -289,7 +289,7 @@ describe("GitHubIssuesScanner", () => {
       url: "https://github.com/octocat/hello-world/issues/77",
       author: "maintainer",
       createdAt: "2026-01-01T00:00:00Z",
-      estimatedTokens: 4_000,
+      estimatedTokens: 12_000,
     });
   });
 
@@ -308,7 +308,7 @@ describe("GitHubIssuesScanner", () => {
 
     expect(tasks).toHaveLength(1);
     expect(fetchMock).toHaveBeenCalledWith(
-      "https://api.github.com/repos/my-org/my-repo/issues?state=open&per_page=30&sort=updated",
+      "https://api.github.com/repos/my-org/my-repo/issues?state=open&per_page=50&sort=updated",
       expect.objectContaining({
         headers: {
           Authorization: "Bearer token",

@@ -5,17 +5,17 @@ import { truncate } from "../../core/utils.js";
 import type { ScanOptions, Scanner } from "../types.js";
 
 const GITHUB_API_BASE_URL = "https://api.github.com";
-const ISSUES_PER_PAGE = 30;
+const ISSUES_PER_PAGE = 50;
 const OAC_PR_PAGE_SIZE = 100;
 const OAC_PR_TITLE_PREFIX = "[OAC]";
 const TITLE_LIMIT = 120;
-const DESCRIPTION_LIMIT = 500;
+const DESCRIPTION_LIMIT = 4000;
 
 const ESTIMATED_TOKENS_BY_COMPLEXITY: Record<TaskComplexity, number> = {
-  trivial: 1_500,
-  simple: 4_000,
-  moderate: 9_000,
-  complex: 18_000,
+  trivial: 4_000,
+  simple: 12_000,
+  moderate: 25_000,
+  complex: 50_000,
 };
 
 interface GitHubIssueUser {
@@ -76,6 +76,7 @@ export class GitHubIssuesScanner implements Scanner {
       .filter((issue) => issue.pull_request === undefined)
       .filter((issue) => !claimedIssueNumbers.has(asNumber(issue.number) ?? -1))
       .filter((issue) => matchesLabelFilter(issue, issueLabels))
+      .filter((issue) => !isSpamIssue(issue))
       .map((issue) => mapIssueToTask(issue, discoveredAt))
       .filter((task): task is Task => task !== undefined);
 
@@ -345,6 +346,48 @@ function matchesLabelFilter(issue: GitHubIssueResponse, allowedLabels: string[])
   const normalized = new Set(allowedLabels.map((l) => l.toLowerCase()));
   const issueLabels = normalizeLabels(issue.labels);
   return issueLabels.some((label) => normalized.has(label.toLowerCase()));
+}
+
+/**
+ * Heuristic spam filter for GitHub issues.
+ * Returns true if the issue is likely spam or gibberish.
+ */
+function isSpamIssue(issue: GitHubIssueResponse): boolean {
+  const title = asString(issue.title)?.trim() ?? "";
+  const body = asString(issue.body)?.trim() ?? "";
+
+  // Rule 1: Title too short with no meaningful body
+  if (title.length < 10 && body.length < 30) {
+    return true;
+  }
+
+  // Rule 2: Title is mostly non-ASCII or special characters
+  const asciiLetters = title.replace(/[^a-zA-Z]/g, "");
+  if (title.length > 0 && asciiLetters.length / title.length < 0.3) {
+    return true;
+  }
+
+  // Rule 3: Known spam patterns — single-word titles without substantial body
+  const spamPatterns = [
+    /^\s*\S+\s*$/, // Single word titles
+    /^[A-Z][a-z]{1,10}$/, // Single capitalized word like "Google", "Samsung"
+    /\[>?\|<?]/, // Bracket spam like "[>|<]"
+    /^(test|testing|hello|hi|hey|asdf|aaa|xxx)\s*$/i,
+  ];
+  if (spamPatterns.some((p) => p.test(title)) && body.length < 50) {
+    return true;
+  }
+
+  // Rule 4: Body is just an image/link with no text
+  const bodyWithoutUrls = body
+    .replace(/!?\[.*?\]\(.*?\)/g, "")
+    .replace(/https?:\/\/\S+/g, "")
+    .trim();
+  if (body.length > 0 && bodyWithoutUrls.length < 20 && title.length < 20) {
+    return true;
+  }
+
+  return false;
 }
 
 function mapIssueToTask(issue: GitHubIssueResponse, discoveredAt: string): Task | undefined {

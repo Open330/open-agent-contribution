@@ -25,7 +25,7 @@ export function createRunCommand(): Command {
     .option("--mode <mode>", "Execution mode: new-pr|update-pr|direct-commit|branch-only")
     .option("--max-tasks <number>", "Maximum number of discovered tasks to consider", parseInteger)
     .option("--timeout <seconds>", "Per-task timeout in seconds", parseInteger)
-    .option("--source <source>", "Filter tasks by source: lint, todo, github-issue, test-gap")
+    .option("--source <source>", "Filter tasks by source: lint, github-issue, test-gap")
     .option("--retry-failed", "Re-run only failed tasks from the most recent run", false)
     .action(async (options: RunCommandOptions, cmd) => {
       const globalOptions = getGlobalOptions(cmd);

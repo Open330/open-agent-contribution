@@ -82,7 +82,14 @@ function buildTaskPrompt(task: Task): string {
       "",
       `GitHub Issue #${task.linkedIssue.number}: ${task.linkedIssue.url}`,
       task.linkedIssue.labels.length > 0 ? `Labels: ${task.linkedIssue.labels.join(", ")}` : "",
-      "Resolve this issue completely. Read the issue description carefully and implement the fix.",
+      "",
+      "You MUST resolve this GitHub issue with actual code changes:",
+      "1. Read the issue description carefully to understand the problem or feature request.",
+      "2. Search the codebase to find the relevant files and understand the existing code.",
+      "3. Implement the actual fix or feature in code - do NOT just add TODO/FIXME comments.",
+      "4. If the issue describes a bug, reproduce it mentally, find the root cause, and fix it.",
+      "5. If the issue requests a feature, implement it fully.",
+      "6. Run existing tests to ensure nothing breaks. Add tests if appropriate.",
     );
   }
 
@@ -90,23 +97,31 @@ function buildTaskPrompt(task: Task): string {
     "",
     "Description:",
     task.description,
-    "",
-    "Target files:",
-    fileList,
   );
 
-  if (task.source === "todo") {
+  if (task.targetFiles.length > 0) {
     lines.push(
       "",
-      "CRITICAL: You must IMPLEMENT the actual functionality described by each TODO/FIXME/HACK/XXX comment.",
-      "Do NOT just remove, rename, or reword the comments. Write real, working code that fulfills what the TODO asks for.",
-      "Only remove the TODO comment after you have fully implemented the described functionality.",
+      "Target files:",
+      fileList,
+    );
+  } else {
+    lines.push(
+      "",
+      "No target files specified. You MUST search the codebase to find the relevant files.",
+      "Use grep, find, or read the project structure to identify which files need changes.",
+      "Look at the description and issue details to determine where changes are needed.",
     );
   }
 
   lines.push(
     "",
-    "Apply minimal, safe changes and ensure the repository remains buildable.",
+    "IMPORTANT RULES:",
+    "- You MUST make real, functional code changes. Do NOT just add TODO comments, FIXME comments, or code comments describing what should be done.",
+    "- Actually implement the fix or improvement in working code.",
+    "- If you are fixing a bug, write the actual fix. If you are adding a feature, write the actual implementation.",
+    "- Ensure the repository remains buildable after your changes.",
+    "- Run tests if available to verify your changes work.",
   );
 
   if (contextAck) {
@@ -269,24 +284,16 @@ export function buildEpicPrompt(epic: Epic): string {
     );
   }
 
-  const hasTodoSubtasks = epic.subtasks.some((t) => t.source === "todo");
-
   lines.push(
     "",
     "Instructions:",
     "- Apply all changes in a single coherent commit.",
     "- Ensure the repository remains buildable after changes.",
     "- Address all subtasks listed above.",
+    "- Make REAL code changes. Do NOT just add TODO/FIXME comments or code comments describing what should be done.",
+    "- Actually implement the fixes and improvements in working code.",
+    "- Run tests to verify your changes work correctly.",
   );
-
-  if (hasTodoSubtasks) {
-    lines.push(
-      "",
-      "CRITICAL: For TODO/FIXME/HACK/XXX items, you must IMPLEMENT the actual functionality described by each comment.",
-      "Do NOT just remove, rename, or reword the comments. Write real, working code that fulfills what each TODO asks for.",
-      "Only remove a TODO comment after you have fully implemented the described functionality.",
-    );
-  }
 
   return lines.join("\n");
 }

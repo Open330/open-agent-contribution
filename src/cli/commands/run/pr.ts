@@ -18,6 +18,13 @@ export async function createPullRequest(input: {
     return undefined;
   }
 
+  // Guard: never create a PR with 0 real file changes
+  const realFiles = input.execution.filesChanged.filter((f) => !f.startsWith(".oac/"));
+  if (realFiles.length === 0) {
+    console.warn(`[oac] PR creation blocked: 0 real files changed for "${input.task.title}".`);
+    return undefined;
+  }
+
   const { branchName, sandboxPath } = input.sandbox;
 
   try {

@@ -137,11 +137,19 @@ export function buildContributionLog(input: {
 
 export function deriveTaskStatus(execution: ExecutionOutcome): CompletionStatus {
   if (execution.success) {
+    // Double-check: if all changed files are .oac/ metadata, it's not really a success
+    const realFiles = execution.filesChanged.filter((f) => !f.startsWith(".oac/"));
+    if (realFiles.length === 0 && execution.filesChanged.length > 0) {
+      return "failed";
+    }
     return "success";
   }
 
   if (execution.filesChanged.length > 0) {
-    return "partial";
+    const realFiles = execution.filesChanged.filter((f) => !f.startsWith(".oac/"));
+    if (realFiles.length > 0) {
+      return "partial";
+    }
   }
 
   return "failed";
