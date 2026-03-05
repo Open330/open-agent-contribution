@@ -223,7 +223,7 @@ export async function executePlan(
       (entry) =>
         taskQueue.add(async (): Promise<TaskRunResult> => {
           const taskForExecution = withContextAck(entry.task, ctx.contextAck);
-          const onEvent = createVerboseEventLogger(ctx, taskForExecution.title);
+          const onEvent = createVerboseEventLogger(ctx, taskForExecution.title, executionSpinner);
           const result = await executeWithAgent({
             task: taskForExecution,
             estimate: entry.estimate,
@@ -617,10 +617,14 @@ export function renderTaskResults(ui: ChalkInstance, taskResults: TaskRunResult[
  * Creates a verbose event logger that prints real-time agent activity to the
  * console. Returns undefined when verbose mode is off so callers can pass it
  * directly to `executeWithAgent({ onEvent })`.
+ *
+ * When an `activeSpinner` is provided, the logger clears the spinner line
+ * before printing and re-renders it afterwards so the two don't collide.
  */
 export function createVerboseEventLogger(
   ctx: PipelineContext,
   taskTitle: string,
+  activeSpinner?: import("ora").Ora | null,
 ): ((event: import("../../../execution/index.js").AgentEvent) => void) | undefined {
   if (ctx.suppressOutput || !ctx.globalOptions.verbose) {
     return undefined;
@@ -629,32 +633,38 @@ export function createVerboseEventLogger(
   const prefix = ctx.ui.dim(`[${truncate(taskTitle, 30)}]`);
   let lastTokenLog = 0;
 
+  const log = (message: string) => {
+    if (activeSpinner) {
+      activeSpinner.clear();
+    }
+    console.log(message);
+    if (activeSpinner) {
+      activeSpinner.render();
+    }
+  };
+
   return (event) => {
     switch (event.type) {
       case "tool_use":
-        console.log(`  ${prefix} ${ctx.ui.cyan("tool")} ${event.tool}`);
+        log(`  ${prefix} ${ctx.ui.cyan("tool")} ${event.tool}`);
         break;
       case "file_edit":
-        console.log(
-          `  ${prefix} ${ctx.ui.yellow("file")} ${event.action} ${event.path}`,
-        );
+        log(`  ${prefix} ${ctx.ui.yellow("file")} ${event.action} ${event.path}`);
         break;
       case "tokens": {
         const now = Date.now();
         // Throttle token logs to at most once per 5 seconds
         if (now - lastTokenLog >= 5_000) {
           lastTokenLog = now;
-          console.log(
-            `  ${prefix} ${ctx.ui.dim("tokens")} ${formatInteger(event.cumulativeTokens)}`,
-          );
+          log(`  ${prefix} ${ctx.ui.dim("tokens")} ${formatInteger(event.cumulativeTokens)}`);
         }
         break;
       }
       case "error":
         if (event.recoverable) {
-          console.log(`  ${prefix} ${ctx.ui.yellow("warn")} ${event.message}`);
+          log(`  ${prefix} ${ctx.ui.yellow("warn")} ${event.message}`);
         } else {
-          console.log(`  ${prefix} ${ctx.ui.red("error")} ${event.message}`);
+          log(`  ${prefix} ${ctx.ui.red("error")} ${event.message}`);
         }
         break;
       // "output" events are too noisy — skip in verbose mode

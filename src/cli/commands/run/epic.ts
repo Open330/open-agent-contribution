@@ -122,13 +122,14 @@ async function executeEpicEntry(
     ghToken?: string;
     contextAck?: ContextAck;
     ctx?: PipelineContext;
+    activeSpinner?: import("ora").Ora | null;
   },
 ): Promise<TaskRunResult> {
-  const { adapter, resolvedRepo, providerId, timeoutSeconds, mode, ghToken, contextAck, ctx } = params;
+  const { adapter, resolvedRepo, providerId, timeoutSeconds, mode, ghToken, contextAck, ctx, activeSpinner } = params;
   const task = withContextAck(epicAsTask(entry.epic), contextAck);
   const estimate = makeStubEstimate(task.id, providerId, entry.estimatedTokens);
 
-  const onEvent = ctx ? createVerboseEventLogger(ctx, entry.epic.title) : undefined;
+  const onEvent = ctx ? createVerboseEventLogger(ctx, entry.epic.title, activeSpinner) : undefined;
   const result = await executeWithAgent({
     task,
     estimate,
@@ -247,6 +248,7 @@ export async function runEpicPipeline(
             ghToken,
             contextAck: ctx.contextAck,
             ctx,
+            activeSpinner: executionSpinner,
           });
 
           epicCompletedCount += 1;

@@ -220,27 +220,69 @@ function parseFileEditFromLine(
   };
 }
 
-function parseFileEditEvent(line: string): Extract<AgentEvent, { type: "file_edit" }> | undefined {
-  const payload = parseJsonPayload(line);
-  return payload ? parseFileEditFromPayload(payload) : parseFileEditFromLine(line);
-}
-
-function parseToolUseEvent(line: string): Extract<AgentEvent, { type: "tool_use" }> | undefined {
+function parseFileEditEvents(line: string): Extract<AgentEvent, { type: "file_edit" }>[] {
   const payload = parseJsonPayload(line);
   if (!payload) {
-    return undefined;
+    const single = parseFileEditFromLine(line);
+    return single ? [single] : [];
   }
 
+  // Direct file_edit event
+  const direct = parseFileEditFromPayload(payload);
+  if (direct) {
+    return [direct];
+  }
+
+  // Claude Code stream-json: tool_use with Write/Edit is inside message.content[]
+  const message = isRecord(payload.message) ? payload.message : undefined;
+  const content = Array.isArray(message?.content) ? (message.content as unknown[]) : [];
+  const events: Extract<AgentEvent, { type: "file_edit" }>[] = [];
+
+  for (const item of content) {
+    if (!isRecord(item) || item.type !== "tool_use") continue;
+    const toolName = readString(item.name);
+    const input = isRecord(item.input) ? item.input : undefined;
+    const filePath = readString(input?.file_path ?? input?.path ?? input?.filePath);
+    if (!toolName || !filePath) continue;
+
+    if (toolName === "Write" || toolName === "write_file" || toolName === "create_file") {
+      events.push({ type: "file_edit", action: "create", path: filePath });
+    } else if (toolName === "Edit" || toolName === "edit_file" || toolName === "replace_file") {
+      events.push({ type: "file_edit", action: "modify", path: filePath });
+    }
+  }
+
+  return events;
+}
+
+function parseToolUseEvent(line: string): Extract<AgentEvent, { type: "tool_use" }>[] {
+  const payload = parseJsonPayload(line);
+  if (!payload) {
+    return [];
+  }
+
+  // Direct tool_use event (top-level)
   const tool = readString(payload.tool ?? payload.tool_name ?? payload.name);
-  if (!tool) {
-    return undefined;
+  if (tool) {
+    return [{ type: "tool_use", tool, input: payload.input }];
   }
 
-  return {
-    type: "tool_use",
-    tool,
-    input: payload.input,
-  };
+  // Claude Code stream-json: tool_use is nested in message.content[]
+  const message = isRecord(payload.message) ? payload.message : undefined;
+  const content = Array.isArray(message?.content) ? (message.content as unknown[]) : [];
+  const events: Extract<AgentEvent, { type: "tool_use" }>[] = [];
+
+  for (const item of content) {
+    if (!isRecord(item)) continue;
+    if (item.type === "tool_use") {
+      const name = readString(item.name);
+      if (name) {
+        events.push({ type: "tool_use", tool: name, input: item.input });
+      }
+    }
+  }
+
+  return events;
 }
 
 function parseErrorEvent(
@@ -443,14 +485,12 @@ export class ClaudeCodeAdapter implements AgentProvider {
           eventQueue.push(tokenEvent);
         }
 
-        const fileEvent = parseFileEditEvent(line);
-        if (fileEvent) {
+        for (const fileEvent of parseFileEditEvents(line)) {
           filesChanged.add(fileEvent.path);
           eventQueue.push(fileEvent);
         }
 
-        const toolEvent = parseToolUseEvent(line);
-        if (toolEvent) {
+        for (const toolEvent of parseToolUseEvent(line)) {
           eventQueue.push(toolEvent);
         }
 
