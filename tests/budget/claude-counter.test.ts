@@ -97,4 +97,56 @@ describe("ClaudeTokenCounter.reset", () => {
     counter.reset();
     expect(tiktokenMocks.free).not.toHaveBeenCalled();
   });
+
+  it("consecutive resets only free the encoder once", async () => {
+    const { ClaudeTokenCounter } = await loadClaudeCounterModule();
+    const counter = new ClaudeTokenCounter();
+
+    counter.countTokens("init");
+    counter.reset();
+    counter.reset();
+
+    expect(tiktokenMocks.free).toHaveBeenCalledTimes(1);
+  });
+
+  it("reset on one instance clears the shared module-level encoder for all instances", async () => {
+    const { ClaudeTokenCounter } = await loadClaudeCounterModule();
+    const a = new ClaudeTokenCounter();
+    const b = new ClaudeTokenCounter();
+
+    a.countTokens("setup");
+    expect(tiktokenMocks.getEncoding).toHaveBeenCalledTimes(1);
+
+    b.reset();
+    a.countTokens("after reset by b");
+    expect(tiktokenMocks.getEncoding).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("ClaudeTokenCounter.countTokens – edge cases", () => {
+  it("handles whitespace-only input", async () => {
+    const { ClaudeTokenCounter } = await loadClaudeCounterModule();
+    const counter = new ClaudeTokenCounter();
+
+    expect(counter.countTokens("   ")).toBe(3);
+    expect(tiktokenMocks.encode).toHaveBeenCalledWith("   ");
+  });
+
+  it("handles multi-line input", async () => {
+    const { ClaudeTokenCounter } = await loadClaudeCounterModule();
+    const counter = new ClaudeTokenCounter();
+    const multiLine = "line1\nline2\nline3";
+
+    expect(counter.countTokens(multiLine)).toBe(multiLine.length);
+    expect(tiktokenMocks.encode).toHaveBeenCalledWith(multiLine);
+  });
+
+  it("handles unicode input", async () => {
+    const { ClaudeTokenCounter } = await loadClaudeCounterModule();
+    const counter = new ClaudeTokenCounter();
+    const unicode = "안녕하세요";
+
+    expect(counter.countTokens(unicode)).toBe(unicode.length);
+    expect(tiktokenMocks.encode).toHaveBeenCalledWith(unicode);
+  });
 });
