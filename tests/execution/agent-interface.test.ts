@@ -31,7 +31,7 @@ describe("agent.interface types", () => {
     const toolUseEvent: AgentEvent = {
       type: "tool_use",
       tool: "rg",
-      input: { pattern: "TODO" },
+      input: { pattern: "fixme" },
     };
     const errorEvent: AgentEvent = {
       type: "error",
