@@ -42,7 +42,8 @@ export async function discoverTasks(
   ghToken: string | undefined,
   resolvedRepo: Awaited<ReturnType<typeof resolveRepo>>,
 ) {
-  const scannerSelection = selectScannersFromConfig(config, Boolean(ghToken));
+  const forceScanner = options.source ? sourceToScannerName(options.source) : undefined;
+  const scannerSelection = selectScannersFromConfig(config, Boolean(ghToken), forceScanner);
   const minPriority = config?.discovery.minPriority ?? 20;
   const maxTasks = options.maxTasks ?? undefined;
 
@@ -358,9 +359,25 @@ export function printFinalSummary(
   }
 }
 
-export function selectScannersFromConfig(config: OacConfig | null, hasGitHubAuth: boolean) {
-  const { names, composite } = buildScanners(config, hasGitHubAuth);
+export function selectScannersFromConfig(config: OacConfig | null, hasGitHubAuth: boolean, forceEnable?: ScannerName[]) {
+  const { names, composite } = buildScanners(config, hasGitHubAuth, forceEnable);
   return { enabled: names, scanner: composite };
+}
+
+/**
+ * Maps a `--source` CLI value (e.g. "todo", "lint") to the corresponding
+ * scanner name array so that the scanner is force-enabled even when the
+ * config disables it.
+ */
+function sourceToScannerName(source: string): ScannerName[] | undefined {
+  const map: Record<string, ScannerName> = {
+    lint: "lint",
+    todo: "todo",
+    "test-gap": "test-gap",
+    "github-issue": "github-issues",
+  };
+  const name = map[source];
+  return name ? [name] : undefined;
 }
 
 function withContextAck(task: Task, contextAck: ContextAck | undefined): Task {

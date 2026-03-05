@@ -18,6 +18,7 @@ export type ScannerName = "lint" | "todo" | "test-gap" | "github-issues";
 export function buildScanners(
   config: OacConfig | null,
   hasGitHubAuth: boolean,
+  forceEnable?: ScannerName[],
 ): { names: ScannerName[]; instances: Scanner[]; composite: CompositeScanner } {
   const names: ScannerName[] = [];
 
@@ -32,6 +33,16 @@ export function buildScanners(
   }
   if (hasGitHubAuth) {
     names.push("github-issues");
+  }
+
+  // --source flag forces the corresponding scanner to be enabled even if
+  // the config explicitly disabled it.
+  if (forceEnable) {
+    for (const name of forceEnable) {
+      if (!names.includes(name)) {
+        names.push(name);
+      }
+    }
   }
 
   // If everything was explicitly disabled, fall back to defaults.
