@@ -14,6 +14,7 @@ export interface ExecuteTaskOptions {
   tokenBudget?: number;
   timeoutMs?: number;
   allowCommits?: boolean;
+  onEvent?: (event: AgentEvent) => void;
 }
 
 function readPositiveNumber(value: unknown): number | undefined {
@@ -197,6 +198,8 @@ export async function executeTask(
     timeoutMs,
   });
 
+  const onEvent = options.onEvent;
+
   const streamPromise = (async (): Promise<void> => {
     for await (const event of execution.events) {
       if (event.type === "tokens") {
@@ -206,6 +209,8 @@ export async function executeTask(
       if (event.type === "file_edit") {
         observedFiles.add(event.path);
       }
+
+      onEvent?.(event);
 
       eventBus.emit("execution:progress", {
         jobId: executionId,

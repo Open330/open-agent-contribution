@@ -223,6 +223,7 @@ export async function executePlan(
       (entry) =>
         taskQueue.add(async (): Promise<TaskRunResult> => {
           const taskForExecution = withContextAck(entry.task, ctx.contextAck);
+          const onEvent = createVerboseEventLogger(ctx, taskForExecution.title);
           const result = await executeWithAgent({
             task: taskForExecution,
             estimate: entry.estimate,
@@ -230,6 +231,7 @@ export async function executePlan(
             repoPath: resolvedRepo.localPath,
             baseBranch: resolvedRepo.meta.defaultBranch,
             timeoutSeconds,
+            onEvent,
           });
           const { execution, sandbox } = result;
 
@@ -401,6 +403,7 @@ export async function executeWithAgent(input: {
   repoPath: string;
   baseBranch: string;
   timeoutSeconds: number;
+  onEvent?: (event: import("../../../execution/index.js").AgentEvent) => void;
 }): Promise<{ execution: ExecutionOutcome; sandbox: SandboxInfo }> {
   const startedAt = Date.now();
   const taskSlug = input.task.id
@@ -421,6 +424,7 @@ export async function executeWithAgent(input: {
     const result = await workerExecuteTask(input.adapter, input.task, sandbox, eventBus, {
       tokenBudget: input.estimate.totalEstimatedTokens,
       timeoutMs: input.timeoutSeconds * 1_000,
+      onEvent: input.onEvent,
     });
 
     // Agent may edit files without committing — stage and commit any changes.
@@ -596,4 +600,53 @@ export function renderTaskResults(ui: ChalkInstance, taskResults: TaskRunResult[
       console.log(`    Error: ${result.execution.error}`);
     }
   }
+}
+
+/**
+ * Creates a verbose event logger that prints real-time agent activity to the
+ * console. Returns undefined when verbose mode is off so callers can pass it
+ * directly to `executeWithAgent({ onEvent })`.
+ */
+export function createVerboseEventLogger(
+  ctx: PipelineContext,
+  taskTitle: string,
+): ((event: import("../../../execution/index.js").AgentEvent) => void) | undefined {
+  if (ctx.suppressOutput || !ctx.globalOptions.verbose) {
+    return undefined;
+  }
+
+  const prefix = ctx.ui.dim(`[${truncate(taskTitle, 30)}]`);
+  let lastTokenLog = 0;
+
+  return (event) => {
+    switch (event.type) {
+      case "tool_use":
+        console.log(`  ${prefix} ${ctx.ui.cyan("tool")} ${event.tool}`);
+        break;
+      case "file_edit":
+        console.log(
+          `  ${prefix} ${ctx.ui.yellow("file")} ${event.action} ${event.path}`,
+        );
+        break;
+      case "tokens": {
+        const now = Date.now();
+        // Throttle token logs to at most once per 5 seconds
+        if (now - lastTokenLog >= 5_000) {
+          lastTokenLog = now;
+          console.log(
+            `  ${prefix} ${ctx.ui.dim("tokens")} ${formatInteger(event.cumulativeTokens)}`,
+          );
+        }
+        break;
+      }
+      case "error":
+        if (event.recoverable) {
+          console.log(`  ${prefix} ${ctx.ui.yellow("warn")} ${event.message}`);
+        } else {
+          console.log(`  ${prefix} ${ctx.ui.red("error")} ${event.message}`);
+        }
+        break;
+      // "output" events are too noisy — skip in verbose mode
+    }
+  };
 }

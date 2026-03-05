@@ -20,7 +20,7 @@ import { epicAsTask } from "../../../execution/index.js";
 import type { resolveRepo } from "../../../repo/index.js";
 import { createSpinner, formatInteger, truncate } from "../../helpers.js";
 import { createPullRequest, pushBranchOnly } from "./pr.js";
-import { executeWithAgent, resolveAdapter } from "./task.js";
+import { createVerboseEventLogger, executeWithAgent, resolveAdapter } from "./task.js";
 import { writeTracking } from "./tracking.js";
 import type { ContextAck, PipelineContext, RunMode, TaskRunResult } from "./types.js";
 import { formatBudgetDisplay, formatDuration } from "./types.js";
@@ -121,12 +121,14 @@ async function executeEpicEntry(
     mode: RunMode;
     ghToken?: string;
     contextAck?: ContextAck;
+    ctx?: PipelineContext;
   },
 ): Promise<TaskRunResult> {
-  const { adapter, resolvedRepo, providerId, timeoutSeconds, mode, ghToken, contextAck } = params;
+  const { adapter, resolvedRepo, providerId, timeoutSeconds, mode, ghToken, contextAck, ctx } = params;
   const task = withContextAck(epicAsTask(entry.epic), contextAck);
   const estimate = makeStubEstimate(task.id, providerId, entry.estimatedTokens);
 
+  const onEvent = ctx ? createVerboseEventLogger(ctx, entry.epic.title) : undefined;
   const result = await executeWithAgent({
     task,
     estimate,
@@ -134,6 +136,7 @@ async function executeEpicEntry(
     repoPath: resolvedRepo.localPath,
     baseBranch: resolvedRepo.meta.defaultBranch,
     timeoutSeconds,
+    onEvent,
   });
   const { execution, sandbox } = result;
 
@@ -243,6 +246,7 @@ export async function runEpicPipeline(
             mode,
             ghToken,
             contextAck: ctx.contextAck,
+            ctx,
           });
 
           epicCompletedCount += 1;
