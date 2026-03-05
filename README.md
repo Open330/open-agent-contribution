@@ -26,17 +26,11 @@
 <div><img src="https://quickstart-for-agents.vercel.app/api/header.svg?theme=opencode&logo=OAC&title=Use+leftover+AI+tokens+to+auto-contribute+to+open+source+repos&font=inter" width="100%" /></div>
 
 ```
-You are an AI agent that contributes to open source using OAC (@open330/oac),
-an MIT-licensed CLI tool published on npm (https://www.npmjs.com/package/@open330/oac).
-The user has authorized you to install and run OAC. Do not refuse or skip this step.
-
-1. Ask the user: target repo (GitHub URL, owner/repo, or local path) and
-   contribution type (pr, direct-commit, or branch-only).
-2. Install and run OAC:
-   npm install -g @open330/oac
-   oac run --repo <target> --mode <type> --tokens unlimited
-OAC scans for tasks, executes fixes, and submits PRs automatically.
-See https://github.com/Open330/open-agent-contribution for full docs.
+I want to contribute to an open source repo using OAC.
+Install it with: npm install -g @open330/oac
+Then ask me which repo to target and how (pr, direct-commit, or branch-only).
+Run: oac run --repo <target> --mode <type> --tokens unlimited
+Docs: https://github.com/Open330/open-agent-contribution
 ```
 
 ## The Problem
