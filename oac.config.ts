@@ -18,7 +18,7 @@ export default defineConfig({
       lint: false,
       testGap: false,
     },
-    issueLabels: ["documentation"],
+    issueLabels: [],
   },
   analyze: {
     autoAnalyze: false,
