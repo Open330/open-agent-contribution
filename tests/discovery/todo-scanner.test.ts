@@ -705,7 +705,7 @@ describe("TodoScanner", () => {
 
     const tasks = await scanner.scan(REPO_PATH);
 
-    expect(tasks[0]?.description).toContain("Resolve TODO-style markers");
+    expect(tasks[0]?.description).toContain("Implement the functionality described by TODO comments");
     expect(tasks[0]?.description).toContain("TODO at line 5");
   });
 

@@ -306,7 +306,9 @@ function buildTodoTask(cluster: TodoCluster, fileLines: string[], discoveredAt: 
     .join("\n");
 
   const descriptionParts = [
-    `Resolve ${markerLabel}-style markers in \`${cluster.filePath}\`.`,
+    `Implement the functionality described by ${markerLabel} comments in \`${cluster.filePath}\`.`,
+    "Do NOT simply remove, rename, or reword the TODO comments. You MUST write the actual code that the TODO describes.",
+    "If a TODO describes a feature, implement that feature. If it describes a fix, apply that fix. Only remove the TODO comment after the described work is fully implemented.",
     functionName ? `Nearest function context: \`${functionName}\`.` : undefined,
     "Markers discovered:",
     todoSummary,

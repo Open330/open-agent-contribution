@@ -81,10 +81,12 @@ export async function tryLoadOrAnalyzeEpics(
   const epics = groupFindingsIntoEpics(qualityReport.findings, { codebaseMap });
   groupSpinner?.succeed(`Created ${epics.length} epic(s)`);
 
-  // Persist context and backlog
+  // Persist context and backlog, preserving completed status from previous runs
   const persistSpinner = createSpinner(ctx.suppressOutput, "Persisting context...");
   await persistContext(resolvedRepo.localPath, codebaseMap, qualityReport, contextDir);
-  const backlog = createBacklog(resolvedRepo.fullName, resolvedRepo.git.headSha, epics);
+  const backlog = existingBacklog
+    ? updateBacklog(existingBacklog, epics, [], resolvedRepo.git.headSha)
+    : createBacklog(resolvedRepo.fullName, resolvedRepo.git.headSha, epics);
   await persistBacklog(resolvedRepo.localPath, backlog, contextDir);
   persistSpinner?.succeed(`Context persisted to ${contextDir}/`);
 

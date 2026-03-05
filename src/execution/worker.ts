@@ -92,6 +92,18 @@ function buildTaskPrompt(task: Task): string {
     "",
     "Target files:",
     fileList,
+  );
+
+  if (task.source === "todo") {
+    lines.push(
+      "",
+      "CRITICAL: You must IMPLEMENT the actual functionality described by each TODO/FIXME/HACK/XXX comment.",
+      "Do NOT just remove, rename, or reword the comments. Write real, working code that fulfills what the TODO asks for.",
+      "Only remove the TODO comment after you have fully implemented the described functionality.",
+    );
+  }
+
+  lines.push(
     "",
     "Apply minimal, safe changes and ensure the repository remains buildable.",
   );
@@ -252,6 +264,8 @@ export function buildEpicPrompt(epic: Epic): string {
     );
   }
 
+  const hasTodoSubtasks = epic.subtasks.some((t) => t.source === "todo");
+
   lines.push(
     "",
     "Instructions:",
@@ -259,6 +273,15 @@ export function buildEpicPrompt(epic: Epic): string {
     "- Ensure the repository remains buildable after changes.",
     "- Address all subtasks listed above.",
   );
+
+  if (hasTodoSubtasks) {
+    lines.push(
+      "",
+      "CRITICAL: For TODO/FIXME/HACK/XXX items, you must IMPLEMENT the actual functionality described by each comment.",
+      "Do NOT just remove, rename, or reword the comments. Write real, working code that fulfills what each TODO asks for.",
+      "Only remove a TODO comment after you have fully implemented the described functionality.",
+    );
+  }
 
   return lines.join("\n");
 }
