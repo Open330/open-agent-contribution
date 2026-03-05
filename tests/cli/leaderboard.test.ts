@@ -58,7 +58,7 @@ function makeContributionLog(input: {
   runId: string;
   timestamp: string;
   username: string;
-  source: "lint" | "todo";
+  source: "lint" | "test-gap";
   tokensUsed: number;
   prStatus?: "open" | "merged" | "closed";
 }): ContributionLog {
@@ -253,7 +253,7 @@ describe("createLeaderboardCommand", () => {
       runId: "run-b",
       timestamp: "2026-02-11T10:00:00+00:00",
       username: "bob",
-      source: "todo",
+      source: "test-gap",
       tokensUsed: 100,
       prStatus: "open",
     });

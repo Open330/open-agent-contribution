@@ -8,7 +8,6 @@ import {
   LintScanner,
   type Scanner,
   TestGapScanner,
-  TodoScanner,
   rankTasks,
 } from "../../discovery/index.js";
 import { cloneRepo, resolveRepo } from "../../repo/index.js";
@@ -32,9 +31,9 @@ interface ScanCommandOptions {
 }
 
 type OutputFormat = "table" | "json";
-type SupportedScanner = "lint" | "todo" | "github-issues" | "test-gap";
+type SupportedScanner = "lint" | "github-issues" | "test-gap";
 
-const SUPPORTED_SCANNERS: SupportedScanner[] = ["lint", "todo", "github-issues", "test-gap"];
+const SUPPORTED_SCANNERS: SupportedScanner[] = ["lint", "github-issues", "test-gap"];
 
 export function createScanCommand(): Command {
   const command = new Command("scan");
@@ -42,7 +41,7 @@ export function createScanCommand(): Command {
   command
     .description("Quick task discovery — list individual issues ranked by priority")
     .option("--repo <owner/repo>", "Target repository (owner/repo or GitHub URL)")
-    .option("--scanners <names>", "Comma-separated scanner filter (lint,todo)")
+    .option("--scanners <names>", "Comma-separated scanner filter (lint,test-gap)")
     .option("--min-priority <number>", "Minimum priority threshold (0-100)", parseInteger, 20)
     .option("--format <format>", "Output format: table|json", "table")
     .action(async (options: ScanCommandOptions, cmd) => {
@@ -148,7 +147,7 @@ To run the full pipeline (analyze + execute), use \`oac run\`.
 
 Examples:
   $ oac scan --repo owner/repo
-  $ oac scan --repo owner/repo --scanners lint,todo
+  $ oac scan --repo owner/repo --scanners lint,test-gap
   $ oac scan --repo owner/repo --min-priority 50 --format json`,
   );
 
@@ -173,7 +172,7 @@ function selectScanners(
   unknown: string[];
   scanner: CompositeScanner;
 } {
-  const defaultScanners: SupportedScanner[] = ["lint", "todo", "test-gap"];
+  const defaultScanners: SupportedScanner[] = ["lint", "test-gap"];
   if (hasGitHubAuth) {
     defaultScanners.push("github-issues");
   }
@@ -188,7 +187,6 @@ function selectScanners(
     const normalized = scannerName.toLowerCase();
     if (
       normalized === "lint" ||
-      normalized === "todo" ||
       normalized === "github-issues" ||
       normalized === "test-gap"
     ) {
@@ -206,10 +204,9 @@ function selectScanners(
   }
 
   const scannerInstances: Scanner[] = uniqueEnabled.map((name) => {
-    if (name === "lint") return new LintScanner();
     if (name === "github-issues") return new GitHubIssuesScanner();
     if (name === "test-gap") return new TestGapScanner();
-    return new TodoScanner();
+    return new LintScanner();
   });
 
   return {
@@ -230,9 +227,6 @@ function scannersFromConfig(
   const configured: SupportedScanner[] = [];
   if (config.discovery.scanners.lint) {
     configured.push("lint");
-  }
-  if (config.discovery.scanners.todo) {
-    configured.push("todo");
   }
   if (config.discovery.scanners.testGap) {
     configured.push("test-gap");

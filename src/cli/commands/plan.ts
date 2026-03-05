@@ -7,7 +7,6 @@ import {
   CompositeScanner,
   LintScanner,
   type Scanner,
-  TodoScanner,
   rankTasks,
 } from "../../discovery/index.js";
 import { cloneRepo, resolveRepo } from "../../repo/index.js";
@@ -33,7 +32,7 @@ interface PlanCommandOptions {
   provider?: string;
 }
 
-type SupportedScanner = "lint" | "todo";
+type SupportedScanner = "lint";
 
 export function createPlanCommand(): Command {
   const command = new Command("plan");
@@ -134,18 +133,12 @@ function selectScannersFromConfig(config: OacConfig | null): {
     enabled.push("lint");
   }
 
-  if (config?.discovery.scanners.todo !== false) {
-    enabled.push("todo");
-  }
-
   if (enabled.length === 0) {
-    enabled.push("lint", "todo");
+    enabled.push("lint");
   }
 
   const uniqueEnabled = [...new Set(enabled)];
-  const scannerInstances: Scanner[] = uniqueEnabled.map((scannerName) =>
-    scannerName === "lint" ? new LintScanner() : new TodoScanner(),
-  );
+  const scannerInstances: Scanner[] = uniqueEnabled.map(() => new LintScanner());
 
   return {
     enabled: uniqueEnabled,

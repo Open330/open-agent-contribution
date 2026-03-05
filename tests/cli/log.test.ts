@@ -42,7 +42,7 @@ function makeContributionLog(input: {
   runId: string;
   timestamp: string;
   repoFullName: string;
-  source: "lint" | "todo" | "test-gap";
+  source: "lint" | "test-gap";
   tokensUsed: number;
 }): ContributionLog {
   return {
@@ -177,7 +177,7 @@ describe("createLogCommand", () => {
       runId: "run-newer",
       timestamp: "2026-02-10T10:00:00+00:00",
       repoFullName: "owner/repo",
-      source: "todo",
+      source: "test-gap",
       tokensUsed: 222,
     });
 
@@ -214,7 +214,7 @@ describe("createLogCommand", () => {
       runId: "run-b",
       timestamp: "2026-02-11T10:00:00+00:00",
       repoFullName: "owner/repo-b",
-      source: "todo",
+      source: "test-gap",
       tokensUsed: 200,
     });
 
@@ -251,7 +251,7 @@ describe("createLogCommand", () => {
       runId: "run-new-todo",
       timestamp: "2026-02-12T10:00:00+00:00",
       repoFullName: "owner/repo",
-      source: "todo",
+      source: "test-gap",
       tokensUsed: 300,
     });
 
@@ -270,7 +270,7 @@ describe("createLogCommand", () => {
       throw new Error(`Unexpected file path: ${filePath}`);
     });
 
-    const payload = await runLogJson(["--source", "todo", "--since", "2026-02-01T00:00:00Z"]);
+    const payload = await runLogJson(["--source", "test-gap", "--since", "2026-02-01T00:00:00Z"]);
 
     expect(payload.total).toBe(1);
     expect(payload.entries[0]?.runId).toBe("run-new-todo");

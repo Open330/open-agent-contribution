@@ -3,7 +3,6 @@ import type { PriorityWeights } from "./types.js";
 
 const IMPACT_BY_SOURCE: Partial<Record<TaskSource, number>> = {
   lint: 22,
-  todo: 10,
   "test-gap": 24,
   "dead-code": 14,
   "github-issue": 20,
@@ -84,15 +83,6 @@ function scoreTask(task: Task): PriorityWeights {
 
 function scoreImpact(task: Task, metadata: Record<string, unknown>): number {
   let score = IMPACT_BY_SOURCE[task.source] ?? 12;
-
-  const matchCount = readNumber(metadata, "matchCount");
-  if (task.source === "todo" && matchCount !== undefined) {
-    if (matchCount >= 4) {
-      score += 4;
-    } else if (matchCount >= 2) {
-      score += 2;
-    }
-  }
 
   const issueCount = readNumber(metadata, "issueCount");
   if (task.source === "lint" && issueCount !== undefined && issueCount >= 5) {

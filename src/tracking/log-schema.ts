@@ -2,7 +2,6 @@ import { z } from "zod";
 
 export const taskSourceValues = [
   "lint",
-  "todo",
   "test-gap",
   "dead-code",
   "github-issue",

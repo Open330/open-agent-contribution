@@ -504,8 +504,6 @@ function deriveSeverity(source: TaskSource): "info" | "warning" | "error" {
   switch (source) {
     case "lint":
       return "warning";
-    case "todo":
-      return "info";
     case "test-gap":
       return "info";
     case "github-issue":

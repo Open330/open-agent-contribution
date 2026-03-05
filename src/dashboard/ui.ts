@@ -140,7 +140,6 @@ export function renderDashboardHtml(port: number): string {
             <option value="">All sources</option>
             <option value="github-issue">GitHub Issues</option>
             <option value="lint">Lint warnings</option>
-            <option value="todo">To-do comments</option>
             <option value="test-gap">Test gaps</option>
           </select>
         </div>

@@ -2,7 +2,6 @@ import { createHash } from "node:crypto";
 import type { Task } from "../core/index.js";
 import { LintScanner } from "./scanners/lint-scanner.js";
 import { SecurityScanner } from "./scanners/security-scanner.js";
-import { TodoScanner } from "./scanners/todo-scanner.js";
 import type { ScanOptions, Scanner } from "./types.js";
 
 interface DeduplicatedTask {
@@ -20,7 +19,7 @@ export class CompositeScanner implements Scanner {
 
   private readonly scanners: Scanner[];
 
-  public constructor(scanners: Scanner[] = [new LintScanner(), new TodoScanner()]) {
+  public constructor(scanners: Scanner[] = [new LintScanner()]) {
     this.scanners = scanners;
   }
 
@@ -64,7 +63,7 @@ export interface DefaultCompositeScannerOptions {
 export function createDefaultCompositeScanner(
   options: DefaultCompositeScannerOptions = {},
 ): CompositeScanner {
-  const scanners: Scanner[] = [new LintScanner(), new TodoScanner()];
+  const scanners: Scanner[] = [new LintScanner()];
   if (options.includeSecurity) {
     scanners.push(new SecurityScanner());
   }

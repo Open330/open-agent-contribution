@@ -3,13 +3,12 @@ import type { Task } from "../../src/core/index.js";
 import { CompositeScanner, createDefaultCompositeScanner } from "../../src/discovery/scanner.js";
 import { LintScanner } from "../../src/discovery/scanners/lint-scanner.js";
 import { SecurityScanner } from "../../src/discovery/scanners/security-scanner.js";
-import { TodoScanner } from "../../src/discovery/scanners/todo-scanner.js";
 import type { ScanOptions, Scanner } from "../../src/discovery/types.js";
 
 function makeTask(overrides: Partial<Task> = {}): Task {
   return {
     id: "task-id",
-    source: "todo",
+    source: "lint",
     title: "Task title",
     description: "Task description",
     targetFiles: ["src/file.ts"],
@@ -42,13 +41,12 @@ describe("CompositeScanner", () => {
     vi.restoreAllMocks();
   });
 
-  it("default constructor creates LintScanner and TodoScanner", () => {
+  it("default constructor creates LintScanner", () => {
     const composite = new CompositeScanner();
     const scanners = getInnerScanners(composite);
 
-    expect(scanners).toHaveLength(2);
+    expect(scanners).toHaveLength(1);
     expect(scanners[0]).toBeInstanceOf(LintScanner);
-    expect(scanners[1]).toBeInstanceOf(TodoScanner);
   });
 
   it("createDefaultCompositeScanner returns a configured CompositeScanner", () => {
@@ -56,19 +54,17 @@ describe("CompositeScanner", () => {
     const scanners = getInnerScanners(composite);
 
     expect(composite).toBeInstanceOf(CompositeScanner);
-    expect(scanners).toHaveLength(2);
+    expect(scanners).toHaveLength(1);
     expect(scanners[0]).toBeInstanceOf(LintScanner);
-    expect(scanners[1]).toBeInstanceOf(TodoScanner);
   });
 
   it("createDefaultCompositeScanner can opt in to SecurityScanner", () => {
     const composite = createDefaultCompositeScanner({ includeSecurity: true });
     const scanners = getInnerScanners(composite);
 
-    expect(scanners).toHaveLength(3);
+    expect(scanners).toHaveLength(2);
     expect(scanners[0]).toBeInstanceOf(LintScanner);
-    expect(scanners[1]).toBeInstanceOf(TodoScanner);
-    expect(scanners[2]).toBeInstanceOf(SecurityScanner);
+    expect(scanners[1]).toBeInstanceOf(SecurityScanner);
   });
 
   it("custom constructor accepts an explicit scanner array", () => {
@@ -177,7 +173,7 @@ describe("CompositeScanner", () => {
   it("deduplicates tasks with the same source + targetFiles + title", async () => {
     const duplicateA = makeTask({
       id: "dup-a",
-      source: "todo",
+      source: "lint",
       title: "Same title",
       targetFiles: ["src/a.ts"],
       priority: 40,
@@ -185,7 +181,7 @@ describe("CompositeScanner", () => {
     });
     const duplicateB = makeTask({
       id: "dup-b",
-      source: "todo",
+      source: "lint",
       title: "Same title",
       targetFiles: ["src/a.ts"],
       priority: 30,
@@ -204,14 +200,14 @@ describe("CompositeScanner", () => {
   it("deduplicates even when targetFiles are in a different order", async () => {
     const first = makeTask({
       id: "first",
-      source: "todo",
+      source: "lint",
       title: "Order agnostic",
       targetFiles: ["src/a.ts", "src/b.ts"],
       priority: 60,
     });
     const second = makeTask({
       id: "second",
-      source: "todo",
+      source: "lint",
       title: "Order agnostic",
       targetFiles: ["src/b.ts", "src/a.ts"],
       priority: 30,
@@ -229,8 +225,8 @@ describe("CompositeScanner", () => {
   it("does not deduplicate tasks when source differs", async () => {
     const sameContentDifferentSource = [
       makeTask({
-        id: "todo-task",
-        source: "todo",
+        id: "custom-task",
+        source: "custom",
         title: "Shared title",
         targetFiles: ["src/file.ts"],
       }),
@@ -253,14 +249,14 @@ describe("CompositeScanner", () => {
   it("keeps the higher-priority task when deduplicating", async () => {
     const lowerPriority = makeTask({
       id: "low",
-      source: "todo",
+      source: "lint",
       title: "Duplicate",
       targetFiles: ["src/file.ts"],
       priority: 10,
     });
     const higherPriority = makeTask({
       id: "high",
-      source: "todo",
+      source: "lint",
       title: "Duplicate",
       targetFiles: ["src/file.ts"],
       priority: 90,
@@ -278,14 +274,14 @@ describe("CompositeScanner", () => {
   it("keeps the first task when duplicate priorities are tied", async () => {
     const first = makeTask({
       id: "first",
-      source: "todo",
+      source: "lint",
       title: "Duplicate",
       targetFiles: ["src/file.ts"],
       priority: 50,
     });
     const second = makeTask({
       id: "second",
-      source: "todo",
+      source: "lint",
       title: "Duplicate",
       targetFiles: ["src/file.ts"],
       priority: 50,
@@ -303,7 +299,7 @@ describe("CompositeScanner", () => {
   it("merges metadata from duplicates and lets the winner override shared keys", async () => {
     const lowerPriority = makeTask({
       id: "low",
-      source: "todo",
+      source: "lint",
       title: "Duplicate",
       targetFiles: ["src/file.ts"],
       priority: 30,
@@ -311,7 +307,7 @@ describe("CompositeScanner", () => {
     });
     const higherPriority = makeTask({
       id: "high",
-      source: "todo",
+      source: "lint",
       title: "Duplicate",
       targetFiles: ["src/file.ts"],
       priority: 80,
@@ -333,14 +329,14 @@ describe("CompositeScanner", () => {
   it("records mergedSources and duplicateTaskIds on deduplicated metadata", async () => {
     const duplicateA = makeTask({
       id: "dup-a",
-      source: "todo",
+      source: "lint",
       title: "Duplicate",
       targetFiles: ["src/file.ts"],
       priority: 30,
     });
     const duplicateB = makeTask({
       id: "dup-b",
-      source: "todo",
+      source: "lint",
       title: "Duplicate",
       targetFiles: ["src/file.ts"],
       priority: 90,
@@ -356,7 +352,7 @@ describe("CompositeScanner", () => {
     const mergedSources = metadata.mergedSources as string[];
     const duplicateTaskIds = metadata.duplicateTaskIds as string[];
 
-    expect(mergedSources).toEqual(expect.arrayContaining(["scanner-a", "scanner-b", "todo"]));
+    expect(mergedSources).toEqual(expect.arrayContaining(["scanner-a", "scanner-b", "lint"]));
     expect(new Set(mergedSources).size).toBe(mergedSources.length);
     expect(duplicateTaskIds).toEqual(expect.arrayContaining(["dup-a", "dup-b"]));
     expect(new Set(duplicateTaskIds).size).toBe(duplicateTaskIds.length);
@@ -365,14 +361,14 @@ describe("CompositeScanner", () => {
   it("stores a short dedupeHash in metadata", async () => {
     const duplicateA = makeTask({
       id: "dup-a",
-      source: "todo",
+      source: "lint",
       title: "Duplicate hash",
       targetFiles: ["src/file.ts"],
       priority: 20,
     });
     const duplicateB = makeTask({
       id: "dup-b",
-      source: "todo",
+      source: "lint",
       title: "Duplicate hash",
       targetFiles: ["src/file.ts"],
       priority: 60,

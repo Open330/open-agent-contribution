@@ -106,7 +106,7 @@ describe("valid ContributionLog passes validation", () => {
         {
           taskId: "task-fail",
           title: "Broken task",
-          source: "todo",
+          source: "lint",
           complexity: "complex",
           status: "failed",
           tokensUsed: 10_000,
@@ -124,7 +124,6 @@ describe("valid ContributionLog passes validation", () => {
   it("accepts all valid task sources", () => {
     const sources = [
       "lint",
-      "todo",
       "test-gap",
       "dead-code",
       "github-issue",

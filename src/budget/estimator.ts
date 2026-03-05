@@ -10,7 +10,7 @@ import { GeminiTokenCounter } from "./providers/gemini-counter.js";
 
 export type AgentProviderId = "claude-code" | "codex" | "opencode" | "gemini" | string;
 
-export type TaskSource = "lint" | "todo" | "test-gap" | "dead-code" | "github-issue" | "custom";
+export type TaskSource = "lint" | "test-gap" | "dead-code" | "github-issue" | "custom";
 
 export type TaskComplexity = "trivial" | "simple" | "moderate" | "complex";
 

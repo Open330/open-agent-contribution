@@ -13,7 +13,7 @@ const tempDirs: string[] = [];
 function makeTask(overrides: Partial<Task> = {}): Task {
   return {
     id: "test-task-1",
-    source: "todo",
+    source: "lint",
     title: "Test task",
     description: "A test task",
     targetFiles: [],
@@ -44,7 +44,7 @@ afterEach(async () => {
 describe("estimateTokens", () => {
   it("returns token estimate for a simple task with no target files", async () => {
     const task = makeTask({
-      source: "todo",
+      source: "lint",
       complexity: "trivial",
       targetFiles: [],
     });
@@ -62,7 +62,7 @@ describe("estimateTokens", () => {
   it("returns token estimate for a task with target files that exist", async () => {
     const filePath = await makeTempFile("export const value = 42;\n".repeat(20));
     const task = makeTask({
-      source: "todo",
+      source: "lint",
       complexity: "trivial",
       targetFiles: [filePath],
     });
@@ -77,7 +77,7 @@ describe("estimateTokens", () => {
   it("returns feasible=false when estimated tokens exceed max context", async () => {
     vi.spyOn(ClaudeTokenCounter.prototype, "countTokens").mockReturnValue(100_000);
     const task = makeTask({
-      source: "todo",
+      source: "lint",
       complexity: "trivial",
       targetFiles: [],
     });
@@ -114,7 +114,7 @@ describe("estimateTokens", () => {
 
     const withExistingFile = await estimateTokens(
       makeTask({
-        source: "todo",
+        source: "lint",
         complexity: "trivial",
         targetFiles: [existingFile],
       }),
@@ -123,7 +123,7 @@ describe("estimateTokens", () => {
 
     const withMissingFile = await estimateTokens(
       makeTask({
-        source: "todo",
+        source: "lint",
         complexity: "trivial",
         targetFiles: [missingFile],
       }),
@@ -138,7 +138,7 @@ describe("estimateTokens", () => {
 
     const withFile = await estimateTokens(
       makeTask({
-        source: "todo",
+        source: "lint",
         complexity: "trivial",
         targetFiles: [existingFile],
       }),
@@ -147,7 +147,7 @@ describe("estimateTokens", () => {
 
     const withoutFiles = await estimateTokens(
       makeTask({
-        source: "todo",
+        source: "lint",
         complexity: "trivial",
         targetFiles: [],
       }),
@@ -164,7 +164,7 @@ describe("estimateTokens", () => {
 
     const matchedComplexity = await estimateTokens(
       makeTask({
-        source: "todo",
+        source: "lint",
         complexity: "simple",
         targetFiles: [fileA, fileB, fileC],
       }),
@@ -173,7 +173,7 @@ describe("estimateTokens", () => {
 
     const mismatchedComplexity = await estimateTokens(
       makeTask({
-        source: "todo",
+        source: "lint",
         complexity: "simple",
         targetFiles: [fileA],
       }),

@@ -133,8 +133,6 @@ function buildEpicTitle(source: TaskSource, module: string, _subtasks: Task[]): 
   switch (source) {
     case "test-gap":
       return `Improve test coverage${moduleLabel}`;
-    case "todo":
-      return `Address TODO comments${module === "root" ? "" : ` in ${module} module`}`;
     case "lint":
       return `Fix lint issues${module === "root" ? "" : ` in ${module} module`}`;
     case "dead-code":

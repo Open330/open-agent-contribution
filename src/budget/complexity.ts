@@ -2,7 +2,6 @@ import type { Task, TaskComplexity, TaskSource } from "./estimator.js";
 
 const SOURCE_LOC_BASELINE: Record<TaskSource, number> = {
   lint: 8,
-  todo: 16,
   "test-gap": 48,
   "dead-code": 36,
   "github-issue": 88,
@@ -11,7 +10,6 @@ const SOURCE_LOC_BASELINE: Record<TaskSource, number> = {
 
 const SOURCE_COMPLEXITY_SCORE: Record<TaskSource, number> = {
   lint: 0,
-  todo: 0,
   "test-gap": 1,
   "dead-code": 1,
   "github-issue": 2,

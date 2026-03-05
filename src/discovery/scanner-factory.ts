@@ -3,10 +3,9 @@ import { CompositeScanner } from "./scanner.js";
 import { GitHubIssuesScanner } from "./scanners/github-issues-scanner.js";
 import { LintScanner } from "./scanners/lint-scanner.js";
 import { TestGapScanner } from "./scanners/test-gap-scanner.js";
-import { TodoScanner } from "./scanners/todo-scanner.js";
 import type { Scanner } from "./types.js";
 
-export type ScannerName = "lint" | "todo" | "test-gap" | "github-issues";
+export type ScannerName = "lint" | "test-gap" | "github-issues";
 
 /**
  * Builds a list of scanner instances based on the user's config and
@@ -24,9 +23,6 @@ export function buildScanners(
 
   if (config?.discovery.scanners.lint !== false) {
     names.push("lint");
-  }
-  if (config?.discovery.scanners.todo !== false) {
-    names.push("todo");
   }
   if (config?.discovery.scanners.testGap !== false) {
     names.push("test-gap");
@@ -47,7 +43,7 @@ export function buildScanners(
 
   // If everything was explicitly disabled, fall back to defaults.
   if (names.length === 0) {
-    names.push("lint", "todo", "test-gap");
+    names.push("lint", "test-gap");
   }
 
   const unique = [...new Set(names)];
@@ -60,8 +56,6 @@ function instantiateScanner(name: ScannerName): Scanner {
   switch (name) {
     case "lint":
       return new LintScanner();
-    case "todo":
-      return new TodoScanner();
     case "test-gap":
       return new TestGapScanner();
     case "github-issues":

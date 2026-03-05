@@ -76,7 +76,7 @@ describe("rankTasks", () => {
       makeTask({
         id: "low",
         title: "Low priority task",
-        source: "todo",
+        source: "custom",
         complexity: "complex",
         executionMode: "direct-commit",
         targetFiles: ["a.ts", "b.ts", "c.ts", "d.ts", "e.ts", "f.ts"],
@@ -106,7 +106,6 @@ describe("rankTasks", () => {
   it("uses the expected base impact scores by source", () => {
     const expectedBySource: Record<TaskSource, number> = {
       lint: 22,
-      todo: 10,
       "test-gap": 24,
       "dead-code": 14,
       "github-issue": 20,
@@ -119,14 +118,6 @@ describe("rankTasks", () => {
       const breakdown = getBreakdown(rankSingle({ source }));
       expect(breakdown.impactScore).toBe(expected);
     }
-  });
-
-  it("applies todo-source matchCount bonuses (+4 at >=4, +2 at >=2)", () => {
-    const plusFour = getBreakdown(rankSingle({ source: "todo", metadata: { matchCount: 4 } }));
-    const plusTwo = getBreakdown(rankSingle({ source: "todo", metadata: { matchCount: 2 } }));
-
-    expect(plusFour.impactScore).toBe(14);
-    expect(plusTwo.impactScore).toBe(12);
   });
 
   it("applies lint issueCount bonus at 5 or more", () => {

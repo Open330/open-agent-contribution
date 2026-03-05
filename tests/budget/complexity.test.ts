@@ -6,7 +6,7 @@ import type { Task } from "../../src/budget/estimator.js";
 function makeTask(overrides: Partial<Task> = {}): Task {
   return {
     id: "test-task-1",
-    source: "todo",
+    source: "lint",
     title: "Test task",
     description: "A test task",
     targetFiles: [],
@@ -78,7 +78,7 @@ describe("analyzeTaskComplexity", () => {
 
   it('returns "simple" for todo tasks with few files', () => {
     const task = makeTask({
-      source: "todo",
+      source: "lint",
       targetFiles: ["src/a.ts", "src/b.ts", "src/c.ts"],
     });
 

@@ -32,7 +32,7 @@ export interface SandboxInfo {
 }
 
 export type RunMode = "new-pr" | "update-pr" | "direct-commit" | "branch-only";
-export type SupportedScanner = "lint" | "todo" | "github-issues" | "test-gap";
+export type SupportedScanner = "lint" | "github-issues" | "test-gap";
 export type CompletionStatus = "success" | "partial" | "failed";
 
 export interface ExecutionOutcome {

@@ -11,7 +11,6 @@ import {
   GitHubIssuesScanner,
   LintScanner,
   type Scanner,
-  TodoScanner,
   rankTasks,
 } from "../discovery/index.js";
 import {
@@ -113,8 +112,8 @@ interface TaskResult {
 }
 
 function buildScanners(): { names: string[]; scanner: CompositeScanner } {
-  const scanners: Scanner[] = [new LintScanner(), new TodoScanner()];
-  const names = ["lint", "todo"];
+  const scanners: Scanner[] = [new LintScanner()];
+  const names = ["lint"];
 
   if (process.env.GITHUB_TOKEN) {
     scanners.push(new GitHubIssuesScanner());

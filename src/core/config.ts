@@ -43,7 +43,6 @@ export const BudgetSchema = z
 export const DiscoveryScannersSchema = z
   .object({
     lint: z.boolean().default(true),
-    todo: z.boolean().default(true),
     testGap: z.boolean().default(true),
     deadCode: z.boolean().default(false),
     githubIssues: z.boolean().default(true),

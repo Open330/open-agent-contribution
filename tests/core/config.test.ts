@@ -24,7 +24,6 @@ describe("default config values", () => {
     const config = loadConfig({});
 
     expect(config.discovery.scanners.lint).toBe(true);
-    expect(config.discovery.scanners.todo).toBe(true);
     expect(config.discovery.scanners.testGap).toBe(true);
     expect(config.discovery.scanners.deadCode).toBe(false);
     expect(config.discovery.scanners.githubIssues).toBe(true);

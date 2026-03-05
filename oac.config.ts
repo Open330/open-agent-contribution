@@ -16,7 +16,6 @@ export default defineConfig({
   discovery: {
     scanners: {
       lint: false,
-      todo: false,
       testGap: false,
     },
     issueLabels: ["documentation"],
