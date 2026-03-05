@@ -1,14 +1,12 @@
 <div align="center">
 
-```
-                                 ___    _    ____
-                                / _ \  / \  / ___|
-                               | | | |/ _ \| |
-                               | |_| / ___ \ |___
-                                \___/_/   \_\____|
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/logo.png">
+  <source media="(prefers-color-scheme: light)" srcset="assets/logo.png">
+  <img src="assets/logo.png" width="280" alt="OAC — Open Agent Contribution">
+</picture>
 
-              O P E N   A G E N T   C O N T R I B U T I O N
-```
+<br>
 
 **Put your spare AI tokens to work. Contribute to open source — automatically.**
 
