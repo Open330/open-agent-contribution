@@ -63,6 +63,20 @@ function readContextAck(task: Task):
   return { files, summary, digest };
 }
 
+function readRepoGuide(task: Task): { content: string; digest?: string } | undefined {
+  const raw = task.metadata.repoGuide;
+  if (!isRecord(raw)) return undefined;
+
+  const content =
+    typeof raw.content === "string" && raw.content.trim().length > 0 ? raw.content : undefined;
+  if (!content) return undefined;
+
+  const digest =
+    typeof raw.digest === "string" && raw.digest.trim().length > 0 ? raw.digest : undefined;
+
+  return { content, digest };
+}
+
 function buildTaskPrompt(task: Task): string {
   const fileList = task.targetFiles.length > 0 ? task.targetFiles.join("\n") : "(none provided)";
   const contextAck = readContextAck(task);
@@ -123,6 +137,18 @@ function buildTaskPrompt(task: Task): string {
     "- Ensure the repository remains buildable after your changes.",
     "- Run tests if available to verify your changes work.",
   );
+
+  const repoGuide = readRepoGuide(task);
+  if (repoGuide) {
+    lines.push(
+      "",
+      "Repository contribution guide (from .oac/README.md — MUST FOLLOW):",
+      repoGuide.content,
+    );
+    if (repoGuide.digest) {
+      lines.push("", `Guide digest: ${repoGuide.digest}`);
+    }
+  }
 
   if (contextAck) {
     lines.push(

@@ -14,6 +14,7 @@ import {
 } from "../../helpers.js";
 import { loadCliPreferences } from "../../preferences.js";
 import { resolveContextAck } from "./context-policy.js";
+import { discoverRepoGuide } from "./repo-guide.js";
 import { runEpicPipeline, tryLoadOrAnalyzeEpics } from "./epic.js";
 import { runRetryPipeline } from "./retry.js";
 import {
@@ -71,6 +72,11 @@ export async function runPipeline(
   cloneSpinner?.succeed(`Repository ready at ${resolvedRepo.localPath}`);
 
   ctx.contextAck = await resolveContextAck(resolvedRepo.localPath, config, ui, ctx.suppressOutput);
+
+  ctx.repoGuide = await discoverRepoGuide(resolvedRepo.localPath);
+  if (ctx.repoGuide && !ctx.suppressOutput) {
+    console.log(ui.blue(`[oac] Repo guide loaded: ${ctx.repoGuide.path}`));
+  }
 
   // ── Retry-failed shortcut ──────────────────────────────────
   if (options.retryFailed) {

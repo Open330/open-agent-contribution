@@ -411,7 +411,52 @@ If you are the repository owner receiving OAC contributions, treat contribution 
 - **Contributors own runtime choices**: provider, token budget, and local execution environment stay in each contributor's `oac.config.ts`.
 - **Why this split works**: maintainers can evolve policy in git history, reviewers can audit intent, and contributors cannot silently bypass project rules.
 
-### Recommended Structure (in the target repo)
+### `.oac/README.md` — Repo Contribution Guide
+
+The simplest way to guide OAC agents is to add a `.oac/README.md` to your repo. OAC **auto-discovers** this file — no configuration needed on either side.
+
+```text
+your-repo/
+├── .oac/
+│   └── README.md        ← contribution guide (committed, repo-owned)
+├── src/
+└── ...
+```
+
+When OAC clones your repo and finds `.oac/README.md`, its content is injected directly into the agent prompt as a **MUST FOLLOW** guide. This gives maintainers full control over how AI agents contribute.
+
+**Example `.oac/README.md`:**
+
+```markdown
+# Contribution Guide for OAC
+
+## Scope
+- Focus on: src/core/, src/utils/, tests/
+- Do NOT modify: migrations/, .github/workflows/, package.json
+
+## Coding Standards
+- TypeScript strict mode, no `any`
+- Prefer `const` over `let`
+- Use existing patterns — read neighboring files before writing
+
+## Testing
+- Run `pnpm test` before submitting
+- New functions need unit tests in `__tests__/`
+
+## PR Guidelines
+- Max 200 lines changed per PR
+- Always include "Closes #<issue>" in PR body
+- Keep commits atomic and well-described
+
+## Off-Limits
+- Do not bump dependency versions
+- Do not modify CI/CD pipelines
+- Do not change tsconfig.json or build config
+```
+
+### Advanced: Task-Specific Plans
+
+For more granular control, add `.context/plans/` with per-issue plans:
 
 ```text
 .context/
@@ -481,13 +526,14 @@ oac run --repo <owner/repo>
 4. **Maintainer reviews against plan**
    - Check diff vs `Scope`, `Must`, `Must Not`, and acceptance criteria in the issue plan document.
 
-### Current Behavior Note
+### How the Two Layers Work Together
 
-Today, OAC does not hard-fail when `.context/plans/*` is missing. The recommended production pattern is:
+| Layer | File | Auto-discovered | Purpose |
+|-------|------|-----------------|---------|
+| **Repo Guide** | `.oac/README.md` | Always | General contribution guidelines — coding standards, scope, off-limits |
+| **Task Plans** | `.context/plans/*.md` | When `context.mode` is `warn` or `enforce` | Per-issue plans with specific scope, must/must-not constraints |
 
-- maintain plan documents in the target repo,
-- require issue/PR linkage,
-- and enforce policy at review or CI level.
+Both are injected into the agent prompt. The repo guide is always active; task plans require the contributor to enable context policy in their `oac.config.ts`.
 
 ---
 

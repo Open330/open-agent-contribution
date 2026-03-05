@@ -121,12 +121,13 @@ async function executeEpicEntry(
     mode: RunMode;
     ghToken?: string;
     contextAck?: ContextAck;
+    repoGuide?: import("./repo-guide.js").RepoGuide;
     ctx?: PipelineContext;
     activeSpinner?: import("ora").Ora | null;
   },
 ): Promise<TaskRunResult> {
-  const { adapter, resolvedRepo, providerId, timeoutSeconds, mode, ghToken, contextAck, ctx, activeSpinner } = params;
-  const task = withContextAck(epicAsTask(entry.epic), contextAck);
+  const { adapter, resolvedRepo, providerId, timeoutSeconds, mode, ghToken, contextAck, repoGuide, ctx, activeSpinner } = params;
+  const task = withRepoGuide(withContextAck(epicAsTask(entry.epic), contextAck), repoGuide);
   const estimate = makeStubEstimate(task.id, providerId, entry.estimatedTokens);
 
   const onEvent = ctx ? createVerboseEventLogger(ctx, entry.epic.title, activeSpinner) : undefined;
@@ -247,6 +248,7 @@ export async function runEpicPipeline(
             mode,
             ghToken,
             contextAck: ctx.contextAck,
+            repoGuide: ctx.repoGuide,
             ctx,
             activeSpinner: executionSpinner,
           });
@@ -420,6 +422,23 @@ function withContextAck(
     metadata: {
       ...task.metadata,
       contextAck,
+    },
+  };
+}
+
+function withRepoGuide(
+  task: import("../../../core/index.js").Task,
+  repoGuide: import("./repo-guide.js").RepoGuide | undefined,
+): import("../../../core/index.js").Task {
+  if (!repoGuide) return task;
+  return {
+    ...task,
+    metadata: {
+      ...task.metadata,
+      repoGuide: {
+        content: repoGuide.content,
+        digest: repoGuide.digest,
+      },
     },
   };
 }

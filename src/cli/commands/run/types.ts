@@ -25,6 +25,12 @@ export interface ContextAck {
   digest: string;
 }
 
+export interface RepoGuide {
+  path: string;
+  content: string;
+  digest: string;
+}
+
 export interface SandboxInfo {
   branchName: string;
   sandboxPath: string;
@@ -120,6 +126,7 @@ export interface PipelineContext {
   runId: string;
   runStartedAt: number;
   contextAck?: ContextAck;
+  repoGuide?: import("./repo-guide.js").RepoGuide;
 }
 
 export function formatBudgetDisplay(budget: number): string {

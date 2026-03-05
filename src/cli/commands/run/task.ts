@@ -222,7 +222,7 @@ export async function executePlan(
     plan.selectedTasks.map(
       (entry) =>
         taskQueue.add(async (): Promise<TaskRunResult> => {
-          const taskForExecution = withContextAck(entry.task, ctx.contextAck);
+          const taskForExecution = withRepoGuide(withContextAck(entry.task, ctx.contextAck), ctx.repoGuide);
           const onEvent = createVerboseEventLogger(ctx, taskForExecution.title, executionSpinner);
           const result = await executeWithAgent({
             task: taskForExecution,
@@ -402,6 +402,23 @@ function withContextAck(task: Task, contextAck: ContextAck | undefined): Task {
     metadata: {
       ...task.metadata,
       contextAck,
+    },
+  };
+}
+
+function withRepoGuide(task: Task, repoGuide: import("./repo-guide.js").RepoGuide | undefined): Task {
+  if (!repoGuide) {
+    return task;
+  }
+
+  return {
+    ...task,
+    metadata: {
+      ...task.metadata,
+      repoGuide: {
+        content: repoGuide.content,
+        digest: repoGuide.digest,
+      },
     },
   };
 }
