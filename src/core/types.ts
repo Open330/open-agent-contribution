@@ -117,6 +117,23 @@ export interface ExecutionPlan {
   remainingTokens: number;
 }
 
+export interface DecisionContext {
+  taskSelectionReason: string;
+  alternativeTasks: Array<{ taskId: string; title: string; reason: string }>;
+  goalAlignment?: {
+    missionStatement?: string;
+    projectId?: string;
+    goalId?: string;
+    goalTitle?: string;
+  };
+  budgetConsiderations: {
+    estimatedCost: number;
+    remainingBudget: number;
+    priorityScore: number;
+  };
+  timestamp: string;
+}
+
 export interface ContributionTask {
   taskId: string;
   title: string;
@@ -136,10 +153,11 @@ export interface ContributionTask {
     url: string;
   };
   error?: string;
+  decisionContext?: DecisionContext;
 }
 
 export interface ContributionLog {
-  version: "1.0";
+  version: "1.0" | "1.1";
   runId: string;
   timestamp: string;
   contributor: {

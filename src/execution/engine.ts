@@ -12,6 +12,7 @@ import {
   executionError,
 } from "../core/index.js";
 
+import type { RoleRouter } from "../organization/roles.js";
 import type { AgentProvider } from "./agents/agent.interface.js";
 import { normalizeExecutionError, toErrorMessage } from "./normalize-error.js";
 import { createSandbox } from "./sandbox.js";
@@ -43,10 +44,12 @@ export interface ExecutionEngineConfig {
   concurrency?: number;
   maxAttempts?: number;
   repoPath?: string;
+  repoFullName?: string;
   baseBranch?: string;
   branchPrefix?: string;
   taskTimeoutMs?: number;
   defaultTokenBudget?: number;
+  roleRouter?: RoleRouter;
 }
 
 export interface RunResult {
@@ -193,6 +196,8 @@ export class ExecutionEngine {
   private readonly branchPrefix: string;
   private readonly taskTimeoutMs: number;
   private readonly defaultTokenBudget: number;
+  private readonly repoFullName: string;
+  private readonly roleRouter?: RoleRouter;
 
   private aborted = false;
   private nextAgentIndex = 0;
@@ -216,6 +221,8 @@ export class ExecutionEngine {
     this.branchPrefix = config.branchPrefix ?? "oac";
     this.taskTimeoutMs = Math.max(1, config.taskTimeoutMs ?? DEFAULT_TIMEOUT_MS);
     this.defaultTokenBudget = Math.max(1, config.defaultTokenBudget ?? DEFAULT_TOKEN_BUDGET);
+    this.repoFullName = config.repoFullName ?? "";
+    this.roleRouter = config.roleRouter;
 
     this.queue = new PQueue({
       concurrency: this.concurrency,
@@ -318,7 +325,7 @@ export class ExecutionEngine {
     job.status = "running";
     job.startedAt ??= Date.now();
 
-    const agent = this.selectAgent();
+    const agent = this.selectAgent(job.task);
     job.workerId = agent.id;
     this.activeJobs.set(job.id, { job, agent });
 
@@ -424,7 +431,11 @@ export class ExecutionEngine {
     });
   }
 
-  private selectAgent(): AgentProvider {
+  private selectAgent(task: Task): AgentProvider {
+    if (this.roleRouter && this.repoFullName) {
+      return this.roleRouter.selectAgent(task, this.repoFullName);
+    }
+
     const agent = this.agents[this.nextAgentIndex % this.agents.length];
     this.nextAgentIndex = (this.nextAgentIndex + 1) % this.agents.length;
     return agent;

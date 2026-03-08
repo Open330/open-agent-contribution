@@ -3,6 +3,17 @@ import { EventEmitter } from "eventemitter3";
 import type { OacError } from "./errors.js";
 import type { ExecutionResult, ResolvedRepo, RunSummary, Task, TokenEstimate } from "./types.js";
 
+/** Inline type to avoid circular dependency with organization/delegation.ts */
+interface DelegationRequestPayload {
+  id: string;
+  sourceRepo: string;
+  targetRepo: string;
+  task: Task;
+  reason: string;
+  priority: number;
+  requestedAt: string;
+}
+
 export interface OacEvents {
   "repo:resolved": { repo: ResolvedRepo };
   "task:discovered": { tasks: Task[] };
@@ -15,6 +26,10 @@ export interface OacEvents {
   "pr:created": { jobId: string; prUrl: string };
   "pr:merged": { jobId: string; prUrl: string };
   "run:completed": { summary: RunSummary };
+  "delegation:requested": { delegation: DelegationRequestPayload };
+  "delegation:accepted": { delegationId: string; assignedAgent: string };
+  "delegation:rejected": { delegationId: string; reason: string };
+  "delegation:completed": { delegationId: string; result: ExecutionResult };
 }
 
 type OacEventArgs = {

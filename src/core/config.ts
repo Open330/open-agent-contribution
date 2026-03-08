@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { OrganizationSchema } from "../organization/config.js";
 import { configError } from "./errors.js";
 
 const ENV_VAR_PATTERN = /\$\{([A-Za-z_][A-Za-z0-9_]*)\}/g;
@@ -237,6 +238,7 @@ export const OacConfigSchema = z
     dashboard: DashboardSchema,
     analyze: AnalyzeSchema,
     context: ContextPolicySchema,
+    organization: OrganizationSchema,
   })
   .strict();
 

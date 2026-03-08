@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { decisionContextSchema } from "./decision-context.js";
+
 export const taskSourceValues = [
   "lint",
   "test-gap",
@@ -47,10 +49,11 @@ export const contributionTaskSchema = z.object({
     })
     .optional(),
   error: z.string().min(1).optional(),
+  decisionContext: decisionContextSchema.optional(),
 });
 
 export const contributionLogSchema = z.object({
-  version: z.literal("1.0"),
+  version: z.union([z.literal("1.0"), z.literal("1.1")]),
   runId: z.string().min(1),
   timestamp: z.string().datetime({ offset: true }),
   contributor: z.object({
