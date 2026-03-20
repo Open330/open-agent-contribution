@@ -103,7 +103,7 @@ function printEpic(
     id: string;
     title: string;
     scope: string;
-    priority: string;
+    priority: number;
     status: string;
     description: string;
     subtasks: { id: string }[];
