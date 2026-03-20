@@ -40,9 +40,7 @@ export class DelegationManager {
    * Create a new delegation request. Auto-routes to the appropriate role
    * based on the target repo and emits a `delegation:requested` event.
    */
-  requestDelegation(
-    request: Omit<DelegationRequest, "id" | "requestedAt">,
-  ): DelegationRequest {
+  requestDelegation(request: Omit<DelegationRequest, "id" | "requestedAt">): DelegationRequest {
     const id = randomUUID();
     const requestedAt = new Date().toISOString();
 

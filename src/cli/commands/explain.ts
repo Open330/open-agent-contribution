@@ -5,6 +5,10 @@ import { Command } from "commander";
 import { loadBacklog, loadContext } from "../../discovery/index.js";
 import { createUi, getGlobalOptions, loadOptionalConfig } from "../helpers.js";
 
+type UiInstance = import("chalk").ChalkInstance;
+type ContextResult = Awaited<ReturnType<typeof loadContext>>;
+type BacklogResult = Awaited<ReturnType<typeof loadBacklog>>;
+
 export function createExplainCommand(): Command {
   const command = new Command("explain");
 
@@ -19,43 +23,25 @@ export function createExplainCommand(): Command {
 
       const repoPath = resolve(process.cwd());
 
-      // Load persisted analysis results
       const [context, backlog] = await Promise.all([
         loadContext(repoPath, contextDir),
         loadBacklog(repoPath, contextDir),
       ]);
 
       if (!context && !backlog) {
-        const message = "No analysis context found. Run `oac analyze` first.";
-        if (globalOptions.json) {
-          console.log(JSON.stringify({ error: message }, null, 2));
-        } else {
-          console.error(ui.red(message));
-        }
-        process.exitCode = 1;
+        reportError(ui, globalOptions.json, "No analysis context found. Run `oac analyze` first.");
         return;
       }
 
-      // Search findings
       const finding = context?.qualityReport.findings.find(
         (f) => f.title === id || f.filePath === id,
       );
-
-      // Search epics
       const epic = backlog?.epics.find(
         (e) => e.id === id || e.title.toLowerCase().includes(id.toLowerCase()),
       );
 
       if (!finding && !epic) {
-        const message = `No task or epic matching "${id}" found in the analysis context.`;
-        if (globalOptions.json) {
-          console.log(JSON.stringify({ error: message, id }, null, 2));
-        } else {
-          console.error(ui.red(message));
-          console.log("");
-          printAvailableIds(ui, context, backlog);
-        }
-        process.exitCode = 1;
+        reportNotFound(ui, globalOptions.json, id, context, backlog);
         return;
       }
 
@@ -65,52 +51,12 @@ export function createExplainCommand(): Command {
       }
 
       if (epic) {
-        console.log(ui.bold("Epic"));
-        console.log(`  ${ui.blue("ID:")}        ${epic.id}`);
-        console.log(`  ${ui.blue("Title:")}     ${epic.title}`);
-        console.log(`  ${ui.blue("Scope:")}     ${epic.scope}`);
-        console.log(`  ${ui.blue("Priority:")}  ${epic.priority}`);
-        console.log(`  ${ui.blue("Status:")}    ${epic.status}`);
-        console.log(`  ${ui.blue("Tasks:")}     ${epic.subtasks.length}`);
-        console.log("");
-        console.log(ui.dim("Description:"));
-        console.log(`  ${epic.description}`);
-        if (epic.subtasks.length > 0) {
-          console.log("");
-          console.log(ui.dim("Task IDs:"));
-          for (const subtask of epic.subtasks) {
-            console.log(`  - ${subtask.id}`);
-          }
-        }
+        printEpic(ui, epic);
       }
 
       if (finding) {
         if (epic) console.log("");
-        console.log(ui.bold("Finding"));
-        console.log(`  ${ui.blue("Title:")}      ${finding.title}`);
-        console.log(`  ${ui.blue("Source:")}     ${finding.source.replace(/-/g, " ")}`);
-        console.log(`  ${ui.blue("Scanner:")}   ${finding.scannerId}`);
-        console.log(`  ${ui.blue("Severity:")}  ${colorSeverity(ui, finding.severity)}`);
-        console.log(`  ${ui.blue("Complexity:")} ${finding.complexity}`);
-        console.log(`  ${ui.blue("File:")}      ${finding.filePath}`);
-        if (finding.module) {
-          console.log(`  ${ui.blue("Module:")}    ${finding.module}`);
-        }
-        if (finding.line) {
-          console.log(`  ${ui.blue("Line:")}      ${finding.line}`);
-        }
-        console.log("");
-        console.log(ui.dim("Description:"));
-        console.log(`  ${finding.description}`);
-        console.log("");
-        console.log(ui.dim("What the agent would do:"));
-        console.log("  1. Check out a clean branch for this task");
-        console.log(
-          `  2. Open ${finding.filePath}${finding.line ? ` at line ${finding.line}` : ""}`,
-        );
-        console.log("  3. Apply the fix described above");
-        console.log("  4. Run tests and linters to verify");
-        console.log("  5. Create a PR with the changes");
+        printFinding(ui, finding);
       }
     });
 
@@ -124,6 +70,103 @@ export function createExplainCommand(): Command {
   return command;
 }
 
+function reportError(ui: UiInstance, json: boolean, message: string): void {
+  if (json) {
+    console.log(JSON.stringify({ error: message }, null, 2));
+  } else {
+    console.error(ui.red(message));
+  }
+  process.exitCode = 1;
+}
+
+function reportNotFound(
+  ui: UiInstance,
+  json: boolean,
+  id: string,
+  context: ContextResult,
+  backlog: BacklogResult,
+): void {
+  const message = `No task or epic matching "${id}" found in the analysis context.`;
+  if (json) {
+    console.log(JSON.stringify({ error: message, id }, null, 2));
+  } else {
+    console.error(ui.red(message));
+    console.log("");
+    printAvailableIds(ui, context, backlog);
+  }
+  process.exitCode = 1;
+}
+
+function printEpic(
+  ui: UiInstance,
+  epic: {
+    id: string;
+    title: string;
+    scope: string;
+    priority: string;
+    status: string;
+    description: string;
+    subtasks: { id: string }[];
+  },
+): void {
+  console.log(ui.bold("Epic"));
+  console.log(`  ${ui.blue("ID:")}        ${epic.id}`);
+  console.log(`  ${ui.blue("Title:")}     ${epic.title}`);
+  console.log(`  ${ui.blue("Scope:")}     ${epic.scope}`);
+  console.log(`  ${ui.blue("Priority:")}  ${epic.priority}`);
+  console.log(`  ${ui.blue("Status:")}    ${epic.status}`);
+  console.log(`  ${ui.blue("Tasks:")}     ${epic.subtasks.length}`);
+  console.log("");
+  console.log(ui.dim("Description:"));
+  console.log(`  ${epic.description}`);
+  if (epic.subtasks.length > 0) {
+    console.log("");
+    console.log(ui.dim("Task IDs:"));
+    for (const subtask of epic.subtasks) {
+      console.log(`  - ${subtask.id}`);
+    }
+  }
+}
+
+function printFinding(
+  ui: UiInstance,
+  finding: {
+    title: string;
+    source: string;
+    scannerId: string;
+    severity: "info" | "warning" | "error";
+    complexity: string;
+    filePath: string;
+    module?: string;
+    line?: number;
+    description: string;
+  },
+): void {
+  console.log(ui.bold("Finding"));
+  console.log(`  ${ui.blue("Title:")}      ${finding.title}`);
+  console.log(`  ${ui.blue("Source:")}     ${finding.source.replace(/-/g, " ")}`);
+  console.log(`  ${ui.blue("Scanner:")}   ${finding.scannerId}`);
+  console.log(`  ${ui.blue("Severity:")}  ${colorSeverity(ui, finding.severity)}`);
+  console.log(`  ${ui.blue("Complexity:")} ${finding.complexity}`);
+  console.log(`  ${ui.blue("File:")}      ${finding.filePath}`);
+  if (finding.module) {
+    console.log(`  ${ui.blue("Module:")}    ${finding.module}`);
+  }
+  if (finding.line) {
+    console.log(`  ${ui.blue("Line:")}      ${finding.line}`);
+  }
+  console.log("");
+  console.log(ui.dim("Description:"));
+  console.log(`  ${finding.description}`);
+  console.log("");
+  console.log(ui.dim("What the agent would do:"));
+  console.log("  1. Check out a clean branch for this task");
+  console.log(`  2. Open ${finding.filePath}${finding.line ? ` at line ${finding.line}` : ""}`);
+  console.log("  3. Apply the fix described above");
+  console.log("  4. Run tests and linters to verify");
+  console.log("  5. Create a PR with the changes");
+}
+
 function colorSeverity(
   ui: import("chalk").ChalkInstance,
   severity: "info" | "warning" | "error",
@@ -135,8 +178,8 @@ function colorSeverity(
 
 function printAvailableIds(
   ui: import("chalk").ChalkInstance,
-  context: Awaited<ReturnType<typeof loadContext>>,
-  backlog: Awaited<ReturnType<typeof loadBacklog>>,
+  context: ContextResult,
+  backlog: BacklogResult,
 ): void {
   const findings = context?.qualityReport.findings ?? [];
   const epics = backlog?.epics ?? [];

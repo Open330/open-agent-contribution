@@ -185,11 +185,7 @@ function selectScanners(
 
   for (const scannerName of requested) {
     const normalized = scannerName.toLowerCase();
-    if (
-      normalized === "lint" ||
-      normalized === "github-issues" ||
-      normalized === "test-gap"
-    ) {
+    if (normalized === "lint" || normalized === "github-issues" || normalized === "test-gap") {
       enabled.push(normalized as SupportedScanner);
     } else {
       unknown.push(scannerName);

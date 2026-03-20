@@ -1,9 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import {
-  extractClaimedIssueNumbers,
-  fetchOpenOacPRs,
-} from "../../core/github-pr-cache.js";
+import { extractClaimedIssueNumbers, fetchOpenOacPRs } from "../../core/github-pr-cache.js";
 import type { Task, TaskComplexity, TaskSource } from "../../core/index.js";
 import { truncate } from "../../core/utils.js";
 import type { ScanOptions, Scanner } from "../types.js";
@@ -139,7 +136,6 @@ async function fetchOpenIssues(
     return [];
   }
 }
-
 
 async function parseRepoFromGitConfig(repoPath: string): Promise<RepoCoordinates | undefined> {
   const config = await readGitConfig(repoPath);

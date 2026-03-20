@@ -338,11 +338,14 @@ describe("schema version", () => {
     }
   });
 
-  it('rejects version "1.1"', () => {
+  it('accepts version "1.1"', () => {
     const log = makeValidLog();
     (log as Record<string, unknown>).version = "1.1";
     const result = contributionLogSchema.safeParse(log);
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.version).toBe("1.1");
+    }
   });
 
   it("rejects numeric version 1.0", () => {

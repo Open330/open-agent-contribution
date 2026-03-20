@@ -222,7 +222,10 @@ export async function executePlan(
     plan.selectedTasks.map(
       (entry) =>
         taskQueue.add(async (): Promise<TaskRunResult> => {
-          const taskForExecution = withRepoGuide(withContextAck(entry.task, ctx.contextAck), ctx.repoGuide);
+          const taskForExecution = withRepoGuide(
+            withContextAck(entry.task, ctx.contextAck),
+            ctx.repoGuide,
+          );
           const onEvent = createVerboseEventLogger(ctx, taskForExecution.title, executionSpinner);
           const result = await executeWithAgent({
             task: taskForExecution,
@@ -281,9 +284,7 @@ export async function executePlan(
           const realFiles = filterRealChanges(result.execution.filesChanged);
           if (realFiles.length === 0) {
             if (!ctx.suppressOutput) {
-              console.warn(
-                `[oac] Skipping PR for "${result.task.title}": no real file changes.`,
-              );
+              console.warn(`[oac] Skipping PR for "${result.task.title}": no real file changes.`);
             }
             return result;
           }
@@ -372,7 +373,11 @@ export function printFinalSummary(
   }
 }
 
-export function selectScannersFromConfig(config: OacConfig | null, hasGitHubAuth: boolean, forceEnable?: ScannerName[]) {
+export function selectScannersFromConfig(
+  config: OacConfig | null,
+  hasGitHubAuth: boolean,
+  forceEnable?: ScannerName[],
+) {
   const { names, composite } = buildScanners(config, hasGitHubAuth, forceEnable);
   return { enabled: names, scanner: composite };
 }
@@ -406,7 +411,10 @@ function withContextAck(task: Task, contextAck: ContextAck | undefined): Task {
   };
 }
 
-function withRepoGuide(task: Task, repoGuide: import("./repo-guide.js").RepoGuide | undefined): Task {
+function withRepoGuide(
+  task: Task,
+  repoGuide: import("./repo-guide.js").RepoGuide | undefined,
+): Task {
   if (!repoGuide) {
     return task;
   }

@@ -17,4 +17,9 @@ export { buildLeaderboard } from "./leaderboard.js";
 export type { Leaderboard, LeaderboardEntry } from "./leaderboard.js";
 
 export { buildDecisionContext, decisionContextSchema } from "./decision-context.js";
-export type { DecisionContext, GoalAlignment, BudgetConsiderations, AlternativeTask } from "./decision-context.js";
+export type {
+  DecisionContext,
+  GoalAlignment,
+  BudgetConsiderations,
+  AlternativeTask,
+} from "./decision-context.js";

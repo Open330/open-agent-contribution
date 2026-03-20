@@ -25,7 +25,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
 function rankSingle(overrides: Partial<Task> = {}): Task {
   const ranked = rankTasks([makeTask(overrides)]);
   expect(ranked).toHaveLength(1);
-  return ranked[0]!;
+  return ranked[0] as Task;
 }
 
 function getBreakdown(task: Task): PriorityWeights {
@@ -56,7 +56,7 @@ describe("rankTasks", () => {
 
     expect(ranked).toHaveLength(1);
 
-    const task = ranked[0]!;
+    const task = ranked[0] as Task;
     const breakdown = getBreakdown(task);
     const total =
       breakdown.impactScore +

@@ -238,8 +238,8 @@ describe("CompositeScanner", () => {
       }),
     ];
     const composite = new CompositeScanner([
-      makeMockScanner("scanner-a", [sameContentDifferentSource[0]!]),
-      makeMockScanner("scanner-b", [sameContentDifferentSource[1]!]),
+      makeMockScanner("scanner-a", [sameContentDifferentSource[0] as Task]),
+      makeMockScanner("scanner-b", [sameContentDifferentSource[1] as Task]),
     ]);
 
     const results = await composite.scan("/repo");

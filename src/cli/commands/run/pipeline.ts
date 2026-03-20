@@ -14,8 +14,8 @@ import {
 } from "../../helpers.js";
 import { loadCliPreferences } from "../../preferences.js";
 import { resolveContextAck } from "./context-policy.js";
-import { discoverRepoGuide } from "./repo-guide.js";
 import { runEpicPipeline, tryLoadOrAnalyzeEpics } from "./epic.js";
+import { discoverRepoGuide } from "./repo-guide.js";
 import { runRetryPipeline } from "./retry.js";
 import {
   discoverTasks,

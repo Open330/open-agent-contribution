@@ -14,10 +14,7 @@ export interface OacPRInfo {
  * parsed PR metadata. Shared by the scanner (deduplication during
  * discovery) and the PR module (pre-PR guard).
  */
-export async function fetchOpenOacPRs(
-  repoFullName: string,
-  token: string,
-): Promise<OacPRInfo[]> {
+export async function fetchOpenOacPRs(repoFullName: string, token: string): Promise<OacPRInfo[]> {
   const url =
     `${GITHUB_API_BASE_URL}/repos/${repoFullName}` +
     `/pulls?state=open&per_page=${OAC_PR_PAGE_SIZE}&sort=updated&direction=desc`;
@@ -64,10 +61,7 @@ export function extractClaimedIssueNumbers(prs: OacPRInfo[]): Set<number> {
  * Convenience: finds an existing OAC PR targeting a specific issue number.
  * Returns the PR number if found.
  */
-export function findOacPRForIssue(
-  prs: OacPRInfo[],
-  issueNumber: number,
-): number | undefined {
+export function findOacPRForIssue(prs: OacPRInfo[], issueNumber: number): number | undefined {
   for (const pr of prs) {
     if (pr.claimedIssueNumbers.includes(issueNumber)) {
       return pr.number;
@@ -80,10 +74,7 @@ export function findOacPRForIssue(
  * Convenience: finds an existing OAC PR with the exact given title.
  * Returns the PR number if found.
  */
-export function findOacPRByTitle(
-  prs: OacPRInfo[],
-  title: string,
-): number | undefined {
+export function findOacPRByTitle(prs: OacPRInfo[], title: string): number | undefined {
   for (const pr of prs) {
     if (pr.title === title) {
       return pr.number;

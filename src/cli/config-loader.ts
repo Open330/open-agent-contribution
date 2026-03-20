@@ -85,17 +85,28 @@ async function importLegacyDefineConfigCandidate(
 }
 
 function shouldTryLegacyDefineConfigFallback(error: unknown): boolean {
-  if (!(error instanceof Error)) {
-    return false;
-  }
+  // Extract error code and message from Error instances or plain error-like objects
+  // (Vite/Vitest may throw serialized error objects that are not instanceof Error)
+  const code =
+    error instanceof Error
+      ? (error as NodeJS.ErrnoException).code
+      : typeof error === "object" && error !== null && "code" in error
+        ? (error as { code?: string }).code
+        : undefined;
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === "object" && error !== null && "message" in error
+        ? String((error as { message: unknown }).message)
+        : "";
 
   // Node < 22.6: can't import .ts files directly → ERR_UNKNOWN_FILE_EXTENSION
-  if ((error as NodeJS.ErrnoException).code === "ERR_UNKNOWN_FILE_EXTENSION") {
+  if (code === "ERR_UNKNOWN_FILE_EXTENSION") {
     return true;
   }
 
-  // Node >= 22.6: strips types but can't resolve the @open330/oac package
-  return DEFINE_CONFIG_IMPORT.test(error.message);
+  // Node >= 22.6 / Vite: strips types but can't resolve the @open330/oac package
+  return DEFINE_CONFIG_IMPORT.test(message);
 }
 
 function transformLegacyDefineConfigSource(source: string): string | null {

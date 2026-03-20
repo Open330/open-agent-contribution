@@ -59,9 +59,7 @@ export class RoleRouter {
     }
 
     // Prefer a role that also matches the task source
-    const sourceMatch = repoMatches.find(
-      (role) => role.taskSources && role.taskSources.includes(task.source),
-    );
+    const sourceMatch = repoMatches.find((role) => role.taskSources?.includes(task.source));
 
     return sourceMatch ?? repoMatches[0];
   }

@@ -5,6 +5,7 @@ import { access, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { PassThrough } from "node:stream";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { Task } from "../../src/core/index.js";
 
 const childProcessMocks = vi.hoisted(() => ({
   spawn: vi.fn(),
@@ -667,7 +668,7 @@ describe("LintScanner", () => {
     const scanner = new LintScanner();
 
     const tasks = await scanner.scan(REPO_PATH);
-    const task = tasks[0]!;
+    const task = tasks[0] as Task;
 
     expect(task.title).toBe("Fix lint findings in src/foo.ts");
     expect(task.description).toContain("1 lint finding(s)");

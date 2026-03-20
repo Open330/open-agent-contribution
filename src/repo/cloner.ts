@@ -55,7 +55,7 @@ async function cloneNewRepository(repo: ResolvedRepo, localPath: string): Promis
     await cleanPartialClone(localPath);
     try {
       await retryGitOperation(
-        () => git.clone(repo.git.sshUrl!, localPath, cloneArgs),
+        () => git.clone(repo.git.sshUrl ?? "", localPath, cloneArgs),
         `clone ${repo.fullName} (SSH fallback)`,
       );
     } catch (sshError) {

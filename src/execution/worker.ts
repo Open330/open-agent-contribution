@@ -107,18 +107,10 @@ function buildTaskPrompt(task: Task): string {
     );
   }
 
-  lines.push(
-    "",
-    "Description:",
-    task.description,
-  );
+  lines.push("", "Description:", task.description);
 
   if (task.targetFiles.length > 0) {
-    lines.push(
-      "",
-      "Target files:",
-      fileList,
-    );
+    lines.push("", "Target files:", fileList);
   } else {
     lines.push(
       "",

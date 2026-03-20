@@ -595,7 +595,7 @@ describe("SecurityScanner", () => {
     const tasks = await scanner.scan(REPO_PATH);
 
     expect(tasks.length).toBeGreaterThanOrEqual(2);
-    expect(tasks[0]?.priority).toBeGreaterThanOrEqual(tasks[tasks.length - 1]!.priority);
+    expect(tasks[0]?.priority).toBeGreaterThanOrEqual(tasks[tasks.length - 1]?.priority);
   });
 
   // ── Deterministic IDs ───────────────────────────────────────

@@ -3,12 +3,7 @@ import Table from "cli-table3";
 import { Command } from "commander";
 import { buildExecutionPlan } from "../../budget/index.js";
 import type { OacConfig } from "../../core/index.js";
-import {
-  CompositeScanner,
-  LintScanner,
-  type Scanner,
-  rankTasks,
-} from "../../discovery/index.js";
+import { CompositeScanner, LintScanner, type Scanner, rankTasks } from "../../discovery/index.js";
 import { cloneRepo, resolveRepo } from "../../repo/index.js";
 import { ensureGitHubAuth } from "../github-auth.js";
 

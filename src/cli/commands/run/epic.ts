@@ -126,7 +126,18 @@ async function executeEpicEntry(
     activeSpinner?: import("ora").Ora | null;
   },
 ): Promise<TaskRunResult> {
-  const { adapter, resolvedRepo, providerId, timeoutSeconds, mode, ghToken, contextAck, repoGuide, ctx, activeSpinner } = params;
+  const {
+    adapter,
+    resolvedRepo,
+    providerId,
+    timeoutSeconds,
+    mode,
+    ghToken,
+    contextAck,
+    repoGuide,
+    ctx,
+    activeSpinner,
+  } = params;
   const task = withRepoGuide(withContextAck(epicAsTask(entry.epic), contextAck), repoGuide);
   const estimate = makeStubEstimate(task.id, providerId, entry.estimatedTokens);
 
